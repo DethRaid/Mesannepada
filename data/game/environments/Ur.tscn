@@ -1,0 +1,28 @@
+[gd_scene load_steps=4 format=3 uid="uid://xig2s3lw00ct"]
+
+[ext_resource type="PackedScene" uid="uid://d177d1qqyjjfn" path="res://environments/SM_UrEnvironment.glb" id="1_q20gi"]
+[ext_resource type="PackedScene" uid="uid://ibcoi6lpwgce" path="res://environments/ZigguratEnclosure.tscn" id="2_gfmrx"]
+[ext_resource type="PackedScene" uid="uid://dwd6xkgtxv1mf" path="res://environments/trees/BigTamarask.glb" id="3_gfmrx"]
+
+[node name="Node3D" type="Node3D"]
+
+[node name="SM_UrEnvironment" parent="." instance=ExtResource("1_q20gi")]
+
+[node name="Sun" parent="SM_UrEnvironment/Root" index="2"]
+light_intensity_lux = 100.0
+light_bake_mode = 1
+shadow_enabled = true
+
+[node name="BigTamarask" parent="." instance=ExtResource("3_gfmrx")]
+transform = Transform3D(0.786838, 0, 0.61716, 0, 1, 0, -0.61716, 0, 0.786838, -149.302, 19.2419, -156.09)
+
+[node name="BigTamarask2" parent="." instance=ExtResource("3_gfmrx")]
+transform = Transform3D(0.275654, 0, -0.961257, 0, 1, 0, 0.961257, 0, 0.275654, -176.277, 19.2419, -189.822)
+
+[node name="BigTamarask3" parent="." instance=ExtResource("3_gfmrx")]
+transform = Transform3D(-0.892026, 0, -0.451983, 0, 1, 0, 0.451983, 0, -0.892026, -164.458, 19.2419, -187.394)
+
+[node name="ZigguratComplex" parent="." instance=ExtResource("2_gfmrx")]
+transform = Transform3D(-0.552823, 0, 0.833299, 0, 1, 0, -0.833299, 0, -0.552823, -154.139, 19.3726, -173.538)
+
+[editable path="SM_UrEnvironment"]

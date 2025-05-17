@@ -1,0 +1,3 @@
+[submodule "src/engine/extern/freetype"]
+	path = src/engine/extern/freetype
+	url = https://gitlab.freedesktop.org/freetype/freetype.git

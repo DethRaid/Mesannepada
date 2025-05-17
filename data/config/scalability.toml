@@ -1,0 +1,57 @@
+# Low-res shadows, LPV with no AO
+[graphics.Low]
+shadows="Low"
+textures="Low"
+global_illumination="Low"
+
+# High-res shadows, CACAO, LPV
+[graphics.Medium]
+shadows="Medium"
+textures="Medium"
+global_illumination="Medium"
+
+# Low-ray RT shadows, RTAO, LPV
+[graphics.High]
+shadows="High"
+textures="High"
+global_illumination="High"
+
+# High-ray shadows, RTGI
+[graphics.Ultra]
+shadows="Ultra"
+textures="Ultra"
+global_illumination="Ultra"
+
+[shadows.Low]
+"r.Shadow.SunShadowMode"=1
+"r.Shadow.CSM.CascadeResolution"=1024
+"r.Shadow.Distance"=4096
+
+[shadows.Medium]
+"r.Shadow.SunShadowMode"=1
+"r.Shadow.CSM.CascadeResolution"=2048
+"r.Shadow.Distance"=8192
+
+[shadows.High]
+"r.Shadow.SunShadowMode"=2
+"r.Shadow.RT.NumSamples"=1
+
+[shadows.Ultra]
+"r.Shadow.SunShadowMode"=2
+"r.Shadow.RT.NumSamples"=1
+
+[global_illumination.Low]
+"r.GI.Mode"=1
+"r.AO"=0
+
+[global_illumination.Medium]
+"r.GI.Mode"=1
+"r.AO"=1
+
+[global_illumination.High]
+"r.GI.Mode"=1
+"r.AO"=2
+
+[global_illumination.Ultra]
+"r.GI.Mode"=2
+"r.AO"=0

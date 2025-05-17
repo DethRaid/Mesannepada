@@ -1,0 +1,254 @@
+<!--Settings menu - one tab for each kind of setting, but one data model for the whole document-->
+<rml>
+    <head>
+    <link type="text/template" href="../shared/window.rml"/>
+    <link type="text/rcss" href="../shared/mesannapada.rcss"/> 
+    <title>Game Settings</title>
+    <style>
+        .claytablet {
+            left: 80dp;
+            right: 80dp;
+            top: 50dp;
+            bottom: 50dp;
+            width: 612dp;
+            min-height: 300dp;
+            max-width: none;
+            max-height: none;
+        }
+        .content {
+            width: auto;
+            height: 100%;
+            padding: 10dp 15dp;
+
+            decorator: ninepatch(window-contentarea, window-contentarea-inner, 1.0);
+        }
+        .option-heading {
+            display: inline-block;
+            width: 150dp;
+            vertical-align: middle;
+            text-align: left;
+        }
+        .option-value {
+            display: inline-block;
+            vertical-align: middle;
+            text-align: left;
+        }
+        .tri-button {
+            float: left;
+            width: 33%;
+            vertical-align: middle;
+        }
+        .quad-button {
+            float: left;
+            width: 25%;
+            vertical-align: middle;
+        }
+    </style>
+    </head>
+    <body class="claytablet">
+        <div class="content">
+            <tabset id="settings">
+            <tab>Gameplay</tab>
+            <panel id="gameplay_settings">
+                <form>
+                    <div>
+                        <div class="option-heading">Difficulty</div>
+                        <div class="option-value">
+                            <select>
+                                <option value="easy">𒁹 Easy</option>
+                                <option value="medium">𒈫 Medium</option>
+                                <option value="hard">𒐈 Hard</option>
+                            </select>
+                        </div>
+
+                        <div class="divider" style="width: 110%">
+                        </div>
+
+                        <div style="margin-bottom: 15dp;">
+                            <input type="submit" data-event-click="on_submit_game_options">Save</input>
+                        </div>
+                    </div>
+                </form>
+            </panel>
+            <tab>Graphics</tab>
+            <panel id="graphics_settings" data-model="graphics_settings">
+                <form>
+                    <div>
+                        <div class="option-heading">Overall Fidelity</div>
+                        <div class="option-value">
+                            <button data-event-click="dirty=true; on_overall_fidelity(0)" class="quad-button">𒁹 Low</button>  
+                            <button data-event-click="dirty=true; on_overall_fidelity(1)" class="quad-button">𒈫 Medium</button>  
+                            <button data-event-click="dirty=true; on_overall_fidelity(2)" class="quad-button">𒐈 High</button>  
+                            <button data-event-click="dirty=true; on_overall_fidelity(3)" class="quad-button">𒐉 Ultra</button> 
+                        </div> 
+                    </div>
+
+                    <div class="divider" style="width: 110%">
+                    </div>
+
+                    <div>
+                        <div class="option-heading">Antialiasing</div>
+                        <div class="option-value">
+                            <button data-event-click="dirty=true; on_antialiasing(0)" class="tri-button">Off</button>  
+                            <button data-event-click="dirty=true; on_antialiasing(1)" class="tri-button">Nvidia DLSS</button>  
+                            <button data-event-click="dirty=true; on_antialiasing(2)" class="tri-button">AMD FSR 3</button>
+                        </div> 
+                    </div>
+                    
+                    <div class="divider" style="width: 110%">
+                    </div>
+
+                    <div data-if="antialiasing == 1">
+                        <div class="option-heading">DLSS Mode</div>
+                        <div class="option-value">
+                            <select data-value="dlss_mode" data-event-click="dirty=true">
+                                <option value="3">Auto</option>
+                                <option value="3">Quality</option>
+                                <option value="2">Balanced</option>
+                                <option value="1">Performance</option>
+                                <option value="4">Ultra Performance</option>
+                                <option value="6">DLAA</option>
+                            </select>
+                        </div>  
+
+                        <div class="divider" style="width: 110%">
+                        </div>
+                    </div>
+
+                    <div data-if="antialiasing == 1">
+                        <div class="option-heading">DLSS Ray Reconstruction</div>
+                        <div class="option-value">
+                            <select data-value="dlss_ray_reconstruction" data-event-click="dirty=true">
+                                <option value="true">Auto</option>
+                                <option value="false">Off</option>
+                            </select>
+                        </div>  
+
+                        <div class="divider" style="width: 110%">
+                        </div>
+                    </div>
+
+                    <div data-if="antialiasing == 2">
+                        <div class="option-heading">AMD FSR Upscaling</div>
+                        <div class="option-value">
+                            <select data-value="fsr3_mode" data-event-click="dirty=true">
+                                <option value="0">Native AA</option>
+                                <option value="1">Quality</option>
+                                <option value="2">Balanced</option>
+                                <option value="3">Performance</option>
+                                <option value="4">Ultra Performance</option>
+                            </select>
+                        </div>  
+
+                        <div class="divider" style="width: 110%">
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="option-heading">Shadows</div>
+                        <div class="option-value">
+                            <select data-value="shadow_fidelity" data-event-click="dirty=true">
+                                <option value="Low">𒁹 Shadow Maps Low</option>
+                                <option value="Medium">𒈫 Shadow Maps High</option>
+                                <option value="High">𒐈 Ray Traced Low</option>
+                                <option value="Ultra">𒐉 Ray Traced High</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="divider" style="width: 110%">
+                    </div>
+
+                    <div>
+                        <div class="option-heading">Global Illumination</div>
+                        <div class="option-value">
+                            <select data-value="gi_fidelity" data-event-click="dirty=true">
+                                <option value="Low">𒁹 LPV Low</option>
+                                <option value="Medium">𒈫 LPV Medium</option>
+                                <option value="High">𒐈 LPV High</option>
+                                <option value="Ultra">𒐉 Ray Traced High</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="divider" style="width: 110%">
+                    </div>
+                    
+                    <div data-if="dirty">
+                        You have unsaved options! Press Save to save them
+                    </div>
+                    
+                    <div style="margin-bottom: 15dp;" class="side-by-side">
+                        <input type="submit" data-event-click="dirty=false; on_submit_graphics_options(0)">Save</input>
+                    </div>
+                    
+                    <div style="margin-bottom: 15dp;" class="side-by-side">
+                        <input type="submit" data-event-click="dirty=false; on_submit_graphics_options(1)">Save and Exit</input>
+                    </div>
+                </form>
+            </panel>
+
+            <tab>Audio</tab>
+            <panel id="audio_settings" data-model="audio_settings">
+                <form>
+                    <div>
+                        <div class="option-heading">Master Volume {{master_volume_text}}</div>
+                        <div class="option-value">
+                            <input type="range" name="master_volume" min="0" max="100" step="1" value="50" data-value="master_volume" data-event-mousedown="dirty=true"/> <span id="master_volume"/>
+                        </div>
+                    </div>
+                    
+                    <div class="divider" style="width: 110%">
+                    </div>
+
+                    <div>
+                        <div class="option-heading">Music {{music_volume_text}}</div>
+                        <div class="option-value">
+                            <input type="range" name="music_volume" min="0" max="100" step="1" value="50" data-value="music_volume" data-event-mousedown="dirty=true"/> <span id="music_volume"/>
+                        </div>
+                    </div>
+
+                    <div class="divider" style="width: 110%">
+                    </div>
+                    
+                    <div>
+                        <div class="option-heading">SFX {{sfx_volume_text}}</div>
+                        <div class="option-value">
+                            <input type="range" name="sfx_volume" min="0" max="100" step="1" value="50" data-value="sfx_volume" data-event-mousedown="dirty=true"/> <span id="sfx_volume"/>
+                        </div>
+                    </div>
+
+                    <div class="divider" style="width: 110%">
+                    </div>
+
+                    <div data-if="dirty">
+                        You have unsaved options! Press Save to save them
+                    </div>
+                    
+                    <div style="margin-bottom: 15dp;" class="side-by-side">
+                        <input type="submit" data-event-click="dirty=false; on_submit_audio_options(0)">Save</input>
+                    </div>
+                    <div style="margin-bottom: 15dp;" class="side-by-side">
+                        <input type="submit" data-event-click="dirty=false; on_submit_audio_options(1)">Save and Exit</input>
+                    </div>
+                </form>
+            </panel>
+
+            </tabset>
+        </div>
+
+        <div template="window" data-model="settings_screen">
+            <div data-if="show_confirmation">
+                You have unsaved changes! Are you sure you want to exit?
+                <div>
+                    <div style="margin-bottom: 15dp;" class="side-by-side">
+                        <input type="submit" data-event-click="on_exit_screen(1)">Save and close</input>
+                    </div>
+                    <div style="margin-bottom: 15dp;" class="side-by-side">
+                        <input type="submit" data-event-click="on_exit_screen(0)">Close without saving</input>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</rml>

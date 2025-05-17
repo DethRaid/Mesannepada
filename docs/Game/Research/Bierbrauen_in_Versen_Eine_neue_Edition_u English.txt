@@ -1,0 +1,926 @@
+, is justified.
+1. Introduction
+For the inhabitants of Sumer, beer was an indispensable food, which they needed in a digestible form containing high-quality nutrients, with the necessary 
+
+1 This study would not have been possible without the fruitful discussions at our Munich Beer Seminar in 2009; therefore, my special thanks go to Adelheid Otto and Martin Zarnkow, who also generously provided me with their seminar materials. This article owes important suggestions to M. Zarnkow, who remarkably made Sumerian terminology and its problems his own, helped develop, reject, or confirm ideas with his brewing technology expertise and historical knowledge, and finally traced Sumerian beer recipes in his first experiments.
+Thanks go to Joachim Marzahn for the opportunity to collate the Berlin specimen (Ms. C), and especially to Bertrand Lafont, who prepared a detailed photographic documentation of AO 5385 (Ms. A) for me in the Louvre, as well as to Jeremiah Peterson for his (unsuccessful) search for further specimens. I was able to complete and present this study for the first time during a stay at the Università "La Sapienza" di Roma in March 2012, and I owe many suggestions to the discussion after the lecture and with the students.
+
+292 Walther Sallaberger
+
+vitamins, especially vitamin B, with trace elements, including silica.[2] Beer, river water, and groundwater were the only widely available beverages, which were so desperately needed in the heat. But unlike water, beer was free of pathogens due to its acidic environment (pH < 4.5) and even had an anti-inflammatory effect. Then, as now, beer was made from barley, the only widely grown grain in Mesopotamia. Barley is characterized by a short growing season and undemanding requirements, and can even thrive in slightly saline soils. The most important product of the fields of Sumer was thus fermented into a healthy, nutritious beverage, refreshing thanks to the effervescence of fermentation and its slightly sour taste, which was enjoyed not only in everyday life but also at festivals and even offered to the gods.
+
+In keeping with the presence of beer, there are countless cuneiform sources of all kinds relating to beer, brewing, and beer drinking, which provide insight into Sumerian beer culture. Despite this essentially favorable source material and numerous studies on the subject, it is still largely unknown how beer was brewed in Sumer. Such a statement may seem surprising given the literature on beer, as brewing has received due attention from the very beginning, beginning with Hrozný 1913: 152ff., who correctly identified the types of grain and the malt made from barley and to whom the translation "beer bread" for bappiru goes back, through the study of beer terms by Oppenheim/Hartmann 1950[3], which became fundamental for all subsequent work, to the edition of the Ninkasi Hymn and the Drinking Song by Civil 1964. However, the interpretation of the Ninkasi Hymn offered there contradicts in some respects all other, particularly documentary, evidence on beer brewing. 
+
+This problem became clearly apparent during a seminar on beer brewing, jointly organized in Munich in the summer of 2009 by Adelheid Otto, a Near Eastern archaeologist, Martin Zarnkow, a brewery technologist from the Technical University of Munich, Weihenstephan, and the author, an Assyriologist. In some cases, this central text on beer brewing was not successful
+
+[2] Even if Powell (1994) or Damerow (2012) critically question the term "beer," it is clear based on the ingredients and the definition of beer: Beer is an alcoholic beverage made from saccharified starch with the help of enzymes, without the use of a distillation process.
+The distinction from wine lies in the fact that beer is made by fermenting sugar from grains (barley, but also wheat, corn, and rice), whereas wine is made by fermenting sugar from plant or animal sources (based on a model by M. Zarnkow).
+
+[3] Civil 2005: 234ff., as CTMMA 2 No. 56, offers a new edition of the lexical list Kh XXIII, treated by Oppenheim / Hartmann in 1950, which can be better supplemented by the parallel text SpTU 3, 115 (von Weiher 1988: 231ff.).
+
+293 Brewing in Verses
+
+with the findings obtained from other sources or with the experimentally obtained results (Zarnkow et al. 2008).[4] This provided the immediate impetus for a new edition of the Ninkasi hymn.
+
+Since the exemplary edition by Civil in 1964, which provided a detailed and knowledgeable commentary on the translation and understanding, the Ninkasi hymn has been repeatedly cited but never thoroughly analyzed. Civil's translation and his associated interpretation of the content were adopted, for example, by Röllig 1970 as well as ETCSL (c.4.23.1), Civil himself only changed a few details in a later translation (1991-2007), others refrained from offering divergent interpretations.
+
+Pascal Attinger commented extensively on my first new translation from 2009, to whom I extend my sincere thanks. And may he graciously
+look upon the remaining errors when this new edition, which grew out of our work on the Sumerian vocabulary that began many years ago over an evening beer, is presented to him, the master of ancient Babylonian Sumerian literature.
+
+This article aims to offer a philologically sound interpretation of the Ninkasi Hymn that is consistent with our current knowledge of the terminology of beer brewing, ancient Near Eastern living conditions, and brewing technology requirements. This initially implies a focus on Sumerian sources from the late third and early second millennium, since we now know that regionally and chronologically different brewing methods must have been used. A completely different product, for example, is the Neo-Babylonian date beer (Stol 1994); the beer vessels found at Tell Bazi, located on the Middle Euphrates in the Late Bronze Age, cannot be traced back to the same form elsewhere (Otto/Einwag [i. Dr.] with bibliography); the Old Assyrian texts from Anatolia, unlike Babylonia, document the use of fuels for heating in beer brewing (Michel 2009: 205); changes in the set of beer vessels from the Neo-Sumerian to the Old Babylonian period even suggest short-term changes in the brewing process (Sallaberger 1996: 72-75). But apart from that, common principles of beer production are emerging for Babylonia, i.e., the Mesopotamian alluvium, and at least for the period from the Early Dynastic to the Old Babylonian period, which can also be found in a similar form in other areas of the cuneiform realm, such as Mari, Upper Mesopotamia, or Assyria.
+
+Beer (Sumerian kaš, Akkadian šikaru) was thus prepared from two barley-based raw materials: malt (munu4, buqlu) and a sourdough (bread) (babir1/2/3, bappiru), traditionally translated as "beer bread";
+
+[4] Damerow 2012: §6 has also pointed out some of these difficulties in general.
+
+294 Walther Sallaberger 
+
+Apart from the usually added flour or grist from barley, and occasionally from emmer wheat, there are no other ingredients. Another characteristic of Babylonian beer is the dry "mixture" obtained from the mash, or more precisely, the spent grain cake present therein. This is the literal translation of Akkadian billatu (Sumerian dida), a dry beer with which one could mix a fresh beer at any time (Stol 1971: 169; Kraus 1984: 254f.). The Ninkasi Hymn (Ninkasi A, ETCSL c.4.23.1) is a short text of 48 lines, but due to the duplication of all line pairs, it even contains only 24 lines, but is considered the most important text on the process of brewing beer. The drinking song that follows in the three manuscripts (lines 49-79, ETCSL c.5.5.a) praises the beer vessels and the beer at the beginning of the festival, but does not further address its production.
+
+However, in the generally accepted interpretation by Civil 1964, the Ninkasi hymn seems to allude to aspects of beer brewing that contradict the findings of the documents or that have been refuted by brewing experiments:
+
+- Civil 1964: 76, 81 interprets babir-2 in lines 14/16 as a boiled mixture of dough and aromatic herbs; according to lines 34/36, honey and wine were added. This contradicts the evidence of numerous administrative documents from the ancient Sumerian to the ancient Babylonian period, which list only barley, sometimes also emmer, as the raw material for beer production and which, given the often large quantities involved in beer production, should have noted any additional spices or honey, expensive imported products.[5]
+- According to lines 21/23, the germinating barley was covered with earth; this method could be ruled out experimentally, since the temperature is no longer controllable and, moreover, malt contamination poses a problem (Zarnkow et al. 2008: 72, Fig. 6). However, Civil 1991-2007 itself already corrected the corresponding translation.
+- A particular problem is the heating of large quantities, which is common in modern breweries; Although babir2 "sourdough (bread)" is indeed at least partially baked or dried (cf. Civil 1964: 76 and unten),
+
+[5] It should be noted in passing that in the Ur III period, beer, sourdough (bread), and malt grist were needed for the production of scented ointments, which were thus enriched with nutrients for the skin; see Brunke / Sallaberger 2010: 54-62 for details. The Old Babylonian document TCL 10, 16:10-13 should also be placed in this context of scented ointment production, von Stol 1971: 169 Anm. 16; the aromatics are followed by storage vessels filled with scented oil or empty ones (našpaku; lines 18-27).
+
+295 Beer Brewing in Verses
+
+but Civil also postulates a boiling of the mash or wort (Civil 1964: 76, 79: titab2 as "cooked mash"). In modern times, the large brewing kettles characterize every brewery. However, the beer vessels well known from textual sources do not include boiling kettles; neither vessels nor devices for these can be archaeologically proven, and in addition, the necessary fuel would have been scarce in Babylonia. Zarnkow et al. 2006 and 2008 showed that excellent results can be achieved even without heating using the cold mashing process.
+- The dry dida, according to Stol 1971: 169, is considered the liquid beer wort (Civil 1964: 81).
+
+In terms of content, the new brewing technology experiments and the progress in the understanding of Sumerian terminology require a new interpretation of the Ninkasi Hymn. It should be emphasized that in recent decades, the documentary evidence, in particular, has increased significantly and has recently been made accessible through databases (BDTNS, CDLI), allowing interpretations to be derived for which the foundations were still lacking in 1964. Furthermore, several studies have clarified important aspects of the terminology relevant to the Ninkasi Hymn; especially Stol 1971 on babir2, id. 1987-90 on malt, Powell 1994 on terminology and especially the proportions of beer ingredients in ancient Sumerian documents, and Brunke 2011 on Sumerian terminology and metrology of flour, grits, and bread.
+
+On the other hand, it is important to consider that the Ninkasi Hymn is a poetic text with the imagery characteristic of Sumerian literature. Thus, the processes of brewing beer are translated into literary images; in the last stanza, for example (lines 45-48), the pouring of the finished beer is reminiscent of the rushing of the Tigris and Euphrates, although this image, like others, is not formulated as a comparison: the beer "is" the Tigris and Euphrates. Civil translated this image accordingly, but otherwise considered every line as a description of the brewing process. However, an interpretation that is consistent with our general knowledge of brewing and that takes grammar and lexicon into account often only emerges when further literary images are considered. This interpretation will be philologically justified below. It will be immediately apparent that only a few quotations from the literature on brewing (from Edzard 1967, Röllig 1970 to Procopiou / Michel 2009) are commented on, as the respective authors based their work on Civil's adaptation. The commentary refers to the Ninkasi hymn itself and is not intended to comprehensively describe the entire brewing process; the evidence provided clearly and concisely by Civil 1964 need not be repeated here. 
+
+296 Walther Sallaberger
+
+2. Score notation
+The Ninkasi hymn exists in the following three manuscripts:
+A: TCL 15, 20 (AO 5385) vs. 1-33 = lines 1-48 (omitting lines 19-20, 23-24, 37-44, 47-48); collated from photos by B. Lafont (03/2012); * = clarifications compared to the copy
+B: ISET 1, 119 (Ni. 45696) iii 24'-iv 14' = lines 1-13, 35-48
+C: VS 10, 156 (VAT 6705) vs. = lines 6-31, Rs. 1'-10' = lines 39-48; collated 03/2011; * = Clarifications compared to the copy
+
+Ms. C indicates possible variants in lines 14, 17, 18, 45, and 46, such as -a (locative) instead of -e (directive) and vice versa, by means of small subscript glosses, which are also subscripted here. The initial symbols for lines 13 and 29, written in small letters on the left margin of the tablet, have a different function, as they are obviously reading aids to quickly find the respective verse; however, the beginning of line 29 is inadvertently already noted next to line 25.
+
+In all three manuscripts, the drinking song gegakkul-e (ETCSL c.5.5a) immediately follows, in C after a hyphen (see the translation below in section 6).
+
+In A, Dumuzi-Inana E (Sefati 1998: 165-170) follows, in which the beloved is compared to the sprouting lettuce; the caption reads: 2 bala-bala-e dina[na*-kam]7 "they are two alternating songs of Inana," which addresses the pair of Ninkasi hymn and drinking song as a single text and as a text for Inana.
+
+In B, the only manuscript from Nippur, four songs from the Dumuzi-Inana cycle precede it (cf. Alster 1985: 155 note 21, including Dumuzi-Inana G, O, F1).
+
+In C, which only contains the text of the Ninkasi hymn, the is written in the left margin
+Signature [bala-bala-e(?) dnin-k]a-si-kam “it is a [changing song(?) by Nink]asi”.
+1 A 1 a NI.LI u3-du2-da [ . . . ]
+B iii 24 a NI.LI u3-du2-da [ . . . ]
+C[]
+2A2
+dnin-ḫur-saĝ-ĝa2-ke4 mim z[i- ]
+B iii 25
+dnin-ḫur-saĝ-ĝa2-ke4 mim zi-de3-┌eš┐ [du11-ga]
+C[]
+
+6 So according to ISET 1; at Civil 1964: 67 Ni. "5469".
+7 Although the MUš3 mark is not completely preserved, it can be seen in the photos by B.
+Lafont clearly identifiable (no RI as in copy TCL 15, 20).
+
+297 Brewing Beer in Verse
+
+3A3
+dnin-ka-si a NI.LI u3-d[u2- ]
+B iii 26
+dnin-ka-si a NI.LI u3-du2-da ┌x┐-[x]
+C[]
+4A4
+dnin-ḫur-saĝ-ĝa2-ke4 mim zi-d[e3- ]
+B iii 27
+dnin-ḫur-saĝ-ĝa2-ke4 mim zi-de3-eš du11-ga
+C[]
+5 A 5 iri-zu lal3-ḫur-re ki* ┌ ki?*┐ [ ]
+B iii 28 uru2-zu lal3-ḫur-e ki us2-sa
+C[]
+6 A6 izim gal-bi šu ma-ra-[an-du7]-du7
+B iii 29 izim gal-bi ša-mu-ra-an-du7-du7
+C Vs.1' [ ] šu mu-ra-a[n- ]
+7 A7
+dnin-ka-si iri-zu lal3-ḫur-┌re┐ ki ┌ki?*┐ us2-sa
+Biii30
+dnin-ka-si uru2-zu lal3-ḫur-re ki us2-sa
+C Vs.2' [ ]-┌ka-si┐ iriki-zu lal3*-ḫur* ki us2-sa
+8 A8 izim gal-bi šu ma-┌ra┐-an-du7-du7
+B iii 31 izim gal-bi šu mu-ra-an-du7-du7
+C Vs.3' [izi]m*-bi šu m u-ra-an-du7-[du7]
+9 A9 aia-zu den-ki and dnu-dim2-mud-e
+B iii 32 ama-zu [dnin-til3] nin ab-a
+C Vs.4' ama-to dnin-til3 nin ab-[ ]
+10 A10 ama-to dnin-til3 nin ab-a
+B iii 33 aia-[zu den-ki en dnu]-┌dim2-mud┐-e
+C Vs.5' aia-zu den-ki en dnu-dim2-mu[d- ]
+11 A11
+dnin-ka-si aia-to the-ki en dnu-dim2-mud-e
+Biii34
+┌d┐[ ] ab-a
+C Vs.6'
+dnin-ka-si ama-to dnin-til3 nin [ ]
+12 A12 ama-to dnin-til3 nin ab-a
+B iii 35 [aia-to-the-k]i? [en dnu-dim2-m]ud-e
+C Vs.7' aia-zu den-ki en dnu-dim2-mud-[ ]
+13 A13 si mu-un-sila11* ĝešmar maḫ-a i-ni*-in-du8
+B iii 36 [ ] ┌x┐ [ ]
+C Vs.8' si niĝ2-sila11* mar maḫ-e du8-a-┌zu┐
+(left round) niĝ2*-sila11*
+14 A14 šem lal3* ta-ḫab2*-ba babir2 ḫi-ḫi-a
+B [ ]
+C Vs.9' šem-ta? lal3 ta-ḫab2-ba babir2 ḫi-ḫi-a
+15 A15
+dnin-ka-si si mu-un-sila11
+ĝešmar maḫ-a i-ni-in-du8
+B [ ]
+C Vs.10'
+dnin-ka-si niĝ2-sila11* mar maḫ-e du8-a-zu
+298 Walther Sallaberger
+16 A16 šem lal3* ta-ḫab2*-ba babir2 ḫi-ḫi-a
+B [ ]
+C Vs.11' šem lal3 ta-ḫab2-ba babir2 ḫi-ḫi-a
+17 A17 babir2 udun maḫ-a du8-a-zu
+B [ ]
+C Vs.12' babir2 udun maḫ-a-e du8-a-zu
+18 A18 zar gu2-nida-am3 si* sa2-sa2-a-am3
+B [ ]
+C Vs.13' zar gu2-nida-e-a si sa2-sa2-a
+19 A vacat
+B [ ]
+C vs.14'
+dnin-ka-si babir2 udun maḫ-e du8-a-zu
+20 A vacat
+B [ ]
+C Vs.15' zar gu2-nida-a si sa2-sa2-a
+21 A19 munu4 saḫar ĝar-ra a si*-ga-zu
+B [ ]
+C Vs.16' munu4 saḫar ĝar-ra a si-ga-zu
+22 A20 ur-me-me siki* gurum-gurum-ma-am3
+B [ ]
+C Vs.17' ur-me-me NAM gurum-gurum-ma-am3
+23 A vacat
+B [ ]
+C Vs.18'
+dnin-ka-si munu4 saḫar ĝar-ra a si-ga-a-zu
+24 A vacat
+B [ ]
+C Vs.19' ur-me-me nam gurum-gurum-ma-am3
+25 A21 sumun2* dug*-a a ĝar-ra-zu
+B [ ]
+C Vs.20' sumun2 dug-a a ĝar-ra-zu
+(left round) titab2
+ge‹ge2› (to line 29!)
+26 A22 i-zi zi-zi-dam i-zi Ha2-ha2-dam
+B [ ]
+C Vs.21' i-zi zi-i-zi-dam i-zi ĝa2-ĝa2-dam
+27 A23
+dnin-ka-si sumun2* dug*-a a ĝar-ra-zu
+B [ ]
+C Vs.22'
+dnin-ka-si sumun2 dug-a a ĝar-ra-zu
+299Brewing Beer in Verse
+28 A24 i-zi zi-zi-dam i-zi ĝa2-ĝa2-dam
+B [ ]
+C Vs.23' i-zi zi-i-zi-dam i-zi ĝa2-ĝa2-dam
+29 A25 titab2
+gege2 maḫ-a bara3-ga-zu
+B [ ]
+C Vs.24' titab2
+gege2 maḫ-a bara3-ga-zu
+30 A26 ša3 se26 diĝir dab5-ba-a
+B [ ]
+C Vs.25' ša3 se26 diĝir dab5-ba-am3
+31 A27
+dnin-ka-si titab2
+gege2 maḫ-a bara3-ga-zu
+B [ ]
+C Vs.26'
+┌dnin-ka-si titab2
+against2
+┐ [ ]
+32 A28 ša3 se26 diĝir dab5-ba-a
+B [ ]
+C[]
+33 A29 dida gal šu tab-ba ĝal2-la-zu
+B [ ]
+C[]
+34 A30 lal3 ĝeštin teš2-ba sur-ra-a
+B [ ]
+C[]
+35 A31
+dnin-ka-si dida gal šu dim2 ĝal2-la-zu
+Biv 1' [ ]-┌to┐
+C[]
+36 A32 lal3
+┌ĝeštin┐ teš2-ba sur-ra-a
+B iv 2' [ ]┌x┐
+C[]
+37 A vacat
+B iv 3' [ ]┌AN┐
+C[]
+38 A vacat
+B iv 4' [ ]┌X┐
+C[]
+39 A vacat
+B iv 5' [ ] ┌KA?┐ [ ]
+C Rs. 1'
+dnin-ka-si NIG2 [ . . . ]
+40 A vacat
+B iv 6' [ -m]a?-ni-in-dab5
+!?-┌ba!?┐-[am3
+?]
+C Rs. 2' dida-bi šu ┌im*-ma*-ni┐-[
+300 Walther Sallaberger
+41 A vacat
+B iv 7' [ ]-bi [ ] now di-dam
+C Rs. 3'
+dugniĝ2*-dur2*-buru3-e gu3 now di-dam
+42 A vacat
+B iv 8' [ ]┌x┐ maḫ mi-ni-in-si-sa2-am3
+C Rs. 4' laḫtan maḫ-a mi-ni-in-si-sa2-am3
+43 A vacat
+B iv 9' [ ]-┌ka-si┐ dugniĝ2-dur2-buru3 [x (x)] now di-dam
+C Rs. 5'
+dnin-ka-si dugniĝ2-dur2-buru3-e gu3 now di-dam
+44 A vacat
+B iv 10' [ ] mi-ni-[in-s]i-sa2-am3
+C Rs. 6' laḫtan maḫ-a mi-ni-in-si-sa2-a
+45 A33
+┌kaš┐ [ du]glaḫtan*-na de2-a-zu
+B iv 11' [ ] dug┌laḫtan?┐-a ┌de2
+┐-a-za
+C Rs. 7' kaš si-im duglaḫtan-a mi-ni-in-de2-a-zu
+46 A34 [ ] ┌i7┐buranunana saĝ* si3-ga-am3
+B iv 12' [ ] ┌x x┐ [ ]-ga-a
+C Rs. 8'
+i7idigna i7buranuna!(UD.NUN)na ┌saĝ?┐ si3-ga-am3-za
+47 A vacat
+B iv 13' [ ] ┌duglaḫtan-na?┐ [d]e2-a-za
+C Rs. 9'
+dnin-ka-si kaš si-im duglaḫtan-a de2-a
+48 A vacat
+B iv 14' [ ] ┌buranuna┐ [ ]-┌x┐-a
+C Rs. 10'
+i7idigna ┌i7┐buranunana* saĝ* si3-ga-am3
+(left rd.) TAB.TAB
+–––––––––––––––––––––––––––––––––––––––––– (C)
+
+3. Notes on text reconstruction, reading, and individual lexical questions
+
+1/3: The more cautious transliteration a NI.LI instead of the widespread a zal-le is based on the variants in Šulgi A 58 with a-li, a-i-li, e-la // a-NI-li; see PSD A/1 7 § 2.2.6 a-NI-le, which, however, in comparison with our passage, Ninkasi A 1, 3, points to
+a sa-la u3-du2-da in VS 2, 37:11 (in a different context!). The lexical meaning of NI.LI is unknown; a connection with the literary word i3-li, generally translated as "fine oil," cannot be ruled out (in the sense of "flowing, gliding along"?). PSD may have captured the general meaning: "lasting water (supply)", "continuously lowing water".
+
+About three characters are missing at the end of the line, probably a participle phrase. A suffix -zu ("yours...") is possible, referring to the city in lines 5/7.
+
+5/7: Between ki and us2 there is a character that can almost only be a second ki; for ku3, khul2 is probably too small. Cf. at least Summer and Winter 287 kisal-maḫ-a am-gen7 du10 i-ni-ib2-ĝar ki ki ba-ni-ib-us2.
+
+The reading lal3-khur is suggested by the gloss on the divine name dlal3-khur(khu-ur)-gal-zu (An-Anum II 40; Krebernik 1993-1997: 504); Civil 1964: 66f. offers the meaning based on the equation with iskuru "wax" in Ur III documents, for which tukh-lal3, literally "residues of honey," is used from Old Babylonian times onwards. He also refers to Sumerian literary texts in which lal3-khur refers to the perfect form, such as the scales of the fish in Bird and Fish 74 (Herrmann 2010: 156f., line 72). Both semantics are explained with a translation "honeycomb"; Etymologically, ḫur ("to carve") remains difficult to understand; a reading lal3-ḫar, such as "honey rings," would be more plausible, but the aforementioned gloss contradicts this. The generally accepted proposal by Civil 1966: 92 for equating lal3-"ḫar" with lal3-ĝar (understood by ETCSL as "subterranean waters"), however, is neither orthographically nor phonologically nor semantically convincing; cf. also Civil 1991-2007: "founded by the sacred lake."
+
+6/8: Civil reads the first character bad3, but the copies in A and B clearly show EZEN, in A additionally confirmed by a photograph; in C (line 8), after collation, it is not GAL, but obviously the end of EZEN. Both bad3 gal and izim gal are well attested.
+
+13/15: In C, after collation, clearly šID (sila11), sometimes somewhat drawn out, in all places.
+
+According to Civil 1964: 77, the verb du8 cannot yet be "to bake" here during dough preparation. du8 means something like "to seal, to massage, to pile up," as the following examples show: šeg12 du8 "to paint bricks," esir2 (abl.) ma2/du10-us2 du8 "to seal boat/bath with asphalt," inda3 (in Garšana also šeg12 al-urx(BAḪAR2)-ra) du8 "to bake bread (bricks)." See also among the Tasks of the Templar of Inana in Nippur during the festival preparations on the day after the malt grinding 6 NT 254:10' (Zettler / Sallaberger 2011: 26) zi3 munu4 du8-dam "piling up flour and malt."
+
+14/16: lal3 ta-ḫab2-ba is, according to Civil 1987: 45, "dripping with honey," ta-ḫab2 "to soak, to saturate," but according to Attinger 1993: 719, "miel durci," crystallized honey. Attinger's interpretation is based on lal3 LAGAB (= ḪAB?) = matqu, lallāru, lal3 ḫad2 = lallāru Ḫkh XXIV v 2-4 (MSL 11,78); CAD L 48 "white honey"; the interpretation "white honey" (not "hard") also in Civil 1983: 63 and Bauer 1989/90: 87. Even if one were to assume that lal3 ḫad2 would be "crystallized honey," this does not mean that lallāru must have this same property, if, for example, the literary word lallāru describes the taste quality (and not the consistency). Ta-ḫab2 "to soak" can be based on clear contexts such as im-ta-ḫab2 = rušumtu Khḫ X 482 (MSL 7, 104) "swamp, mire"; cf. also Sefati 1987: 160f. as well as the vessel dugniĝ2-ta-ḫab "soaker" = kukkubu "bottle", gugguru (Sallaberger 1996: 105 s.v.).
+
+The reading of the first character šIM as šem and not as babir2 is based on the fact that the phrase appears to be attested twice in Sumerian literature: Dumuzi-Inana W 23 (Civil 1987; Sefati 1998: 261) šem a-ša3-ga ┌lal3?┐ ta-ḫab2-ba-ĝu10 "my fragrant herbs of the field, (as good as) soft honey"; Nanše Hymn 13 irimmax ma šem-gen7 ┌lal3┐ šu ta-ḫab2 mu-un -da-ab-du11, see Attinger 1993: 719. A reading
+babir2 lal3 ta-ḫab2-ba "sourdough, (like) soaked honey" cannot be ruled out, butthis would also diminish the literary image.
+
+22: nam2 in A according to the Civil Collation, but both copies and photos show a clear siki; NAM in C perhaps read sim?
+
+25: sumun2 also clear in A according to photos (with vertical after the left two horizontal lines). The entry on the left edge of the tablet in C, which refers to the beginning of the stanza, is incorrect here; it belongs to line 29.
+
+30/32: The interpretation interprets diĝir (paragraph) dab5-ba as an apposition to ša3 se26. P. Attinger suggested (personal communication) that the idiomatic expression ša3 dab5 should also be examined. ša3 dab5, roughly "to be aroused" (literally "to seize the heart"), can be used as an expression for anger (Jaques 2006: 93-95); however, there is no opposite pair between this expression and ša3 se26 (Jaques 2006: 481f.), which is not surprising given the semantics of ša3 dab5: "to be aroused" does not necessarily imply anger. ša3 se26 "cool heart" means "gentleness, cooled anger" in ancient Near Eastern terminology.
+
+33/35: While in line 33 there is actually something like a closely writtenenes TAB.BA appears to stand (Civil: šu tab-ba), line 35 has a clear dim2 (as in lines 9/11); in line 33, therefore, there is one more horizontal line at the top. šu tab-ba (from line 33) is preferred particularly because of the Old Babylonian Ura VI representative, Forerunner 13 iv 191 (MSL 11, 150), kaš-⌈šu⌉-tab-ba (after kaš sur-ra); for šu tab-ba Nigga Bil. B 227-229 (MSL 13, 121), the Akkadian equations have not been preserved; the last is probably šu-
+ta -┌bu-lum┐ "to mix"; šu-tab-ba = eṣēpu "to double" Erimḫuš IV 106 (MSL 17, 62); BaU A (ETCSL c.4.02.1) Seg. A 27 šu tab-ba // ka-mi-is-tum, probably kāmistum "she who gathers." šu tab thus means something like "to knead with the hands, to pack together."
+
+40 C: Civil reads dida dug-še3 [m]i-ni-in-┌x x┐. Instead of DUG, BI (always without a small vertical line at the beginning of the character on the left) can be read here, even if DUG (usually with a vertical line) sometimes looks like BI in this MS. šu ┌im-ma┐- after collation.
+
+B: The copy shows ...-ḫuĝ-┌ĝa2?┐, but cf. Civil 1964: 82: "the traces in the copy are unreliable"; thus, no single *šu ḫuĝ needs to be added. The proposed addition is advisable.
+
+48 C: The vertical line in the "head" of the character means SAĜ instead of KA; also Ms. A (collated).
+
+4. Reconstructed Text and Translation
+
+For the following "composite text," no one manuscript could be preferred, because A omits too many lines, B and C are incomplete, B varies its repetitions (e.g., line 6 ša-, line 8 šu), and C occasionally deviates from the other two text witnesses. Additions that are not found in any of the manuscripts but are expected based on parallels (especially the copula -am3) are in italics. Uncertain or guessed words and additions in the translation are also in italics.
+
+I 1 a NI.LI u3-du2-da [ . . . ]
+2 dnin-khur-saĝ-ĝa2-ke4 mim zi-de3-eš du11-ga
+3 dnin-ka-si a NI.LI u3-du2-da [ . . . ]
+4 dnin-ḫur-saĝ-ĝa2-ke4 mim zi-de3-eš du11-ga
+II 5 iri-zu lal3-ḫur-re ki us2-sa
+6 izim gal-bi šu mu-ra-an-du7-du7
+7 dnin-ka-si iri-zu lal3-ḫur-re ki us2-sa
+8 izim gal-bi šu mu-ra-an-du7-du7
+III 9 ama-zu dnin-til3 nin ab-a
+10 aia-zu den-ki and dnu-dim2-mud-e
+11 dnin-ka-si ama-to dnin-til3 nin ab-a
+12 aia-zu den-ki and dnu-dim2-mud-e
+IV 13 si niĝ2-sila11
+ĝešmar maḫ-e du8-a-zu
+14 Shem lal3 ta-ḫab2-ba babir2 ḫi-ḫi-a
+15 dnin-ka-si si niĝ2-sila11
+ĝešmar maḫ-e du8-a-zu
+16 Shem lal3 ta-ḫab2-ba babir2 ḫi-ḫi-a
+V 17 babir2 udun maḫ-e du8-a-zu
+18 zar gu2-nida-am3 si sa2-sa2-a-am3
+19 dnin-ka-si babir2 udun maḫ-e du8-a-zu
+20 zar gu2-nida-am3 si sa2-sa2-am3
+VI 21 munu4 saḫar ĝar-ra a si-ga-zu
+22 ur-me-me nam gurum-gurum-ma-am3
+23 dnin-ka-si munu4 saḫar ĝar-ra a si-ga-zu
+24 ur-me-me nam gurum-gurum-ma-am3
+VII 25 sumun2 dug-a a ĝar-ra-zu
+26 i-zi zi-zi-dam i-zi ĝa2-ĝa2-dam
+27 dnin-ka-si sumun2 dug-a a ĝar-ra-zu
+28 i-zi zi-zi-dam i-zi ĝa2-ĝa2-dam
+VIII 29 titab2
+gege2 maḫ-a bara3-ga-zu
+30 ša3 se26 diĝir dab5-ba-am3
+31 dnin-ka-si titab2
+gege2 maḫ-a bara3-ga-zu
+32 ša3 se26 diĝir dab5-ba-am3
+IX 33 dida gal šu tab-ba ĝal2-la-zu
+34 lal3 ĝeštin teš2-ba sur-ra-am3
+35 dnin-ka-si dida gal šu tab-ba! ĝal2-la-zu
+36 lal3 ĝeštin teš2-ba sur-ra-am3
+X 37 [NIG2 . . . ]
+38 [dida-bi šu im-ma-ni-in-dab5
+!?-┌ba!?┐-[am3]
+39 dnin-ka-si NIG2 [ . . . ]
+40 dida-bi šu im-ma-ni-in-dab5
+!?-┌ba!?┐-[am3]
+XI 41 dugniĝ2-dur2-buru3-e gu3 now di-dam
+42 laḫtan maḫ-a mi-ni-in-si-sa2-am3
+43 dnin-ka-si dugniĝ2-dur2-buru3-e gu3 now di-dam
+44 laḫtan maḫ-a mi-ni-in-si-sa2-am3
+XII 45 kaš si-im duglaḫtan-na de2-a-zu
+46 i7idigna i7buranunana saĝ si3-ga-am3
+47 dnin-ka-si kaš si-im duglaḫtan-a de2-a-za
+48 i7idigna i7buranunana saĝ si3-ga-am3
+
+
+Translation:
+I 1 Brought forth by flowing water, [...],
+2 Reliably cared for by (the mother goddess) Ninkhursaĝa,
+3 Ninkasi, brought forth by flowing water, [...],
+4 Reliably cared for by (the mother goddess) Ninkhursaĝa,
+II 5 Your city, set like honeycombs on the earth:
+6 She (Ninkhursaĝa) has completed her great festivals for you;
+7 Ninkasi, your city, set like honeycombs on the earth:
+8 She (Ninkhursaĝa) has completed her great festivals for you.
+III 9 Your mother (is) Nintil ("Lady Life"), the Lady in the Abzu,
+10 your father (is) Enki, the Lord Nudimmud.
+11 Ninkasi, your mother (is) Nintil ("Lady Life"), the Lady in the Abzu,
+12 your father (is) Enki, the Lord Nudimmud.
+IV 13 Your rising dough,[8] formed with the stately spatula,
+14 an aroma of soft honey, the mixed leaven,
+15 Ninkasi, your rising dough, formed with the stately spatula,
+16 an aroma of soft honey, the mixed leaven,
+V 17 your leaven (lumps), baked in the stately oven,
+18 they are neatly arranged sheaves of gunida emmer.
+19 Ninkasi, your leaven (lumps), they were baked in the stately oven,
+20 they are neatly arranged sheaves of gunida emmer.
+VI 21 Your malt, the semolina was laid out, water poured into it,
+22 it is vermin of the kind that curls and curls.[9]
+23 Ninkasi, your malt, the semolina was prepared, water was poured into it,
+24 it is vermin of the kind that curls and curls.
+
+[8] Basic meaning roughly "'horn' made of dough"; see the commentary.
+[9] Thus according to Ms. C. Ms. A: siki gurum2-gurum2-ma-am3 "(is vermin like) wool that curls."
+
+VII 25 Your mash, water was added to the vessel,
+26 there are waves that rise, waves that sink.
+27 Ninkasi, your mash, water was added to the vessel,
+28 there are waves that rise, waves that sink.
+VIII 29 Your spent grain cake, if it is spread out on a stately mat,
+30 it is the gentleness that has seized the god.
+31 Ninkasi, your spent grain cake, if it is spread out on a stately mat,
+32 it is the gentleness that has seized the god.
+IX 33 Your great dry beer, if it is prepared,
+34 it is honey and wine that together produce juice.
+35 Ninkasi, your great dry beer, if it is prepared,
+36 it is honey and wine that together produce juice.
+X 37 What...
+38 is the dry beer that she took in her hand.
+39 Ninkasi, what...
+40 is the dry beer that she took in her hand.
+XI 41 So that the hole-bottomed vessel sounds loudly,
+42 you have prepared it on a stately beer pithos.
+43 Ninkasi, so that the perforated-bottom vessel sounds loudly,
+44 you have arranged it on a stately beer pithos.
+XII 45 Your filtered beer, when it has poured into the beer pithos,
+46 it is as if someone had paid attention to the Euphrates and Tigris.
+47 Ninkasi, your filtered beer, when it has poured into the beer pithos,
+48 it is as if someone had paid attention to the Euphrates and Tigris.
+
+
+5. Literary and Content Commentary
+
+Unlike much of Sumerian literature, the Ninkasi Hymn has survived in only one manuscript from Nippur (B, Ni. 4569), but in two from other unknown sites (A, C). The copy from Nippur is also found on a collection tablet with other hymns and songs, some of which are written in Emesal. Although we consider this a text containing historical information, in antiquity it was not a "didactic poem" by scribes in which words and concepts were collected. Its association with a song about Inana in Ms. A and other songs in the Nippur copy also shows that it is a widespread song, although, given the theme, one would rather look for the occasion in folk festivals or their preparations rather than in temple worship (see section 6 below).
+
+A dating of the poem cannot be determined, as there are no references to royal names, and the often archaic vocabulary of a literary text rarely allows for dating. The univerbed si-sa2 in lines 42/44 also points to the time of copying in the Old Babylonian period rather than the time of composition. The following commentary explains the allusions to the brewery and the literary images, as well as discusses the ingredients and intermediate products mentioned here, and particularly justifies the interpretations that differ from Civil 1964, without repeating or repeatedly referring to what has already been discussed there.
+
+5.1 Stanzas I-III: The City, the Beer, and the Gods
+I 1/3 (dnin-ka-si) a NI.LI u3-du2-da [ . . . ]
+2/4 dnin-khur-saĝ-ĝa2-ke4 mim zi-de3-eš du11-ga
+II 5/7 (dnin-ka-si) iri-zu lal3-khur-re ki us2-sa
+6/8 izim gal-bi šu mu-ra-an-du7-du7
+III 9/11 (dnin-ka-si) ama-zu dnin-til3 nin abzu-a
+10/12 aia-zu den-ki en dnu-dim2-mud-e
+
+I 1/3 (Ninkasi,) brought forth by flowing water, [...],
+2/4 faithfully cared for by (the mother goddess) Ninkhursaĝa,
+II 5/7 (Ninkasi,) your city, like honeycombs on the earth set:
+6/8 She (Ninkhursaĝa) has completed her great festivals for you;
+III 9/11 (Ninkasi,) your mother (is) Nintil ("Lady Life"), the Lady in the Abzu,
+10/12 your father (is) Enki, the Lord Nudimmud.
+
+The introduction describes the city, to which the first verse probably already refers: the abundantly flowing water enables life and thus the settlement of humans, those born of the mother goddess who drink; and the first words "flowing water" also refer to the liquid beer. The unique but charming image of the "honeycomb" is used for the city, densely built with houses, artfully arranged cells containing life. The resonant image of honey appeals to the sense of taste, which is central to the topic of beer, and this exquisite, precious food appears twice more in the following lines. In the Ninkasi hymn and beyond, honey is the common metaphorical expression for a special delicacy, a "treat."
+
+The city is also the site of great festivals, at which the beer to be brewed is served; and the subsequent drinking. The poem ends in such a festival, which is alluded to here in the second verse. "Your city" is therefore not a cult site of Ninka's, but rather, every city becomes a place of the beer goddess when they drink together. Beer, as a healthy beverage, is a source of life, and accordingly, the creative god Enki, the god of water and crafts, and the "Lady Life" are invoked as Ninka's parents. 
+
+5.2 Stanzas IV-V: Sourdough (babir2)
+
+IV 13/15 (dnin-ka-si) si niĝ2-sila11 ĝešmar maḫ-e du8-a-zu
+14/16 šem lal3 ta-ḫab2-ba babir2 khi-khi-a
+V 17/19 (dnin-ka-si) babir2 udun maḫ-e du8-a-zu
+18/20 zar gu2-nida-am3 si sa2-sa2-a-am3
+
+IV 13/15 (Ninkasi,) your rising dough, which was formed with the stately spatula,
+14/16 an aroma of soft honey, the mixed sourdough,
+V 17/19 (Ninkasi,) your Sourdough (lumps) were baked in the stately oven.
+In 18/20 they are neatly arranged sheaves of Gunida emmer.
+
+Stanza IV deals with the shaping of the sourdough, stanza V with its drying in the oven. Babir ("bappir"), acc. bappir, "sourdough" was made from crushed barley and, alongside malt, was the second main ingredient of ancient Mesopotamian beer. 
+
+The reading babir instead of the traditional “bappir” is based on an Old Babylonian source.[11] ​​The spelling varies slightly, even in the third millennium without a completely clear distribution: ŠIM×ĜAR = babir (aS Nippur, Sargonic, nS Umma, Ur, Girsu), šIM = babir2 (aS Ur, nS Umma, Ur, Nippur), BI×ĜAR = babir3 (aS Girsu), babir2 is also common in Old Babylonian. The symbolic form implies the connection with beer (element BI/KAš and derived
+
+[11] Side tradition to Proto-Ea/Aa (MSL 14, 116 No. 4:81): ba-bi-ir : babir (ŠIM×ĜAR), confirmed by jB Ea V 53 (MSL 14, 398). The reading bappir is based on sources from the 1st millennium: Sb Voc. I 67b, 69 (MSL 9, 151) with ba-ap-pi-ir, Aa V/1 195f. (MSL 14, 412) with the Akkadian bap-pi-ru (for babir, babir2).
+
+šIM) and bread (element ĜAR/NINDA), without, however, providing a precise interpretation. could win (but see Damerow 2012).
+This symbol BABIR(2) was also used to write "beer brewer," underscoring the central role of babir2 in beer production (LU2.BABIR(2), usually read lunga(2/3)/lumgi). The traditional translation of babir/bappiru as "beer bread" (since Hrozný 1913: 154) takes this meaning into account without specifying what exactly this "beer bread" is meant to mean. Every analysis of ancient Mesopotamian beer brewing has intensively examined the term, albeit mostly guided by Civil's interpretation (Civil 1964: 77: "a cooked mixture of (fermented?) dough and aromatic herbs"; e.g., Powell 1994: 97-99; Damerow 2012).
+
+The interpretation as “sourdough” goes back to Stol 1971: 168f., who rightly notes that in antiquity, not pure “yeast,” but sourdough was used as the starting point for fermentation in beer brewing.[12] He refers to Hebrew שאור, Hittite ḫarnammar, Greek ζύμη, Latin fermentum, and compares Akkadian NINDA emṣu “sour,” i.e., “leavened bread,” which is attested in Mari and now also in Tell Bi‛a, Tell Leilan, and Chagar Bazar; There, the dried sourdough-malt mixture billatu, which preserved the yeast and lactic acid bacteria, was used for "leavened bread" (Lacambre 2008: No. 65:6f.; see stanza IX below).
+
+Stol's 1971 suggestion has remained largely unnoticed, probably also because he distanced himself from it in the RlA article "Malt" (Stol 1987-90: 325f.); according to the later interpretation, bappiriu would have been made from malt, which, however, makes little sense, since such a bread dough would be too runny (Zarnkow et al. 2008: 69; Fritzsche 2011: 32f.). Stol 1987-90: 325f. cites BIN 8, 258 alone for his new interpretation of bappiru as malt bread, but even Powell 1994: 99, who otherwise adopts the suggestion of Stol 987-90, describes the text as "rather obscure." Powell 1994: 96-99 offers no arguments that babir is a malt product. His reference to transactions in ancient Sumerian Girsu certainly does not support such an opinion, since in a brewing process it is to be expected that the "maltster" (munu4-mu2) works alongside "brewers" (lu2-babir3) or supplies them with malt (RTC 56; DP 340; VS 14, 70). On the other hand, further arguments for the interpretation of babir as "sourdough" can be found in the textual sources. In some Ur III documents from Ur, the "sourdough" itself is referred to as babir2 saḫ7-ḫi-in, in contrast. The documentation of babir2: ša3 laḫtan-bi "that which is inside the laḫtan vessel of it:", i.e., of the total amount, and the given number represents exactly one-tenth of this total amount. Accordingly, one-tenth of the entire leaven is retained in the large, sealable laḫtan pithoi (Sallaberger 1994: 540f.; for the closure of the pithoi, see Sallaberger 1996: 74). In his detailed study of value equivalences, Brunke 2011: 18f. confirmed this conclusion, and he was also able to show that the 1/10 "surcharge" was only deducted after the production of babir2 and that a corresponding surcharge only appears in babir2. M. Zarnkow notes (personal communication) that one-tenth is also the ratio used today for sourdough, which is based on the general basis of natural processes occurring with the same objectives.
+
+"Good sourdough" (babir2 saga10), like "good crushed grain" (niĝ2-ar3-ra saga10), required only half the labor compared to ordinary flour; babir2 thus consisted of crushed grain, not fine flour (Brunke 2011: 75). Apparently, only barley was used, as the value equivalences show (Brunke 2011: 26-30) and the documentary evidence known to me confirms. The sourdough babir2 itself was not used as food; anyone who has tried it knows why. Although sourdough is known today as an ingredient in bread, interestingly, in the third millennium, only the ancient Sumerian Girsu clearly shows that a bread intended for consumption with the addition of sourdough existed (inda3 babir3; made from 1/3 to 1 sila3 "liter" of barley or barley meal). In Old Babylonian, however, leavened bread (aklu emṣu) seems to have been more widespread, at least in Upper Mesopotamia (see above).
+
+Stanza IV of the Ninkasi Hymn begins with the "horn"(?) (si) of the dough. Civil 1964: 77 speculated that it was a special form of bread (a graphic variant of gug2 "cake"); he excludes the "germ," which in green malt is referred to as a "horn" (in the term munu4 si-e3). Yet evidently, not only the root germ of the grain, but also the sourdough that rises through fermentation upon the addition of water and flour, was referred to as si "horn." This is at least indicated by the passage of relevant terms in Khḫ XXIII iii, which is quoted here, as it uses the terms from moist, stirred, fermenting sourdough to allowing the sourdough lumps to dry, and thus corresponds to the sequence in the Ninkasi hymn, verses IV-V.
+
+[13] According to Stol 1971: 68, sikkatu is a plant that was added in the first millennium.
+
+Khḫ XXIII iii 1'ff. (MSL 11, 72; now CTMMA 2, 56 = Civil 2005: 235f.):
+1' sa-ḫ[i-in] [...] "sourdough yeast?"
+2' sa-ḫ[i-in-du3] [s/šikkatu] "sourdough yeast?"
+3' si [...] "rising (lit. 'horn')"
+4' babir2 DI-a "mixed sourdough"
+5' a-ga-ri-inagarin4(AMA.šIM) aga[rinnu] "fermenting, rising sourdough"
+6' a-ga-ri-in [agarinnu] "fermenting, rising sourdough"
+7' si buru3 bu-ru-da mer[su?][14] sum. "rising, blistering"(?) akk. “Scrambled dough”(?)
+8' babir bap[piru] “leaven”
+9' babir UD tab-ba bappir maš[̣ ê ] sum. “spread dry sow rise” akk. “Sourdough from the kiln”
+10' babir šu-kiĝ2 bappir s[i...] sum. "Working sourdough"
+11' babir pad-pad-da pi[ssusu?] "crumbled sourdough"
+12' babir du-urduru5 rạ [bu] "moist sourdough"
+13' babir UD šā[bulu] "dry sourdough"
+15' sumun2 nar[̣ abu ] "mash"
+
+The context in which si (line 3') appears here suggests the "rising, fermentation" of the dough; it is also possible that si refers to the "starter," the preserved residue of the sourdough, but in my opinion, this is more difficult to reconcile with the working with "spatula" or "spoon" in the Ninkasi hymn. In any case, and this is crucial here, the word si can refer to a state or part of the sourdough.
+
+The quoted section of the list Khḫ XXIII also clarifies the exact meaning of agarin/aĝarin/agarinnu (lines 5-6), which is not "wort" or "mash," but rather the fermenting and rising sourdough; this also provides the starting point for the widespread metaphorical use of agarin/agarinnu for the swelling womb.[15] In line 7, buru3-da "to form holes" can only mean the "blowing" of the sourdough. The new 
+
+[14] Civil 2005: 235 adds mir-[qu], a type of flour only attested in the Hebrew Bible, which seems rather unsuitable here. Mersu, literally "stirred," is primarily known as a dessert made by mixing ingredients (sum. niĝ2-i3-de2-a; cf. Brunke 2011: 203-208).
+
+[15] Stol 1971: 169 note 14 refers to the ingredient pairs bappiru – buqlu and agarinnu – buqlu in Nuzi; in contrast to Stol, however, the proverb in Lambert 1960: 270 A 7-8 ("If the agarinnu is sour, how can the beer be good (sweet)?") shows precisely that agarinnu is a form of sourdough that is produced over the course of the process changes its taste quality (for correct interpretation, note the verbs in the stative vs. present tense: agarinnu enṣet, š̄kār̄ ina m̄ni ị̄ab). In Sumerian, ag/ĝarin is not a word in the everyday language of the documents.
+
+The section babir/bappiru (line 8') first mentions "dried, kilned" sourdough, i.e., the form in which the sourdough was stored (see below for Ninkasi Hymn, verse V) before it was processed and crumbled. There is moist and dry sourdough, which is then further processed in the mash.
+
+The monolingual Old Babylonian precursor list Ura (tablet VI) contains similar terms, for which a representative text is cited here.
+
+SLT 12 iii 8-19 (= MSL 11, 116f. Text A; cited here from DCCLT, OB Nippur Ura 6; last accessed 03/2012):
+8 sa-khi-in "sourdough yeast?"
+9 aĝarin4 !(‹AMA›.šIM) “fermenting, rising sourdough”
+10 babir2 “sourdough”
+11 babir2 SI.A “excess (diri)(?) sourdough”
+12 babir2 duru5 “moist sourdough”
+13/14 babir2 saga10/DU “good/ordinary sourdough”
+15 ┌babir2┐ al-laḫ(UD) “dried sourdough”
+16 ┌babir2┐ UD tab-ba “spread out dry sourdough”
+17 ┌babir2┐ sumun2 “sourdough (for) mash”
+18 sumun2 sur-ra “mash that yielded liquid”
+19 titab2 “spent grain cake”
+
+According to verse IV of the In the Ninkasi hymn, the dough is worked with a wooden "shovel," but the term ĝešmar/marru can also be used in the context of food for very small shovels, "spatulas, spoons," such as those made of ivory for spices (mar za3-khi-li "cress spatula," Ur III, Ur, e.g., UET 3, 765:4). In Khḫ VII B 18-20, after the "bread shovel" or "baking shovel" for bread and the oven (udun) (lines 12-17), the wooden "spatula" (ĝešmar) for "sourdough" (babir2), for "rising sourdough" (agarin4), and that of the "maltster" follow. In lines 14/16, the sourdough is compared to "soft honey,"[16] a precious food and of a similar consistency to the stirred sourdough, which exudes a delicious aroma. The presence of honey must be understood as a literary image, which appears here, as often, in the second lines of this text; moreover, the documents show beyond any doubt that babir2 was made solely from barley (see above).
+
+In the translation by Civil 1991-2007, however, this poetic expression was taken literally: "Mixing, in a pit, the bappir with sweet aromatics" (similarly, Powell 1994: 98).17 Civil 1964: 77 refers
+
+[16] The translation is justified in the philological commentary above.
+
+[17] Furthermore, one would have expected the comitative -da in this translation, which is used to construct ḫi "mix with sth."
+
+on beer spices in later periods; these have now been dealt with by Stol 1994: 175ff: it is gazi/kasû, according to the convincing interpretation of Stol Cuscuta, "silk, devil's thread," a parasite that grows on plants, is characterized by a bitter taste, and in modern times was used, for example, in Asian cuisine and as a medicine. In ancient Mesopotamia, gazi/kasû appears as a spice until the middle of the second millennium; only in the late second and first millennium was it added to beer, both barley beer and date "beer" (Stol 1994). As already emphasized in the introduction, the documents of the third millennium list the ingredients for beer in detail, but these are exclusively barley products, with the occasional addition of emmer. The expensive spices and honey, which are well attested in the documents, never appear in the context of brewing beer.
+
+According to Ur III documents, the leaven (babir2) was often stored not as dough, but in solid form; it could then be measured by weight (e.g., 1 talent = 30 kg "good," 3 talents = 90 kg "medium," qablium "leaven," NATN 238) or even counted by the piece (e.g., 21 babir2
+du8, UET 3, 1353:7). A documentary evidence shows that 3 1/3 liters (sila3) of barley or barley meal were used to make such a "lump of sourdough":
+
+NATN 661: 1-2 (Ur III, Nippur):
+3 babir2 0.0.1 du8 DU / 3 babir2 saga10 0.0.1 du8
+"3 (lumps) of ordinary sourdough, baked from 1 seah (= 10 liters);
+3 (lumps) of good sourdough, baked from 1 seah."
+
+The term is therefore du8, which roughly means "to seal, to massage," and in combination with inda3 "bread" also "to bake." This term is used here, even though it is more likely to refer to "drying," as the lexical lists indicate (see above).
+
+The sourdough lumps lying in the oven are compared in literary imagery to gu2-nida emmer. Gu2-nida is a variety of emmer in ancient Sumerian Girsu documents, alongside ziz2 babbar2 "white emmer," which is the main variety; gu2-nida can also be used as seed there. Gu2-nida is used in ancient Babylonian literature as a poetic word for "emmer," similar to še gu-nu for "barley."The image is easy to understand: the sourdough lumps are lined up in the oven like sheaves of emmer in the field or the threshing floor, with the image gaining traction through the double reference to the grain ready for use.[18]
+
+[18] Civil 1964 and 1991-2007 translates "piles of hulled grain," with zar3 "Sheaf" rendered as "pile"; the actual meaning of "Sheaf" would be incompatible with a translation "dehulled."
+
+It is striking that the "drying, baking" of sourdough, which is rarely attested in documents, is documented in literary texts and, accordingly, in lexical lists[19].
+
+Ewe and Grain 116-119 (see Civil 1964: 76f.; Alster / Vanstiphout 1987: 22f.)
+116 min3-kam-ma-še3 dezinam2 u8(-ra) mu-na-ni-ib(2)-ge4-ge4
+117 babir udun-na mim u3-ba-ni-du11 (// ]-ba-ni-in-du8)
+118 titab2 udun-na u3-ba-ni-ib-du3 (// u3-ba-ni-du3, u3]-ba-ni-in-du)
+119 dnin-ka-si-ke4 (//-gen7) ma-ab-šar2-šar2-re
+
+116 For the second time, the grain spoke to the ewe:
+117 "Has she baked the sourdough bread in the oven?" supervised,
+118 she has set up the spent grain cake in the oven,
+119 then Ninkasi will mix it for me."
+
+Only two Ur III documents concerning fuel could be found for the "drying, baking" of the sourdough,[20] while reeds, brushwood, and wooden branches are otherwise quite well documented as fuel for baking bread, cooking "soup," roasting meat, or in crafts. It is quite possible that this treatment was rather the exception for storage and transport, and that the sourdough was usually kept in the pithoi until the next use.
+
+M. Sigrist / T. Ozaki, BPOA 6, 334 (Umma, Amarsuena 9/iii):
+30 gu2 u2 / babir2 na-ga-ab-tum du8-de3
+"30 loads of brushwood to bake sourdough for the estate administration"; Taken over by Ur-Sulpa'e, the person responsible for food administration at the court of the city prince of Umma.
+M. Fales, Prima dell'alfabeto (1989) no. 32 (Umma, Sulgi 42):
+20 gu2 pa ku5 / ĝešasar2 / babir2 bala-a du8-de3
+"20 loads of cut branches from Euphrates poplars to bake sourdough for the rotation service (bala)"
+
+The "baking," a drying of large lumps of sourdough, made the sourdough durable and thus storable. This is precisely what the two documents indicate: the acceptance into the general administration of goods (nakkabtum, Brunke 2008) and the delivery as a contribution in the (state) rotation service (bala). Later, this dried sourdough could be reactivated by adding water and flour or grist, but drying had previously interrupted the fermentation process for the period of storage.
+
+[19] OB Nippur Ura II 319 (quoted from DCCLT) udun babir2 "oven of sourdough (lump)"; Khkh X 359 (MSL 7, 97) = atūg bappiri, in Akkadian distinguished from udun muḫaldim/tinūru "oven of the cook/tannur."
+[20] The evidence was obtained using BDTNS; note that babir2 is often misread as "šim" and vice versa (which implies further search commands).
+
+The addition of sourdough is essential for beer preparation, as it allowed for the controlled and reproducible addition of yeast, which initiated the fermentation process. In the first experiments with ancient Near Eastern beer at Tell Bazi, the brewery technologists had also sought other ingredients besides malt and considered bulgur, or flatbread barley bread (Zarnkow et al. 2008: 69). However, as Zarnkow et al. 2008 already saw, the first suggestion, bulgur, should be rejected due to the enormous amount of fuel required, and the second due to the different terminology of bread (inda3) and sourdough (babir2). However, the experimentally proven cold mashing process requires the use of a product in which the starch exhibits a certain degree of pre-gelatinization, in addition to malt with its enzyme potential (Zarnkow et al. 2008: 71). This second product is sourdough, and, it should be emphasized, its production also took place without the heating process, which was never easy in the ancient Near East. Through the fermentation of the sourdough, the starch in the barley grain was partially decomposed and the first dissolving processes had begun. Sourdough contains a mixture of lactic acid and yeast bacteria, which determine the flavor and initiate the fermentation process. The temperatures in the Near East provide the optimal conditions for sourdough to rise: lactic acid bacteria develop optimally at 30-35°C, acetic acid bacteria at 20-25°C, and yeast at 24-26°C. With the interpretation of babir2 as sourdough, one can now understand why the beer ingredient lists also list flour or grist alongside babir2 and munu4, or why the ingredients for beer can be described as zi3 munu4, isimanû "flour and malt": the flour was mixed with sourdough for fermentation, so no barley or emmer flour, which was not already soaked in some way, had to be added to the mash.[21]
+
+The use of a bread-like product in beer production is reminiscent of Russian kvass,[22] a low-alcohol, refreshing drink made from bread and flour fermented with yeast; however, in ancient Near Eastern beer, unlike kvass, the sugary malt was added, resulting in an alcoholic beverage.
+
+The "baking, drying" of the sourdough enables its storability. The enormous size of these lumps (although documented only in one text) of
+
+[21] In our experiments on Sumerian beer, which M. Zarnkow conducted in the summer of 2009, we only added plain flour.
+
+[22] Powell 1994: 91f. had considered a comparison with kvass in connection with ancient Near Eastern beer.
+
+over 3 liters indicates that the aim was to obtain a germinable core. While heat kills the bacteria that cause fermentation, the limit values ​​of 38°C for yeast bacteria and 50°C for lactic acid bacteria only apply to a humid environment (personal communication: M. Zarnkow); the source from Stol 1971: 169 note 13 speaks of a limit of 55-58°C. Sourdough was evidently dried in large lumps, gently heated and dried in the oven as needed, stored, and transported. More common, however, was the setting aside of a tenth in clay pithoi as a starter for the next brewing process. 
+
+5.3 Stanza VI: Malt (munu4) and Mashing
+VI 21/23 (dnin-ka-si) munu4 saḫar ĝar-ra a si-ga-zu
+22/24 ur-me-me nam gurum-gurum-ma-am3
+VI 21/23 (Ninkasi,) your malt, the semolina was prepared, water poured into it,
+22/24 it is vermin of the writhing and curling kind.
+
+The poet now turns to the malt, which, interestingly, only now appears in the process of brewing beer, while its production through malting must have been chronologically at the beginning. This is explained by the distribution of tasks; In ancient Sumerian Girsu, the "maltster" (munu4-mu2) delivered malt to the "brewer" (lu2-babir3, VS 14, 70); in the beer recipes there, it follows sourdough bread. Consequently, malting itself is not addressed in the Ninkasi hymn, which represents the position of the female brewer.
+
+Through the process of malting, the artificially induced germination of the barley grain, enzymes are naturally activated that can break down the grain's insoluble starch into fermentable sugars. The germinated barley, the green malt, is called munu4 si e3 "malt from which the horn (= the root sprout) emerges" in Sumerian. One of the most remarkable results of the brewery technologists' experiments at Tell Bazi is the demonstration of how simple the malting process is under local conditions, producing an excellent product: the constant warm temperature in the mud houses is ideal for germination, and the extreme heat and dryness of the Orient allow the green malt to be simply spread on the flat roofs of the houses (or on another surface), and the heat of the sun interrupts the germination process and fulfills the task of kilning.
+
+The experiment was conducted in September, and kilning was completed in just two days (Zarnkow et al. 2006: 18-22; 2008: 72-74). Ur III documents dated to the month munu4-si-e3 attest to malting throughout the entire year, thus not being seasonally restricted.
+
+The kilned malt was crushed, or the green malt was ground, so that during mashing, the mixing of the malt grist with water, the enzymes formed during malting could more easily attack the insoluble grain components. In documents from the third millennium, this "malt grist" is usually called ba-ba munu4 (for this interpretation of ba-ba, generally translated as "porridge," see Brunke 2011: 159-164). This forms the starting point for the interpretation of saḫhar, literally "earth, dust," in the Ninkasi hymn lines 21/23, because this refers to the malt grist;[23] the translation "semolina" is intended to reflect this, as it refers to both a type of ground grain and coarse sand. The brewer takes the crushed malt and soaks it in water (a si-g). The image refers to ur-me-me "insects, vermin" (Sjöberg 1996: 228 ad obv. 37; note P. Attinger), whereby these vermin are depicted as "writhing, curling" (gurum) or as "curling wool" (Ms. A). The preceding malting probably explains the chosen image: during the steeping, in which the barley to be germinated is stirred into water to absorb moisture, "the injured, hollow grains float on the surface, as do vermin, dust, and dirt. Today we call this 'floating barley' and remove it from the surface" (personal communication M. Zarnkow). However, the context in the Ninkasi hymn suggests that Strophe VI refers to mashing and only takes the literary image from malting.
+
+5.4 Stanza VII: Mash (sumun2)
+
+VII 25/27 (dnin-ka-si) sumun2 dug-a a ĝar-ra-zu
+26/28 i-zi zi-zi-dam i-zi ĝa2-ĝa2-dam
+VII 25/27 (Ninkasi,) your mash, water was added to the vessel,
+26/28 there are waves that rise, waves that fall.
+
+sumun2 (Akkadian naṛabu, literally "moist mass")[24] refers to the "mash" (Stol 1971: 167), in which the malt is soaked and vigorously stirred, which in turn influences the saccharification: waves that rise and fall. This mash must also have contained the soaked sourdough bread (babir2), without any other term being chosen for it.
+
+[23] According to Powell 1994: 96, sahar means har-ra "covered with dust"; however, according to M. Zarnkow, malt is not dusty. The solid residues from brewing beer are also referred to as sahar "dust" in the incantation on the beer vessel in YOS 11, 57:7 (Sallaberger
+1996: 86f.).
+[24] Cf. rạbu "moist," rụ̣ubu "to soak (mash)."
+
+The sequence is also confirmed by the sequence babir2-sumun2-titab2 in the Old Babylonian list Ura VI and in the canonical Khḫ XXIII (see above on stanzas IV-V), which corresponds to that in the Ninkasi hymn. The text does not reveal how exactly the two precursors, (soaked) sourdough and soaked malt, were mixed to form the mash. Dumuzi-Inana W 17 also refers to this process and is to be interpreted in light of Ninkasi A 25/27: sumun2 dug-a lal3 dab5-ba-ĝu10 "my mash, which has absorbed the sweetness in the vessel," where the "sweetness" (lal3 "honey") refers to the malt.[25]
+
+As an intermediate product in beer brewing, mash does not appear in documents, with the exception of a small amount (less than 1 kor) in the annual account ITT 2, 892 i 5', the mash currently available during the inventory. Occasionally, the "mash vessel" (dug sumun2, karpat murạ̣ibi) with a capacity of approximately 20-30 liters is encountered (Sallaberger 1996: 107; MVN 21, 203 ii 19); this is not considered a proper beer vessel.
+
+5.5 Stanza VIII: Spent Grain Cake (titab2)
+VIII 29/31 (Ninkasi,) your spent grain cake, spread out on a stately mat,
+30/32 it is the gentleness that has seized the god.
+VIII 29/31 (dnin-ka-si) titab2
+gege2 maḫ-a bara3-ga-zu
+30/32 ša3 se26 diĝir dab5-ba-am3
+
+Like mash, the "spent grain cake" (titab2, Akkadian titāpū)[26] is an intermediate product that does not appear in documents. titab2 refers to the solid residue after the initial mashing and mixing of malt and sourdough bread.
+
+In ancient Sumerian Girsu, barley for brewing beer was generally referred to as še titab2 "barley for the spent grain cake"; however, the subsequent product dida does not appear there at all. Ur III documents, on the other hand, only attest to the "mat for spent grain cake" (gege2 titab2(-ba)), which is also mentioned in the Ninkasi Hymn. According to TCL 5, 6036 ix 39, x 15f., xiii 30-35 (Umma), such a mat was 6 m2 in size, and according to CUSAS 3, 1381:30 (Garšana) it measured 3.5.
+
+[25] Sefati 1998: 160 translates as "My beerwort mixed with honey," which is based on the unfounded assumption that dab5 is a variant of tab = eṣēpu "to mix" (ibid. 265). The photo (ibid. pl. XXXI) confirms dab5 (and not ḫab2).
+[26] Civil 2005: 236 translates titab(2) as "dried malt," and even though he speaks of "cooked mash" (1964: 81f.) in his adaptation of the Ninkasi hymn, he nevertheless cites 1964: 82 examples of malt spread out for drying; for Stol 1987-90: 325 § 6, it is a "malt cake."
+
+× 2 m, it consisted of reed and date palm (peš), was coated with bitumen, and thus formed a dense base. "Dried malt cake mats" of 7.5 m² each were used to produce dida "dry beer": [27]
+
+AnOr. 1, 160 (Umma, Šusuen 2), collated from photo, CDLI no. P101151:
+2 gege2 titab2 / ki-la2-bi 1/3 sar 5 giĝ4 / dida niĝ2-EN-naĝ-še3
+"2 spent grain cake mats, each measuring 15 m2, for the 'gentleman's drink'(?) dry beer"
+
+This interpretation of titab2 as the designation for the solid residues that are removed after the first enzymatic transformation and fermentation processes is confirmed by the verbs used lexically with titāpū (see CAD T 434): "to take away, to lift up" (ES ir = tum2 = šūlû in Emesal Voc. III 9f.), "to dig out, to take out" (bur2 = ḫạạ̄u in Aa VIII/2 172); Ninkasi A 29/31 bara3-g "spread out" also belongs here. The corresponding section in Khḫ XXIII is unfortunately not so well preserved in the Akkadian column:
+
+Khḫ XXIII iii 28'-34' (Civil 2005: 236)
+28' titab2 a DI-a ṣe[pûtu] "soaked"
+29'f. titab2 (al-)si-ga šūlū[tu] "filled (on the mat)" / "taken out" 28
+31'f. titab2 al-bur-ra 29 pe[tûtu?], ḫạ [̣ ūtu ] "spread out" / "in the open?, spread out"
+33'f. titab2 u4 zal-le sek[rūtu], dan[nūtu] "drying" / "heated, solid(?)"
+
+As with sourdough (babir2), drying can also take place in a titab oven, which is lexically attested (Khḫ X 360) and in Ewe and Grain 118 (see above). However, I have not found any evidence for theOven, known for an expression like *dida du8 "to bake dry beer" or references to fuel for drying from titab2 for dida; evidently, as with malting, the heat of the Orient was sufficient to interrupt germination or kiln dry. 
+
+It is striking that the Ninkasi hymn does not mention wort, and indeed, not even a specific term seems to have been handed down for it. The modern process, on the other hand, focuses on the further treatment of the
+
+[27] See also Santag 6, 41 ii 16-iii 1 (photo CDLI no. P212236): 3 sieves, 2 reed vessels, and 1 ge2 titab2 esir2 su-[ba], niĝ2-dab5 dida gu7-da "1 spent grain cake mat, covered with asphalt, used for dry beer to consume it(?)"; Ontario 2, 374:3f.: 1 gege2 titab2 / ki-la2-bi 12 giĝ4 "1 spent grain cake mat, its measurement 7.2 m2".
+[28] šu-lu-[(u)-tu4]; Civil 2005: 236 šu-lu-[ku-tum] "ready dried malt".
+[29] bur stands for bur2 "to dissolve, to spread".
+
+Wort, the sugary liquid obtained during the mashing process, which in modern times is mixed with hops and then fermented. Nevertheless, it can be assumed that the liquid obtained during the mashing of malt and sourdough bread was already fermented into beer; I see a hint of this in the ancient Sumerian "beer recipes" discussed by Powell 1994, which only list sourdough with emmer flour and malt for the best types of beer (kaš2 KAL, kaš2 gegge du10-ga, kaš2 su4, kaš2 surra), while the more widespread "dark beer" (kaš2 gegge; Powell 1994: 109-111), which was still served at festivals, contained a 30% share of titab2, i.e., the spent grain obtained after the first mashing, and not just "fresh" ingredients.
+
+By drying titab2, dida was obtained (verses IX-X), a dry beer that could be stored, transported, and mixed again at any time to make new beer. However, an initial fermentation was essential, during which transformation processes began that could be restarted later; however, not all of the starch had been converted and all of the sugar dissolved in this first fermentation.
+
+The fermentation of the mash (sumun2) in an open vessel, with its bubble formation and the development of a foamy layer, is an impressive process that concludes with the removal of the solid contents (titab2). The image used in the Ninkasi hymn alludes to this: the interior (ša3) of the fermenting pot was compared to the angry, surging heart (ša3) of the god,30 which now cooled down and thus became full of gentleness. 
+
+5.6 Stanzas IX-X: Dry beer, beer extract (dida)
+IX 33/35 (dnin-ka-si) dida gal šu-tab-ba ĝal2-la-zu
+34/36 lal3 ĝeštin teš2-ba sur-ra-am3
+X 37/39 (dnin-ka-si) NIG2 [. . . ]
+38/40 [dida-bi šu im-ma-ni-in-dab5!?-┌ba!?┐-[am3]
+IX 33/35 (Ninkasi,) your great dry beer, it lies ready, processed,
+34/36 it is honey and wine that together produce juice.
+X 37/39 (Ninkasi,) what...
+38/40 is his dry beer that she took in her hand.
+
+[30] The fermentation vessel (gakkul) was considered a symbol of the fermenting heart of Enlil; see Sallaberger 1996: 85.
+
+Dida is a "dry beer," a beer extract resulting from the "mixing" (balālu) of the ingredients and is accordingly called billatu in Akkadian, according to Stol 1971: 169 (cf. id. 1994: 165) "perhaps a crumbly substance that could be stored or transported before being further processed for fermentation." The counterpart of dida is kaš sur-ra "brewed/liquid beer" (OIP 14, 184, Sargonic). Dida/billatu was transported in vessels (p̄ḫu); Messengers received it "for the journey" (kaskal-še3), in contrast to beer during their stay "in the city" (ša3 iri), when they were provided with provisions in the communal caravanserais (Ur III, messenger texts from Girsu). The production of dida by drying the "spent grain cake" titab2 was already discussed in stanza VIII.
+
+The literary image in stanza IX, with honey and wine, refers to the combination of sweetness and ferment, i.e., malt and sourdough, which produce a liquid.
+
+5.7 Stanzas XI-XII: Beer vessels
+XI 41/43 (dnin-ka-si) dugniĝ2-dur2-buru3-e gu3 now di-dam
+42/44 laḫtan maḫ-a mi-ni-in-si-sa2-am3
+XII 45/47 (dnin-ka-si) kaš si-im duglaḫtan-na de2-a-zu
+46/48 i7idigna i7buranunana saĝ si3-ga-am3
+XI 41/43 (Ninkasi,) so that the perforated vessel sounds loudly,
+In 42/44 you prepared it on a stately beer pithos.
+XII 45/47 (Ninkasi,) your filtered beer, it has poured into the beer pithos,
+46/48 it is as if the Euphrates and Tigris had been taken care of.
+
+The preparation of the beer from the dry dida extract concludes the hymn to Ninkasi. This involves preparing the pair of vessels characteristic of beer brewing: a perforated-bottom vessel (dugniĝ2-dur2-buru3) over a pithos (laktan) as a receiving vessel. According to the documents, two sets of beer vessels existed in the Ur III period, each of which, according to their position in the lists, held 10-15 liters (Sallaberger 1996: 72-75).etc.).
+
+"Hollow-bottom vessel" − "receiving vessel"
+1. dugugu4-bala − duglam-re(6) (rarely: dugša3-gub)
+2. dugdur2-buru3 / dugniĝ2-dur2-buru3 − dugma-an-ḫara4
+
+In Old Babylonian times, only the second set was common, appearing in this form until the first millennium:
+namz̄tum ("that which produces liquid") − namḫārum ("receiving vessel"),
+laḫtānum
+
+The laḫtānum is the name given to the largest vessel in the ceramic inventory;[31] in Sumerian documents, laḫtan also served as a storage vessel (cf., for example, above on babir2). Judging by the Early Dynastic symbol form (LAK 450), it corresponds to the large beer vessel depicted on votive tablets, which is carried by helpers.
+
+In the drinking song following the Ninkasi hymn (lines 49-79), the following two pairs of vessels appear without any explanation of their use:
+2. gegakkul − duglam-di-r (lines 49-52)
+1. dugu-gur-bala − dugša3-gub (lines 53-54)
+
+The need for a double beer set could be due to the double fermentation of the beer, whereby spent grain cake (titab2) was first produced for dry beer (dida), and then the dry beer (dida) was used to produce beer (kaš) for serving. The place of the "perforated-bottom vessel" is taken here by the gakkul vessel, made of bitumen-covered reed, which has an "eye" (also "source" igi, ̄ nu ) as a small opening; in literary terms, it stands as a symbol for the fermentation hidden within (see Sallaberger 1996: 86f.).
+
+According to the Ninkasi hymn, lines 45/47, the beer was finally fermented (si-im ). "Sieves" (gema-an-sim) are generally attested for grist and flour, but also for the "draff" (tukh) that accrued as waste from brewing beer, which was then used as animal fodder.[32]
+
+The last image of the text also addresses two levels: one "pays attention" (saĝ si3-g, corresponding to Akkadian paqādu) to the flowing beer with the same attention that is paid to the Euphrates and Tigris and their water levels; and at the same time, the abundance of the beer is related to the two rivers of Mesopotamia.
+
+6. On the Place in Life of the Ninkasi Hymn
+
+Finally, one questions the social context and framework in which one can imagine a performance or recitation of this song, written in the main dialect. The repetition of the paired lines could indicate a chant by a single man as lead singer and a male choir. The Ninkasi hymn discussed here is inseparably linked to the following 30-line drinking song, which ends with an exclamation in Emesal; the feast hinted at in the opening lines (stanza II) is finally...
+
+[31] See most recently Otto / Einwag (i. Dr.) on ancient Near Eastern and modern evidence that the beer vessel can be the largest vessel in a household.
+
+[32] MVN 18, 636:5'; UTI 6, 3708 r. 4: tuḫ us2; Ontario 2, 374:8 gema-an-sim tuḫ
+us2 !(RI); with beer utensils, ancient Sumerian Girsu ma-sim DP 507 ii 10.
+
+celebrated, the significantly improved good mood of the people must also make the gods happy.[33]
+
+Drinking Song (A 35-65 = 49-79; B iv 15'-34' = 49-68; C Rs. 11'-23' = 49-64)34
+49 gakkul—fermentation vessel, gakkul—fermentation vessel,
+50 gakkul—fermentation vessel, lamdi—vessel,
+51 gakkul—fermentation vessel that improves the mood,
+52 lamdi—vessel that gladdens the heart,
+53 ugurbala—vessel, ornament of the house,
+54 šagube—vessel that fills the beer,
+55 Amam vessel, holder for the lamdi vessel,
+56 buniĝ basin of bur grass, bandudu bucket of the house(?),
+57 good vessels, placed on the vessel stand,
+58 may the heart of your god be at peace towards you!
+59 The 'eye' of the gakkul fermentation vessel, that is indeed something (for) our eye!
+60 The inside of the gakkul fermentation vessel, that is indeed something (for) our inside!
+61 What fills your inside all by itself,
+62 that also fills our inside all by itself!
+63 It has improved our mood, it has gladdened our heart!
+64 If water is liberated on your destiny brick,
+65 if your rich abode (ki-tuš) is established,
+66 then may Ninkasi dwell with you there,
+67 may she continually bring beer and wine to you there!
+68 May juice and honey resound loudly for you there!
+69 In the buniĝ pool of bur-grass is sweet beer,
+70 I will have something fragrant brought to the cupbearer, the young man.
+71 When I walk around the water pool,
+72 when I fill it, when I fill it to the brim,
+73 when I fall silent after drinking beer,
+74 when I approach joy after drinking juice,
+75 when my heart rejoices, my mood improves,
+76 when I clothe my heart's existing joy,
+77 the good mood, in a magnificent garment,
+78 then the heart of Inana will be restored!
+79 "The heart of the Heavenly Lady will be restored!"
+
+[33] The people's good mood can undoubtedly be attributed to the alcohol content of the beer (note the high sugar content of malt in beer production); Powell 1994: 92 had still missed evidence of alcoholism in the ancient Orient; see Heeßel 2002 for more on this.
+[34] On theFor manuscripts and its connection to the Ninkasi hymn, see above.
+
+The festival begins with a libation at the foundation stone (šeg12 nam-tar-ra, "brick of destiny"), the founding of the "residence" (lines 64f.). Was it a festive song that was celebrated when moving into a new house? The "you" in lines 58, 64-68 would then be the addressed master of the house, "we" the celebrating congregation, while lines 69-78 represent the response of the joyful master of the house, and line 79 represents the confirmation of a woman, perhaps his (young) wife. The songs from the Dumuzi-Inana circle on manuscripts A and B should also be seen in this context: life in the new house is supposed to be filled with the love of the moving-in couple.[35] Even if the exact occasion for the songs in the circle of familial and social celebrations cannot be determined with complete certainty, one can rule out any roots in the temple cult due to the subject matter and their association with love songs. These combinations of songs, as well as the absence of manuscripts from the Nippur school system, show that this is a song from practical experience, not from scholarship in the narrower sense. This ultimately also means that beer brewing is described on the living basis of everyday observation and not as a lexical exercise. 
+
+7. Summary
+
+In the Ninkasi hymn, beer brewing is described from the perspective of the brewer, who begins by preparing the sourdough, receives the malt from the maltster, then extracts the dry beer from the mash, and finally the finished beverage. The individual steps of the brewing process are reflected in poetic images that revolve around themes such as grain, enjoyment, aroma, and liquid, thus attributing a special quality to everyday tasks.
+
+The interpretation of the Ninkasi hymn offered here ultimately leads to the following reconstruction of beer brewing in southern Mesopotamia in the late third and early second millennium:
+
+[35] Even if the Dumuzi-Inana songs suggest it, it should not be assumed that a song like the Ninkasi hymn is limited to the occasion of a wedding feast; For wedding songs and the antiphonal chants found there, see Mirelman / Sallaberger 2010: 190-194 with further references.
+
+Ferment Component                                                   Sugar Component
+"Sourdough" (babir2)                                                "Malt" (munu4)
+
+Barley (še)                                                         Barley (še)
+↓                                                                   ↓
+Grinding                                                            Malting: Germination
+↓                                                                   ↓
+Add to reserved sourdough (babir2)                                  Green Malt
+↓                                                                   (munu4-si-e3)
+Fermentation (si, agarin/aĝarin)                                    ↓
+↓                                                                   Termination of the Germination Process;
+Reserve one-tenth in pithos (laktan) as a starter                   Drying and grinding/mortaring
+or                                                                  (“malt grist” ba-ba munu4)
+interrupt fermentation for storage (“drying, baking” du8)           ↓
+↓                                                                   Mashing
+Crumble the sourdough and mix with water                            (mixing malt with water)
+↓                                                                   ↓
+“Mash” (sumun2): mixture of munu4 and babir2 in the mash vessel, first fermentation
+(wort for further fermentation into beer)
+↓
+“Spent grain cake” (titab2): solid components of the mash;
+Interrupting fermentation
+↓
+"Dry beer" (dida): dried spent grain cake
+↓
+Brewing in a perforated-bottom vessel
+of the dry beer dissolved in water
+↓
+Fermentation into beer (kaš)
+
+This reconstruction should be verified in further brewing experiments (by M. Zarnkow), as the results so far have already led to a rethinking of ancient Mesopotamian beer brewing. In any case, it is also an exception, methodologically speaking, that our translations of Sumerian texts can be scientifically verified in this way in an "experimental philology."
+
+Bibliography
+
+Alster, B.
+1985 Sumerian love songs, RA 79, 127-159.
+Alster, B. / Vanstiphout H.
+1987 Lahar and Ashnan: Presentation and analysis of a Sumerian disputation,
+ASJ 9, 1-43.
+Attinger, P.
+1993 Eléments de linguistique sumérienne: La construction de du11/e/di "dire" (=
+OBO special volume). Fribourg – Göttingen.
+Bauer, J.
+1989/90 Altsumerische Wirtschaftsurkunden in Leningrad, AfO 36/37, 76-91.
+Brunke, H.
+2008 The nakabtum: An administrative superstructure for the storage and distribution of agricultural products, Kaskal 5, 111-126.
+2011 Essen in Sumer: Metrology, production, and terminology according to evidence from Ur III economic documents. Munich.
+Brunke, H./ Sallaberger, W.
+2010 Aromata for fragrance oil, in: A. Kleinerman / J. Sasson (ed.), Why should some-
+one who knows something conceal it? Cuneiform studies in honor of David
+I. Owen on his 70th birthday, 41-74. Bethesda.
+Civil, M.
+1964 A hymn to the beer goddess and a drinking song, in: R.D. Biggs / J.A.
+Brinkman (ed.), Studies presented to A. Leo Oppenheim, 67-89. Chicago.
+1966 Bloc-note: làl-gar = làl-ḫar, RA 60, 92.
+1983 Enlil and Ninlil: The Marriage of Sud, JAOS 103, 43-66.
+1987 Feeding Dumuzi's sheep: The lexicon as a source of literary inspiration, in:
+F. Rochberg-Halton (ed.), Language, literature, and history: Philological
+and historical studies presented to Erica Reiner (= AOS 67) 37-55. New
+Haven.
+1991-2007 Modern brewers recreate ancient beer: A hymn to Ninkasi, http://
+oi.uchicago.edu/research/pubs/nn/fal91_civil_hymn.html (last accessed
+03/2012).
+2005 Texts from the series Urra = hubullu, in: I. Spar / W.G. Lambert (ed.),
+Cuneiform texts in the Metropolitan Museum of Art 2: Literary and scho-
+lastic texts of the first millennium B.C., 230-243 [here No. 56]. New York.
+Damerow, P.
+2012 Sumerian beer: The origins of brewing technology in Ancient Mesopotamia,
+CDLJ 2012:2 (http://www.cdli.ucla.edu/pubs/cdlj/2012/cdlj2012_002.html).
+Edzard, D.O.
+1967 Brewery, beer consumption, and drinking customs in ancient Mesopotamia, in:
+327 Beer Brewing in Verse
+Society for the History and Bibliography of Brewing,
+Yearbook 1967, pp. 9-21. Berlin.
+Fritzsche, E.
+2001 GA.KIN.AG emṣu in Hittite, AoF 38, 15-62.
+Heeßel, N.
+2002 A Neo-Babylonian Recipe for Intoxication and Sobering Up, in: C.
+Wunsch (ed.), Mining the Archives: Festschrift for Christopher Walker on the occasion of his 60th birthday (= BabA 1) 99-106. Dresden.
+Herrmann, S.
+2010 Bird and Fish: A Sumerian Rank Dispute. Text Edition and Commentary. Hamburg.
+Hrozný, F.
+1913 Grain in Ancient Babylonia: A Contribution to the Cultural and Economic History of the Ancient Orient. Vienna.
+Jaques, M.
+2006 The Vocabulary of Sentiments in Sumerian Texts: Research on the Sumerian and Akkadian Lexicon (= AOAT 332). Münster.
+Kraus, F. R.
+1984 Royal Decrees in Old Babylonian Times (= SD 11). Leiden.
+Krebernik, M.
+1993-97 Mother Goddess. A. I. In Mesopotamia, RlA 8, 502-516.
+Lacambre, D.
+2008 The Beer Office, in: Ö. Tunca / A. Baghdo, Chagar Bazar III, 179-207.
+Leuven.
+Lambert, W.G.
+1960 Babylonian Wisdom Literature. Oxford.
+Michael, C.
+2009 “Dis-moi ce que tu bois…”: Boissons et buveurs en haute Mésopotamie
+et Anatolie au début du IIe millénaire av. J.-C., in: X. Faivre / B. Lion /
+C. Michel (ed.), Et il yeut un esprit dans l'Homme: Jean Bottéro et la
+Mesopotamia, 197-220. Paris.
+Milano, L. (ed.)
+1994 Drinking in ancient societies (= HANE/S 6). Padova.
+Mirelman, S. / Sallaberger, W.
+2010 The performance of a Sumerian wedding song (CT 58, 12), ZA 100, 177-
+196.
+Oppenheim, A.L. / Hartman, L.F.
+1950 On beer and brewing techniques in Ancient Mesopotamia according to the
+XXIIIrd tablet of the series HAR.ra = hubullu, JAOS Suppl. 10, 1-55.
+328 Walther Sallaberger
+Otto, A. / Einwag, B.
+(i. Dr.) Beer in the Ancient Orient: State of Knowledge and Perspectives from the Perspective of
+Archaeology, in: Festschrift Ö. Tunca.
+Powell, M.A.
+1994 Metron ariston: Measure as a tool for studying beer in Ancient Mesopotamia,
+in: Milano 1994, 91-119.
+Procopiou, H. / Michel C. (ed.)
+2009 Habitudes alimentaires de l’acquisition à la consumption, Thème 9:
+Stratégies d'approvisionnement des ressources alimentaires (= Cahier des
+thèmes transversaux “Archéologies et Sciences de l’Antiquité” 9). Paris.
+Röllig, W.
+1970 Beer in Ancient Mesopotamia. Berlin.
+Sallaberger, W.
+1994 review of P.J. Watson: Catalog of cuneiform tablets in Birmingham
+City Museum, Vol. 2: Neo-Sumerian texts from Umma and other sites,
+OLZ 89, 538-545.
+1996 The Babylonian potter and his vessels (= MHEM 3). Ghent.
+Sefati, Y.
+1998 Love songs in Sumerian literature. Ramat Gan.
+Sjöberg, A.
+1996 UET 7 no. 93: A lexical text or a commentary?, ZA 86, 220-237.
+Stol, M.
+1971 Zur altmesopotanischen Bierbereitung, BiOr. 28, 167-171.
+1987-90 Malz, RlA 7, 322-329.
+1994 Beer in Neo-Babylonian times, in: Milano 1994, 155-183.
+von Weiher, E.
+1988 Spätbabylonische Texte aus Uruk 3 (= ADFU 12). Berlin.
+Zarnkow, M. et al.
+2006 Interdisciplinary Studies on Ancient Near Eastern Beer Brewing in the Settlement of Tall Bazi/Northern Syria Around 3200 Years Ago, Technikgeschichte
+73, 3-25.
+2008 Cold Mashing Process – A Basic Technology for Ancient Near Eastern Beer Brewing: Interdisciplinary Studies in the Settlement of Tall Bazi/Northern Syria Around 3200 Years Ago, Yearbook of the Society for the History of Brewing, 59-80. Berlin.
+Zettler, R.L. / Sallaberger W.
+2011 Inana's Festival at Nippur under the Third Dynasty of Ur, ZA 101, 1-71.
+Summary
+Prof. Dr. Pascal Attinger has been teaching the languages ​​of the Ancient Near East at the University of Bern for 20 years. He owes his international reputation to his work on Sumerian grammar and Sumerian literature of the Old Babylonian period. This volume brings together twenty contributions by friends, colleagues, and doctoral students of the honoree, most of which deal with the approximately five hundred years around the turn of the third to the second millennium BC. Their content covers several subject areas: There are linguistic and linguistic works on Sumerian and Semitic Akkadian with its various dialects; other studies focus on cultural studies or historical questions. Several contributions offer (re)workings of, in part,still unpublished Sumerian texts or literary works.
+About this book
+Prof. Dr. Pascal Attinger has taught Ancient Near Eastern languages ​​at
+the University of Bern for twenty years. He owes his international
+reputation to his works on Sumerian grammar and Sumerian litera-
+ture of the Old Babylonian period. The present volume brings to-
+gether twenty contributions from his friends, colleagues and doctoral
+students, mainly concentrating on the 500 years spanning the turn
+from the third to the second millennium BCE. Some studies deal with
+philological and linguistic aspects of Sumerian and Semitic Akkadi
+an, including its dialects, while others focus on issues of history and
+culture. Several contributions present new editions of Sumerian (lit.
+erary) texts, some of them hitherto unpublished.
+
+
+
+
+
+
+
+
+
+

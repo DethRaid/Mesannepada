@@ -1,0 +1,39 @@
+#pragma once
+
+half2 unpackHalf2x16(in uint packed) {
+    half2 value;
+    value.x = asfloat16((uint16_t)(packed & 0xFFFF));
+    value.y = asfloat16((uint16_t)(packed >> 16) & 0xFFFF);
+
+    return value;
+}
+
+half4 unpackUnorm4x8ToHalf(in uint packed) {
+    half4 value;
+    value.x = (half)(packed & 0xff) / 255.h;
+    value.y = (half)((packed >> 8) & 0xff) / 255.h;
+    value.z = (half)((packed >> 16) & 0xff) / 255.h;
+    value.w = (half)((packed >> 24) & 0xff) / 255.h;
+
+    return value;
+}
+
+half4 unpackSnorm4x8ToHalf(in uint packed) {
+    half4 value;
+    value.x = (half)(packed & 0xff) / 255.h;
+    value.y = (half)((packed >> 8) & 0xff) / 255.h;
+    value.z = (half)((packed >> 16) & 0xff) / 255.h;
+    value.w = (half)((packed >> 24) & 0xff) / 255.h;
+
+    return value;
+}
+
+uint packUnorm4x8(in half4 value) {
+    uint packed = 0;
+    packed |= (uint)(value.x * 255.h);
+    packed |= (uint)(value.y * 255.h) << 8;
+    packed |= (uint)(value.z * 255.h) << 16;
+    packed |= (uint)(value.w * 255.h) << 24;
+
+    return packed;
+}

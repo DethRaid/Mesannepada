@@ -1,0 +1,48 @@
+<rml>
+    <head>
+        <link type="text/rcss" href="../shared/rml.rcss"/>
+        <link type="text/rcss" href="../shared/mesannapada.rcss"/>
+        <title>Main Menu</title>
+        <style>
+            .menu-window {
+                display: flex;
+                height: 100%;
+                align-self: center;
+            }
+            .menu-container {
+                position: absolute;
+                top: 550dp;
+                left: 356dp;
+            }
+            .menu-button {
+                width:306dp;
+                height:50dp;
+                font-size: 30px;
+                text-align: left;
+                padding-left: 75dp;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="menu-window">
+            <div data-model="main_menu" class="menu-container">
+                <div data-if="has_existing_save">
+                    <button data-event-click="on_continue" class="menu-button">Continue</button>
+                </div>  
+                <div>
+                    <button data-event-click="on_new_game" class="menu-button">New Game</button>
+                </div>
+                <div>
+                    <button data-event-click="on_load_game" class="menu-button">Load Game</button>
+                </div>
+                <div>
+                    <button data-event-click="on_settings" class="menu-button">Settings</button>        
+                </div>
+                <div>
+                    <button data-event-click="on_exit" class="menu-button">Exit</button>
+                </div>
+            </div>
+        </div>
+    </body>
+</rml>
+
