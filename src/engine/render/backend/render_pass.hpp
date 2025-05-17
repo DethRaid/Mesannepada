@@ -2,7 +2,7 @@
 
 #include <string>
 #include <functional>
-#include <optional>
+#include <EASTL/optional.h>
 #include <EASTL/vector.h>
 
 #include <glm/vec3.hpp>
@@ -22,7 +22,7 @@ namespace render {
     struct AttachmentBinding {
         TextureHandle texture;
         TextureState state;
-        std::optional<glm::vec4> clear_color;
+        eastl::optional<glm::vec4> clear_color;
     };
 
     struct ComputePass {
@@ -155,7 +155,7 @@ namespace render {
         /**
          * Index of the depth attachment. This index refers to the render targets in the parent render pass
          */
-        std::optional<uint32_t> depth_attachment = std::nullopt;
+        eastl::optional<uint32_t> depth_attachment = eastl::nullopt;
 
         std::function<void(CommandBuffer&)> execute;
     };
@@ -178,7 +178,7 @@ namespace render {
 
         eastl::fixed_vector<VkClearValue, 8> clear_values;
 
-        std::optional<uint32_t> view_mask;
+        eastl::optional<uint32_t> view_mask;
     };
 
     struct AttachmentInfo {
@@ -197,11 +197,11 @@ namespace render {
 
         eastl::fixed_vector<RenderingAttachmentInfo, 8> color_attachments;
 
-        std::optional<RenderingAttachmentInfo> depth_attachment;
+        eastl::optional<RenderingAttachmentInfo> depth_attachment;
 
-        std::optional<TextureHandle> shading_rate_image;
+        eastl::optional<TextureHandle> shading_rate_image;
 
-        std::optional<uint32_t> view_mask;
+        eastl::optional<uint32_t> view_mask;
 
         std::function<void(CommandBuffer&)> execute;
     };

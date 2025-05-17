@@ -2,6 +2,7 @@
 
 #include <plf_colony.h>
 #include <EASTL/span.h>
+#include <EASTL/optional.h>
 
 #include "render/backend/ray_tracing_pipeline.hpp"
 #include "render/backend/hit_group_builder.hpp"
@@ -27,7 +28,7 @@ namespace render {
         VkPipeline get_pipeline(
             GraphicsPipelineHandle pipeline,
             eastl::span<const VkFormat> color_attachment_formats,
-            std::optional<VkFormat> depth_format = std::nullopt,
+            eastl::optional<VkFormat> depth_format = eastl::nullopt,
             uint32_t view_mask = 0xFF,
             bool use_fragment_shading_rate_attachment = false
         ) const;
@@ -35,7 +36,7 @@ namespace render {
         /**
          * Registers global miss shaders, to be used for all RT pipelines
          */
-        void add_miss_shaders(eastl::span<const std::byte> occlusion_miss, std::span<const std::byte> gi_miss);
+        void add_miss_shaders(eastl::span<const std::byte> occlusion_miss, eastl::span<const std::byte> gi_miss);
 
         /**
          * Adds a shader group to the cache. All shader groups will be added to every ray tracing pipeline. This should be

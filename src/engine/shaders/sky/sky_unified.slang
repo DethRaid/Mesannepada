@@ -170,7 +170,7 @@ Sampler2D sky_view_lut;
 ConstantBuffer<ViewDataGPU> view_data;
 
 [vk::binding(3, 0)]
-ConstantBuffer<SunLightConstants> sun_info;
+ConstantBuffer<SunLightConstants> sun_light;
 
 [vk::binding(4, 0)]
 Texture2D<float> gbuffer_depth;
@@ -191,18 +191,18 @@ float4 main_fs(float4 fragcoord: SV_Position) {
     float3 view_vector_worldspace = -normalize(mul(view_data.inverse_view, float4(location_viewspace.xyz, 0)).xyz);
     view_vector_worldspace.y *= -1;
 
-    float3 sunDir = -normalize(sun_info.direction_and_tan_size.xyz);
+    const float3 sunDir = -normalize(sun_light.direction_and_tan_size.xyz);
 
     const float3 sky_color = get_sky_color(view_vector_worldspace, sunDir, sky_view_lut, transmittance_lut);
 
-    return float4(sky_color * sun_info.color.rgb * view_data.exposure, 1);
+    return float4(sky_color * sun_light.color.rgb * view_data.exposure, 1);
 }
 #else
 
 #if SAH_RT_OCCLUSION
 [shader("miss")]
 void main_miss(inout uint payload) {
-    payload = 1;
+    payload = 80000;
 }
 #endif
 
@@ -221,7 +221,9 @@ Sampler2D sky_view_lut;
 
 [shader("miss")]
 void main_miss(inout IrradiancePayload payload) {
-    payload.irradiance = get_sky_color(WorldRayDirection(), sun_light.direction_and_tan_size.xyz, sky_view_lut, transmittance_lut);
+    const float3 sun_dir = -normalize(sun_light.direction_and_tan_size.xyz);
+    payload.irradiance = get_sky_color(WorldRayDirection(), sun_dir, sky_view_lut, transmittance_lut) * sun_light.color.rgb * 0.1f;
+    payload.ray_distance = RayTCurrent();
 }
 #endif
 

@@ -371,7 +371,7 @@ namespace render {
             &command_signature);
     }
 
-    std::optional<BufferHandle> DepthCullingPhase::create_preprocess_buffer(
+    eastl::optional<BufferHandle> DepthCullingPhase::create_preprocess_buffer(
         const GraphicsPipelineHandle pipeline, const uint32_t num_primitives
     ) {
         auto& backend = RenderBackend::get();
@@ -395,7 +395,7 @@ namespace render {
                 BufferUsage::StorageBuffer);
         }
         else {
-            return std::nullopt;
+            return eastl::nullopt;
         }
     }
 

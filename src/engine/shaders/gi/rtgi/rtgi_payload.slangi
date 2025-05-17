@@ -1,7 +1,11 @@
 #pragma once
 
-#define RAY_TYPE_OCCLUSION 0
-#define RAY_TYPE_GI 1
+#ifndef OCCLUSION_HIT_GROUP_OFFSET
+#define OCCLUSION_HIT_GROUP_OFFSET 0
+#endif
+#ifndef RADIANCE_HIT_GROUP_OFFSET
+#define RADIANCE_HIT_GROUP_OFFSET 1
+#endif
 
 struct IrradiancePayload {
     float3 irradiance;

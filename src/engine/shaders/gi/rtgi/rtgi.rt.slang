@@ -91,9 +91,9 @@ void main_raygen() {
         rtas,
         RAY_FLAG_NONE,
         0xFF,
-        RAY_TYPE_GI,
+        RADIANCE_HIT_GROUP_OFFSET,
         1,
-        0,
+        RADIANCE_HIT_GROUP_OFFSET,
         ray,
         payload);
 

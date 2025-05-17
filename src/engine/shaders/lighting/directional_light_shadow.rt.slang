@@ -26,8 +26,8 @@ Texture2D<float> gbuffer_depth;
 [vk::binding(6, 0)]
 Texture2D<float3> noisetex;
 
-#define RAY_TYPE_OCCLUSION 0
-#define RAY_TYPE_GI 1
+#define OCCLUSION_HIT_GROUP_OFFSET 0
+#define RADIANCE_HIT_GROUP_OFFSET 1
 
 float3 get_worldspace_location(const uint2 pixel) {
     const float depth = gbuffer_depth[pixel];
@@ -88,9 +88,9 @@ void main_raygen() {
             rtas,
             RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH,
             0xFF,
-            RAY_TYPE_OCCLUSION,
+            OCCLUSION_HIT_GROUP_OFFSET,
             1,
-            0,
+            OCCLUSION_HIT_GROUP_OFFSET,
             ray,
             payload);
 

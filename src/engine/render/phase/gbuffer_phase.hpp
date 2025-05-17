@@ -1,6 +1,6 @@
 #pragma once
 
-#include <optional>
+#include <EASTL/optional.h>
 
 #include "render/backend/handles.hpp"
 
@@ -18,7 +18,7 @@ namespace render {
         void render(
             RenderGraph& graph, const RenderScene& scene, const IndirectDrawingBuffers& buffers,
             const IndirectDrawingBuffers& visible_masked_buffers, const GBuffer& gbuffer,
-            std::optional<TextureHandle> shading_rate, const SceneView& player_view
+            eastl::optional<TextureHandle> shading_rate, const SceneView& player_view
         );
     };
 }

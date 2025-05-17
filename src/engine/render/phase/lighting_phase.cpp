@@ -47,7 +47,7 @@ namespace render {
         const TextureHandle lit_scene_texture,
         const TextureHandle ao_texture,
         const IGlobalIlluminator* gi,
-        const std::optional<TextureHandle> vrsaa_shading_rate_image,
+        const eastl::optional<TextureHandle> vrsaa_shading_rate_image,
         const NoiseTexture& noise,
         const TextureHandle noise_2d
     ) {

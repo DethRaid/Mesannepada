@@ -1,7 +1,6 @@
 #pragma once
 
-#include <optional>
-
+#include <EASTL/optional.h>
 #include <glm/vec2.hpp>
 
 #include "render/mip_chain_generator.hpp"
@@ -75,7 +74,7 @@ namespace render {
 
         void create_command_signature();
 
-        std::optional<BufferHandle> create_preprocess_buffer(GraphicsPipelineHandle pipeline, uint32_t num_primitives);
+        eastl::optional<BufferHandle> create_preprocess_buffer(GraphicsPipelineHandle pipeline, uint32_t num_primitives);
 
         /**
          * Draws visible objects, using a different draw command for each material type. Uses the visible_objects buffer
