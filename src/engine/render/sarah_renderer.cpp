@@ -400,7 +400,7 @@ namespace render {
          * Writing the shading rate image allows any sample value below or equal to the max
          */
 
-        std::optional<TextureHandle> vrsaa_shading_rate_image = std::nullopt;
+        eastl::optional<TextureHandle> vrsaa_shading_rate_image = eastl::nullopt;
         if (vrsaa) {
             vrsaa->generate_shading_rate_image(render_graph);
             vrsaa_shading_rate_image = vrsaa->get_shading_rate_image();

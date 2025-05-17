@@ -251,7 +251,7 @@ namespace render {
         vkCmdEndRendering(commands);
 
         bound_color_attachment_formats.clear();
-        bound_depth_attachment_format = std::nullopt;
+        bound_depth_attachment_format = eastl::nullopt;
         bound_view_mask = 0;
         using_fragment_shading_rate_attachment = false;
     }

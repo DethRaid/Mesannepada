@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cstdint>
-#include <optional>
 #include <string>
 
+#include <EASTL/optional.h>
 #include <EASTL/vector.h>
 #include <EASTL/unordered_map.h>
 #include <EASTL/array.h>
@@ -38,9 +38,9 @@ namespace render {
 
         eastl::fixed_vector<RenderingAttachmentInfo, 8> color_attachments;
 
-        std::optional<RenderingAttachmentInfo> depth_attachment;
+        eastl::optional<RenderingAttachmentInfo> depth_attachment;
 
-        std::optional<TextureHandle> shading_rate_image;
+        eastl::optional<TextureHandle> shading_rate_image;
     };
 
     /**
@@ -249,7 +249,7 @@ namespace render {
 
         eastl::vector<VkFormat> bound_color_attachment_formats;
 
-        std::optional<VkFormat> bound_depth_attachment_format;
+        eastl::optional<VkFormat> bound_depth_attachment_format;
 
         bool using_fragment_shading_rate_attachment = false;
 

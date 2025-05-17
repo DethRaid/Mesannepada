@@ -13,7 +13,7 @@ namespace render {
 
     void GbufferPhase::render(
         RenderGraph& graph, const RenderScene& scene, const IndirectDrawingBuffers& buffers,
-        const IndirectDrawingBuffers& visible_masked_buffers, const GBuffer& gbuffer, const std::optional<TextureHandle> shading_rate, const SceneView& player_view
+        const IndirectDrawingBuffers& visible_masked_buffers, const GBuffer& gbuffer, const eastl::optional<TextureHandle> shading_rate, const SceneView& player_view
     ) {
         const auto& pipelines = scene.get_material_storage().get_pipelines();
         const auto solid_pso = pipelines.get_gbuffer_pso();

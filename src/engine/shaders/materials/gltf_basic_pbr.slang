@@ -358,13 +358,6 @@ RaytracingAccelerationStructure rtas;
 [vk::binding(6, 0)]
 Texture2D<float3> noisetex;
 
-#ifndef RAY_TYPE_OCCLUSION
-#define RAY_TYPE_OCCLUSION 0
-#endif
-#ifndef RAY_TYPE_GI
-#define RAY_TYPE_GI 1
-#endif
-
 [shader("closesthit")]
 void main_closesthit(inout IrradiancePayload payload, in float2 barycentrics) {
     const uint primitive_id = InstanceID();
@@ -449,9 +442,9 @@ void main_closesthit(inout IrradiancePayload payload, in float2 barycentrics) {
             rtas,
             RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_CULL_NON_OPAQUE | RAY_FLAG_CULL_FRONT_FACING_TRIANGLES,
             0xFF,
-            RAY_TYPE_OCCLUSION,
+            OCCLUSION_HIT_GROUP_OFFSET,
             1,
-            0,
+            OCCLUSION_HIT_GROUP_OFFSET,
             ray,
             payload);
 
@@ -484,22 +477,22 @@ void main_closesthit(inout IrradiancePayload payload, in float2 barycentrics) {
 
         TraceRay(
             rtas,
-            RAY_FLAG_CULL_NON_OPAQUE | RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
+            RAY_FLAG_NONE,
             0xFF,
-            RAY_TYPE_GI,
+            RADIANCE_HIT_GROUP_OFFSET,
             1,
-            0,
+            RADIANCE_HIT_GROUP_OFFSET,
             bounce_ray,
             new_payload);
 
         const half3 bounce_brdf_result = brdf(surface, bounce_ray.Direction, surface.normal);
-        const half bounce_ndotl = (half)clamp(dot(bounce_ray.Direction, surface.normal), 0.h, 1.h);
+        const half bounce_ndotl = (half)saturate(dot(bounce_ray.Direction, surface.normal));
 
         const float3 bounce_radiance = bounce_ndotl * bounce_brdf_result * new_payload.irradiance;
 
-        if (!any(isnan(bounce_radiance)) && !any(isinf(bounce_radiance))) {
-            payload.irradiance += bounce_radiance;
-        }
+        // if (!any(isnan(bounce_radiance)) && !any(isinf(bounce_radiance))) {
+        //     payload.irradiance += bounce_radiance;
+        // }
     }
 
     if (HitKind() == HIT_KIND_TRIANGLE_BACK_FACE) {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <optional>
+#include <EASTL/optional.h>
 
 #include "render/gbuffer.hpp"
 #include "render/backend/graphics_pipeline.hpp"
@@ -36,7 +36,7 @@ namespace render {
             TextureHandle lit_scene_texture,
             TextureHandle ao_texture,
             const IGlobalIlluminator* gi,
-            std::optional<TextureHandle> vrsaa_shading_rate_image,
+            eastl::optional<TextureHandle> vrsaa_shading_rate_image,
             const NoiseTexture& noise,
             TextureHandle noise_2d
         );

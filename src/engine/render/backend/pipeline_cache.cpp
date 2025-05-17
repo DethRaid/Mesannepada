@@ -170,7 +170,7 @@ namespace render {
 
     VkPipeline PipelineCache::get_pipeline(
         GraphicsPipelineHandle pipeline, eastl::span<const VkFormat> color_attachment_formats,
-        std::optional<VkFormat> depth_format, const uint32_t view_mask, const bool use_fragment_shading_rate_attachment
+        eastl::optional<VkFormat> depth_format, const uint32_t view_mask, const bool use_fragment_shading_rate_attachment
     ) const {
 
         ZoneScoped;
@@ -364,7 +364,7 @@ namespace render {
     }
 
     void PipelineCache::add_miss_shaders(
-        const eastl::span<const std::byte> occlusion_miss, const std::span<const std::byte> gi_miss
+        const eastl::span<const std::byte> occlusion_miss, const eastl::span<const std::byte> gi_miss
     ) {
         occlusion_miss_shader.resize(occlusion_miss.size());
         std::memcpy(occlusion_miss_shader.data(), occlusion_miss.data(), occlusion_miss.size_bytes());
@@ -406,6 +406,7 @@ namespace render {
         logger->debug("Creating RT PSO {}", raygen_shader_path.string());
 
         auto pipeline = RayTracingPipeline{};
+        pipeline.name = raygen_shader_path.string();
 
         const auto& device = backend.get_device();
 
@@ -776,20 +777,6 @@ namespace render {
 
         write_ptr += hit_table_size;
 
-        // Raygen shader handles
-        result = vkGetRayTracingShaderGroupHandlesKHR(
-            device,
-            pipeline.pipeline,
-            raygen_group_index,
-            1,
-            raygen_table_size,
-            write_ptr);
-        if (result != VK_SUCCESS) {
-            logger->error("Could not retrieve raygen groups handles");
-        }
-
-        write_ptr += raygen_table_size;
-
         // Miss shader handles
         result = vkGetRayTracingShaderGroupHandlesKHR(
             device,
@@ -802,6 +789,20 @@ namespace render {
             logger->error("Could not retrieve miss groups handles");
         }
 
+        write_ptr += miss_table_size;
+
+        // Raygen shader handles
+        result = vkGetRayTracingShaderGroupHandlesKHR(
+            device,
+            pipeline.pipeline,
+            raygen_group_index,
+            1,
+            raygen_table_size,
+            write_ptr);
+        if (result != VK_SUCCESS) {
+            logger->error("Could not retrieve raygen groups handles");
+        }
+
         const auto buffer_name = fmt::format("{} shader tables", raygen_shader_path.string());
         pipeline.shader_tables_buffer = backend.get_global_allocator().create_buffer(
             buffer_name.c_str(),
@@ -811,22 +812,22 @@ namespace render {
 
         backend.get_upload_queue().upload_to_buffer(pipeline.shader_tables_buffer, eastl::span{ shader_group_handles });
 
-        pipeline.raygen_table = {
-            .deviceAddress = pipeline.shader_tables_buffer->address + hit_table_size,
-            .stride = shader_group_handle_size,
-            .size = shader_group_handle_size
-        };
-
         pipeline.hit_table = {
             .deviceAddress = pipeline.shader_tables_buffer->address,
             .stride = shader_group_handle_size,
             .size = groups.size() * shader_group_handle_size
         };
 
-        pipeline.miss_table = {
-            .deviceAddress = pipeline.shader_tables_buffer->address + hit_table_size + raygen_table_size,
+        pipeline.raygen_table = {
+            .deviceAddress = pipeline.shader_tables_buffer->address + hit_table_size + miss_table_size,
             .stride = shader_group_handle_size,
             .size = shader_group_handle_size
+        };
+
+        pipeline.miss_table = {
+            .deviceAddress = pipeline.shader_tables_buffer->address + hit_table_size,
+            .stride = shader_group_handle_size,
+            .size = shader_group_handle_size * num_miss_shaders
         };
 
         for (const auto& stage_info : stages) {

@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <EASTL/unordered_map.h>
 #include <EASTL/string.h>
+#include <EASTL/optional.h>
 
 #include <volk.h>
 
@@ -159,15 +160,15 @@ namespace render {
         /**
          * Vertex shader SPIR-V code. If this is present, you may not load another vertex shader
          */
-        std::optional<eastl::vector<std::byte>> vertex_shader;
+        eastl::optional<eastl::vector<std::byte>> vertex_shader;
 
         std::string vertex_shader_name;
 
-        std::optional<eastl::vector<std::byte>> geometry_shader;
+        eastl::optional<eastl::vector<std::byte>> geometry_shader;
 
         std::string geometry_shader_name;
 
-        std::optional<eastl::vector<std::byte>> fragment_shader;
+        eastl::optional<eastl::vector<std::byte>> fragment_shader;
 
         std::string fragment_shader_name;
 
