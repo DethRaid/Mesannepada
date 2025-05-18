@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://xig2s3lw00ct"]
+[gd_scene load_steps=5 format=3 uid="uid://xig2s3lw00ct"]
 
 [ext_resource type="PackedScene" uid="uid://d177d1qqyjjfn" path="res://environments/SM_UrEnvironment.glb" id="1_q20gi"]
 [ext_resource type="PackedScene" uid="uid://ibcoi6lpwgce" path="res://environments/ZigguratEnclosure.tscn" id="2_gfmrx"]
 [ext_resource type="PackedScene" uid="uid://dwd6xkgtxv1mf" path="res://environments/trees/BigTamarask.glb" id="3_gfmrx"]
+[ext_resource type="PackedScene" uid="uid://c401ejk3rsu7v" path="res://environments/plants/SM_Reeds_Cluster.glb" id="4_crp7t"]
 
 [node name="Node3D" type="Node3D"]
 
@@ -24,5 +25,29 @@ transform = Transform3D(-0.892026, 0, -0.451983, 0, 1, 0, 0.451983, 0, -0.892026
 
 [node name="ZigguratComplex" parent="." instance=ExtResource("2_gfmrx")]
 transform = Transform3D(-0.552823, 0, 0.833299, 0, 1, 0, -0.833299, 0, -0.552823, -154.139, 19.3726, -173.538)
+
+[node name="SM_Reeds_Cluster" parent="." instance=ExtResource("4_crp7t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -143.964, 3.43744, 139.245)
+
+[node name="SM_Reeds_Cluster2" parent="." instance=ExtResource("4_crp7t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -148.193, 3.43744, 142.505)
+
+[node name="SM_Reeds_Cluster3" parent="." instance=ExtResource("4_crp7t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -148.193, 3.43744, 137.505)
+
+[node name="SM_Reeds_Cluster4" parent="." instance=ExtResource("4_crp7t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -152.52, 3.43744, 140.157)
+
+[node name="SM_Reeds_Cluster5" parent="." instance=ExtResource("4_crp7t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -153.52, 3.43744, 146.157)
+
+[node name="SM_Reeds_Cluster6" parent="." instance=ExtResource("4_crp7t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -169.52, 3.43744, 128.157)
+
+[node name="SM_Reeds_Cluster7" parent="." instance=ExtResource("4_crp7t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -165.52, 3.43744, 126.157)
+
+[node name="SM_Reeds_Cluster8" parent="." instance=ExtResource("4_crp7t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -165.52, 3.43744, 131.157)
 
 [editable path="SM_UrEnvironment"]
