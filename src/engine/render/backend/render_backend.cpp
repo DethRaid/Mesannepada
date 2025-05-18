@@ -1083,15 +1083,15 @@ namespace render {
             vkCreateSemaphore(device, &create_info, nullptr, &semaphore);
         }
 
-        if(!name.empty() && vkSetDebugUtilsObjectNameEXT != nullptr) {
-            const auto name_info = VkDebugUtilsObjectNameInfoEXT{
-                .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
-                .objectType = VK_OBJECT_TYPE_SEMAPHORE,
-                .objectHandle = reinterpret_cast<uint64_t>(semaphore),
-                .pObjectName = name.c_str(),
-            };
-            vkSetDebugUtilsObjectNameEXT(device, &name_info);
-        }
+        // if(!name.empty() && vkSetDebugUtilsObjectNameEXT != nullptr) {
+        //     const auto name_info = VkDebugUtilsObjectNameInfoEXT{
+        //         .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
+        //         .objectType = VK_OBJECT_TYPE_SEMAPHORE,
+        //         .objectHandle = reinterpret_cast<uint64_t>(semaphore),
+        //         .pObjectName = name.c_str(),
+        //     };
+        //     vkSetDebugUtilsObjectNameEXT(device, &name_info);
+        // }
 
         return semaphore;
     }
