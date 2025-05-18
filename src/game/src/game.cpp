@@ -48,3 +48,4 @@ int main(const int argc, const char** argv) {
     //    spdlog::error("Unable to execute application: {}", e.what());
     //}
 }
+

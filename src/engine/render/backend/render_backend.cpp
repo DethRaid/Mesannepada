@@ -729,11 +729,13 @@ namespace render {
 
         if(!is_first_frame) {
             graphics_command_allocators[cur_frame_idx].reset();
+            transfer_command_allocators[cur_frame_idx].reset();
 
             auto& semaphores = zombie_semaphores[cur_frame_idx];
-            for(const auto& semaphore : semaphores) {
-                vkDestroySemaphore(device, semaphore, nullptr);
-            }
+            available_semaphores.insert(available_semaphores.end(), semaphores.begin(), semaphores.end());
+            // for(const auto& semaphore : semaphores) {
+            //     vkDestroySemaphore(device, semaphore, nullptr);
+            // }
             semaphores.clear();
 
             allocator->free_resources_for_frame(cur_frame_idx);
@@ -1072,8 +1074,6 @@ namespace render {
         if(!available_semaphores.empty()) {
             semaphore = available_semaphores.back();
             available_semaphores.pop_back();
-
-            logger->debug("Using existing semaphore {} for {}", static_cast<void*>(semaphore), name);
 
         } else {
             constexpr auto create_info = VkSemaphoreCreateInfo{

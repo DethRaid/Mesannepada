@@ -163,7 +163,7 @@ entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<e
                 });
 
             if(node.meshIndex) {
-                add_static_mesh_component(entity, node);
+                add_static_mesh_component(entity, node, node_index);
             }
 
             if(node.cameraIndex) {
@@ -213,13 +213,18 @@ entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<e
     return root_entity;
 }
 
-void GltfModel::add_static_mesh_component(const entt::handle& entity, const fastgltf::Node& node) const {
+void GltfModel::add_static_mesh_component(const entt::handle& entity, const fastgltf::Node& node, const size_t node_index) const {
     ZoneScopedN("create mesh");
     const auto mesh_index = *node.meshIndex;
     const auto& mesh = asset.meshes[mesh_index];
 
     eastl::fixed_vector<render::MeshPrimitive, 8> primitives;
     primitives.reserve(mesh.primitives.size());
+
+    auto cast_shadows = true;
+    if(auto itr = extras.visible_to_ray_tracing.find(node_index); itr != extras.visible_to_ray_tracing.end()) {
+        cast_shadows = itr->second;
+    }
 
     for(auto i = 0u; i < mesh.primitives.size(); i++) {
         const auto& gltf_primitive = mesh.primitives.at(i);
@@ -234,7 +239,7 @@ void GltfModel::add_static_mesh_component(const entt::handle& entity, const fast
             i,
             node.name);
 
-        primitives.emplace_back(render::MeshPrimitive{.mesh = imported_mesh, .material = imported_material});
+        primitives.emplace_back(render::MeshPrimitive{.mesh = imported_mesh, .material = imported_material, .visible_to_ray_tracing = cast_shadows});
     }
 
     entity.emplace<render::StaticMeshComponent>(primitives);

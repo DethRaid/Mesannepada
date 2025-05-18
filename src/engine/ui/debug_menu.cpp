@@ -70,6 +70,7 @@ static void key_callback(GLFWwindow* window, const int key, const int scancode, 
         prev_key_callback(window, key, scancode, action, mods);
     }
 
+    // TODO: Use the new io.AddKeyEvent API? We'd have to convert from raw keycode to ImGUI named key, which is slightly annoying
     auto& io = ImGui::GetIO();
     if(action == GLFW_PRESS) {
         io.KeysDown[key] = true;

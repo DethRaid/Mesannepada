@@ -24,7 +24,7 @@ class Scene;
 
 namespace render {
     class RenderBackend;
-    class SarahRenderer;    
+    class SarahRenderer;
     class TextureLoader;
 }
 
@@ -32,6 +32,7 @@ glm::mat4 get_node_to_parent_matrix(const fastgltf::Node& node);
 
 struct ExtrasData {
     eastl::unordered_map<std::size_t, std::filesystem::path> file_references_map;
+    eastl::unordered_map<std::size_t, bool> visible_to_ray_tracing;
     size_t player_parent_node = std::numeric_limits<size_t>::max();
 };
 
@@ -44,7 +45,8 @@ struct ExtrasData {
 class GltfModel : public IModel {
 public:
     GltfModel(
-        std::filesystem::path filepath_in, fastgltf::Asset&& model, render::SarahRenderer& renderer, ExtrasData extras_in
+        std::filesystem::path filepath_in, fastgltf::Asset&& model, render::SarahRenderer& renderer,
+        ExtrasData extras_in
     );
 
     ~GltfModel() override;
@@ -105,7 +107,9 @@ private:
 
     void import_resources_for_model(render::SarahRenderer& renderer);
 
-    void import_materials(render::MaterialStorage& material_storage, render::TextureLoader& texture_loader, render::RenderBackend& backend);
+    void import_materials(
+        render::MaterialStorage& material_storage, render::TextureLoader& texture_loader, render::RenderBackend& backend
+    );
 
     void import_meshes(render::SarahRenderer& renderer);
 
@@ -120,7 +124,7 @@ private:
 
     entt::handle add_nodes_to_scene(Scene& scene, const eastl::optional<entt::entity>& parent_node) const;
 
-    void add_static_mesh_component(const entt::handle& entity, const fastgltf::Node& node) const;
+    void add_static_mesh_component(const entt::handle& entity, const fastgltf::Node& node, size_t node_index) const;
 
     void add_collider_component(
         const entt::handle& entity, const fastgltf::Node& node, size_t node_index, const float4x4& transform
@@ -138,9 +142,13 @@ private:
         const float4x4& parent_to_world
     ) const;
 
-    render::TextureHandle get_texture(size_t gltf_texture_index, render::TextureType type, render::TextureLoader& texture_storage);
+    render::TextureHandle get_texture(
+        size_t gltf_texture_index, render::TextureType type, render::TextureLoader& texture_storage
+    );
 
-    void import_single_texture(size_t gltf_texture_index, render::TextureType type, render::TextureLoader& texture_storage);
+    void import_single_texture(
+        size_t gltf_texture_index, render::TextureType type, render::TextureLoader& texture_storage
+    );
 
     static VkSampler to_vk_sampler(const fastgltf::Sampler& sampler, const render::RenderBackend& backend);
 

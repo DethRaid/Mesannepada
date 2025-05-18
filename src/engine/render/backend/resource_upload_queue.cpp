@@ -269,6 +269,8 @@ namespace render {
         ktx_uploads.clear();
         texture_uploads.clear();
         buffer_uploads.clear();
+
+        allocator.destroy_buffer(staging_buffer);
     }
 
     void ResourceUploadQueue::upload_ktx(
