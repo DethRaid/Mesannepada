@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://xig2s3lw00ct"]
+[gd_scene load_steps=6 format=3 uid="uid://xig2s3lw00ct"]
 
 [ext_resource type="PackedScene" uid="uid://d177d1qqyjjfn" path="res://environments/SM_UrEnvironment.glb" id="1_q20gi"]
 [ext_resource type="PackedScene" uid="uid://ibcoi6lpwgce" path="res://environments/ZigguratEnclosure.tscn" id="2_gfmrx"]
 [ext_resource type="PackedScene" uid="uid://dwd6xkgtxv1mf" path="res://environments/trees/BigTamarask.glb" id="3_gfmrx"]
 [ext_resource type="PackedScene" uid="uid://c401ejk3rsu7v" path="res://environments/plants/SM_Reeds_Cluster.glb" id="4_crp7t"]
+[ext_resource type="PackedScene" uid="uid://fisjhgtodtmf" path="res://boats/SM_CoracleA.glb" id="5_i3nh5"]
 
 [node name="Node3D" type="Node3D"]
 
@@ -49,5 +50,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -165.52, 3.43744, 126.157)
 
 [node name="SM_Reeds_Cluster8" parent="." instance=ExtResource("4_crp7t")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -165.52, 3.43744, 131.157)
+
+[node name="SM_CoracleA2" parent="." instance=ExtResource("5_i3nh5")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -270.17, 3.6355, 174.751)
 
 [editable path="SM_UrEnvironment"]

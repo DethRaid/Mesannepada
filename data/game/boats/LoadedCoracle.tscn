@@ -1,0 +1,47 @@
+[gd_scene load_steps=3 format=3 uid="uid://cm0a6fasf6avr"]
+
+[ext_resource type="PackedScene" uid="uid://fisjhgtodtmf" path="res://boats/SM_CoracleA.glb" id="1_f2akt"]
+[ext_resource type="PackedScene" uid="uid://dqva0sf25lslm" path="res://props/SM_JarC.glb" id="2_snjdk"]
+
+[node name="Node3D" type="Node3D"]
+
+[node name="SM_CoracleA2" parent="." instance=ExtResource("1_f2akt")]
+
+[node name="SM_JarC2" parent="." instance=ExtResource("2_snjdk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.489141, 0.364094, 0.443957)
+
+[node name="SM_JarC3" parent="." instance=ExtResource("2_snjdk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.441452, 0.364094, 0.919593)
+
+[node name="SM_JarC4" parent="." instance=ExtResource("2_snjdk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.736307, 0.364094, 0.699413)
+
+[node name="SM_JarC5" parent="." instance=ExtResource("2_snjdk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.736307, 0.436218, 1.0826)
+
+[node name="SM_JarC6" parent="." instance=ExtResource("2_snjdk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.395476, 0.436218, 1.31001)
+
+[node name="SM_JarC7" parent="." instance=ExtResource("2_snjdk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0554606, 0.436218, 1.329)
+
+[node name="SM_JarC8" parent="." instance=ExtResource("2_snjdk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00882304, 0.420427, 0.870049)
+
+[node name="SM_JarC9" parent="." instance=ExtResource("2_snjdk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.00970256, 0.420427, 0.482185)
+
+[node name="SM_JarC13" parent="." instance=ExtResource("2_snjdk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.06955, 0.420427, 0.482185)
+
+[node name="SM_JarC14" parent="." instance=ExtResource("2_snjdk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.872936, 0.420427, 0.11369)
+
+[node name="SM_JarC10" parent="." instance=ExtResource("2_snjdk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.383755, 0.420427, 0.612399)
+
+[node name="SM_JarC11" parent="." instance=ExtResource("2_snjdk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.406789, 0.420427, 1.0138)
+
+[node name="SM_JarC12" parent="." instance=ExtResource("2_snjdk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.71427, 0.420427, 0.780161)

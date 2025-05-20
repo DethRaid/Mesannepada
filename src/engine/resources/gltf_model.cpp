@@ -421,14 +421,16 @@ JPH::Ref<JPH::Shape> GltfModel::create_jolt_shape(const fastgltf::Collider& coll
                     }
                 },
                 [&](const fastgltf::CylinderShape& cylinder) {
-                    if(abs(cylinder.radiusBottom - cylinder.radiusTop) < eastl::numeric_limits<
+                    const auto radius_top = eastl::max(cylinder.radiusTop, JPH::cDefaultConvexRadius);
+                    const auto radius_bottom = eastl::max(cylinder.radiusBottom, JPH::cDefaultConvexRadius);
+                    if(abs(radius_bottom - radius_top) < eastl::numeric_limits<
                         fastgltf::num>::epsilon()) {
                         shape_settings = new JPH::CylinderShapeSettings{
-                            cylinder.height / 2.f, cylinder.radiusTop
+                            cylinder.height / 2.f, radius_top
                         };
                     } else {
                         shape_settings = new JPH::TaperedCylinderShapeSettings{
-                            cylinder.height / 2.f, cylinder.radiusTop, cylinder.radiusBottom
+                            cylinder.height / 2.f, radius_top, radius_bottom
                         };
                     }
                 },
