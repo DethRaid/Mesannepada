@@ -23,8 +23,6 @@ endif()
 
 # Shaders
 
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../cmake;")
-
 set(SHADER_DIR ${CMAKE_CURRENT_LIST_DIR}/shaders)
 
 # SAH Core

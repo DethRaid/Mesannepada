@@ -9,20 +9,6 @@ project(mesannepada
     LANGUAGES CXX
 )
 
-# Oh whoops the internet died
-execute_process(
-        COMMAND ping www.google.com -n 2
-        ERROR_QUIET
-        RESULT_VARIABLE NO_CONNECTION
-)
-
-if(NOT NO_CONNECTION EQUAL 0)
-        set(FETCHCONTENT_FULLY_DISCONNECTED ON)
-        message(WARNING "FetchContent offline mode: requires an already populated _deps")
-else()
-        set(FETCHCONTENT_FULLY_DISCONNECTED OFF)
-endif()
-
 # Address sanitizer please save me
 # set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /fsanitize=address")
 # set(CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} /fsanitize=address")

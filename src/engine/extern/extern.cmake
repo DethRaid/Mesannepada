@@ -34,6 +34,11 @@ set(RMLUI_TRACY_PROFILING OFF CACHE BOOL "" FORCE)
 
 set(ENTT_INCLUDE_NATVIS ON CACHE BOOL "" FORCE)
 
+# Couple of Linux-specific things - glfw defaults to X11, but Fedora uses Wayland
+if(LINUX)
+    set(GLFW_BUILD_WAYLAND ON CACHE BOOL "" FORCE)
+endif()
+
 # Freetype
 # link freetype (disable freetype dependencies since we do not need them)
 set(CMAKE_DISABLE_FIND_PACKAGE_PNG ON CACHE INTERNAL "")
@@ -60,7 +65,6 @@ FetchContent_Declare(
 FetchContent_Declare(
         fetch_fastgltf
         GIT_REPOSITORY  https://github.com/spnda/fastgltf.git
-        GIT_SHALLOW     ON
         GIT_TAG         2fd60264ac31ffb8cb3a132803fe558671c9412d
         # GIT_REPOSITORY  https://github.com/DethRaid/fastgltf.git
         # GIT_TAG         308b996e13d765b7b29aff2791612a2c2a6f8b0b
@@ -110,19 +114,17 @@ FetchContent_Declare(
 FetchContent_Declare(
         utf8cpp
         GIT_REPOSITORY https://github.com/nemtrif/utfcpp.git
-        GIT_SHALLOW     ON
+        GIT_SHALLOW    ON
         GIT_TAG        v4.0.6
 )
 FetchContent_Declare(
         fetch_volk
         GIT_REPOSITORY  https://github.com/zeux/volk.git
-        GIT_SHALLOW     ON
-        GIT_TAG         7121910043955154c585ebb63de2e7d63aefa489
+        GIT_TAG         02ffc36f3c7f8a744e741127eda7ccbdb5c622e6
 )
 FetchContent_Declare(
         vk-bootstrap
         GIT_REPOSITORY  https://github.com/charles-lunarg/vk-bootstrap.git
-        GIT_SHALLOW     ON
         GIT_TAG         c73b793387e739b9abdf952c52cde40d1b0e7db0
         #GIT_REPOSITORY  https://github.com/DethRaid/vk-bootstrap.git
         #GIT_TAG         vk_14_features
@@ -233,7 +235,7 @@ if(SAH_USE_XESS)
         if(xess_POPULATED)
                 message("XeSS automatically populated")
         else()
-                FetchContent_Populate(xess)
+            FetchContent_MakeAvailable(xess)
 
                 add_library(xess INTERFACE)
                 target_include_directories(xess INTERFACE 
@@ -257,7 +259,7 @@ FetchContent_GetProperties(fetch_imgui)
 if(fetch_imgui_POPULATED)
     message("Dear ImGUI automatically populated")
 else()
-    FetchContent_Populate(fetch_imgui)
+    FetchContent_MakeAvailable(fetch_imgui)
     add_library(imgui STATIC
             ${fetch_imgui_SOURCE_DIR}/imgui.cpp
             ${fetch_imgui_SOURCE_DIR}/imgui_demo.cpp
@@ -281,7 +283,7 @@ FetchContent_GetProperties(plf_colony)
 if(plf_colony_POPULATED)
     message("plf::colony automatically populated")
 else()
-    FetchContent_Populate(plf_colony)
+    FetchContent_MakeAvailable(plf_colony)
     add_library(plf_colony INTERFACE)
     target_include_directories(plf_colony INTERFACE
             ${plf_colony_SOURCE_DIR}
@@ -297,7 +299,7 @@ FetchContent_GetProperties(fetch_stb)
 if(fetch_stb_POPULATED)
     message("STB automatically populated")
 else()
-    FetchContent_Populate(fetch_stb)
+    FetchContent_MakeAvailable(fetch_stb)
     add_library(stb INTERFACE)
     target_include_directories(stb INTERFACE ${fetch_stb_SOURCE_DIR})
 endif()
@@ -318,14 +320,17 @@ if(ANDROID)
     set(ktx_DIR "${CMAKE_CURRENT_LIST_DIR}/libktx/arm64-v8a/lib/cmake/ktx")
 elseif(WIN32)
     set(ktx_DIR "D:/Program Files/KTX-Software/lib/cmake/ktx")
+elseif(LINUX)
+    # There's gotta be a better way to do this...
+    set(ktx_DIR "/lib/cmake/ktx")
 endif()
 
-find_package(ktx REQUIRED)
+find_package(Ktx REQUIRED)
 
 # Slang
 add_library(slang INTERFACE)
 target_include_directories(slang INTERFACE "${CMAKE_CURRENT_LIST_DIR}/slang/include")
-target_link_directories(slang INTERFACE "${CMAKE_CURRENT_LIST_DIR}/swlang/lib/windows-x64/release")
+target_link_directories(slang INTERFACE "${CMAKE_CURRENT_LIST_DIR}/slang/lib/windows-x64/release")
 target_link_libraries(slang INTERFACE slang)
 
 # RenderDoc API, from https://github.com/baldurk/renderdoc/blob/v1.x/renderdoc/api/app/renderdoc_app.h

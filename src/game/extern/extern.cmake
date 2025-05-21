@@ -10,6 +10,6 @@ set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(
         fetch_glfw
         GIT_REPOSITORY  https://github.com/glfw/glfw.git
-        GIT_TAG         3.3.8
+        GIT_TAG         e7ea71be039836da3a98cea55ae5569cb5eb885c
 )
 FetchContent_MakeAvailable(fetch_glfw)
