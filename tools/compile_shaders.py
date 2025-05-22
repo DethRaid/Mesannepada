@@ -246,16 +246,15 @@ if __name__ == '__main__':
 
     print(f"Compilling shaders from {input_dir} to {output_dir}")
 
-    if os.name == 'nt':
-        glslang_exe = "glslangValidator.exe"
-        slang_exe = "slangc.exe"
-    else:
-        glslang_exe = "glslangValidator"
-        slang_exe = "slangc"
-
     vulkan_sdk_dir = Path(os.environ["VULKAN_SDK"])
-    glslang_exe = vulkan_sdk_dir / "bin" / glslang_exe
-    slang_exe = vulkan_sdk_dir / "bin" / slang_exe
+
+    if os.name == 'nt':
+        glslang_exe = vulkan_sdk_dir / "Bin" / "glslangValidator.exe"
+        slang_exe = vulkan_sdk_dir / "Bin" / "slangc.exe"
+    else:
+        glslang_exe = vulkan_sdk_dir / "bin" / "glslangValidator"
+        slang_exe = vulkan_sdk_dir / "bin" / "slangc"
+
 
     print(f"Using GLSL compiler {glslang_exe}")
     print(f"Using Slang compiler {slang_exe}")

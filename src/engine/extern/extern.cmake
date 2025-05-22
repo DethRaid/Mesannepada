@@ -323,22 +323,12 @@ endif()
 # libKTX
 # The build script has a hard dependency on Bash, so we have this malarkey for the precompiled binaries
 if(ANDROID)
-    set(ktx_DIR "${CMAKE_CURRENT_LIST_DIR}/libktx/arm64-v8a/lib/cmake/ktx")
+    set(Ktx_DIR "${CMAKE_CURRENT_LIST_DIR}/libktx/arm64-v8a/lib/cmake/ktx")
 elseif(WIN32)
-    set(ktx_DIR "D:/Program Files/KTX-Software/lib/cmake/ktx")
+    set(Ktx_DIR "D:/Program Files/KTX-Software/lib/cmake/ktx")
 elseif(LINUX)
     # There's gotta be a better way to do this...
-    set(ktx_DIR "/lib/cmake/ktx")
+    set(Ktx_DIR "/lib/cmake/ktx")
 endif()
 
 find_package(Ktx REQUIRED)
-
-# Slang
-add_library(slang INTERFACE)
-target_include_directories(slang INTERFACE "${CMAKE_CURRENT_LIST_DIR}/slang/include")
-target_link_directories(slang INTERFACE "${CMAKE_CURRENT_LIST_DIR}/slang/lib/windows-x64/release")
-target_link_libraries(slang INTERFACE slang)
-
-# RenderDoc API, from https://github.com/baldurk/renderdoc/blob/v1.x/renderdoc/api/app/renderdoc_app.h
-add_library(renderdoc INTERFACE)
-target_include_directories(renderdoc INTERFACE ${CMAKE_CURRENT_LIST_DIR}/renderdoc/include)

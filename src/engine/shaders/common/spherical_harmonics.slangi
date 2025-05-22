@@ -87,19 +87,19 @@ half4 dir_to_sh(half3 dir) {
 static const half sh_project_band0 = 1.h/2.h * sqrt(1.h/PI);
 
 void sh_project_band1(half3 n, out half Y1[3]) {
-	Y1[0] = sqrt(3.0/4.0/PI) * n.y;
-	Y1[1] = sqrt(3.0/4.0/PI) * n.z;
-	Y1[2] = sqrt(3.0/4.0/PI) * n.x;
+	Y1[0] = sqrt(3.h/4.h/PI) * n.y;
+	Y1[1] = sqrt(3.h/4.h/PI) * n.z;
+	Y1[2] = sqrt(3.h/4.h/PI) * n.x;
 }
 
 void sh_project_band2(half3 n, out half Y2[5]) {
 	half3 n2 = n * n;
 	
-	Y2[0] = 1.0/2.0 * sqrt(15.0/PI) * n.x * n.y;
-	Y2[1] = 1.0/2.0 * sqrt(15.0/PI) * n.y * n.z;
-	Y2[2] = 1.0/4.0 * sqrt( 5.0/PI) * (2.0*n2.z - n2.x - n2.y);
-	Y2[3] = 1.0/2.0 * sqrt(15.0/PI) * n.z * n.x;
-	Y2[4] = 1.0/4.0 * sqrt(15.0/PI) * (n2.x - n2.y);
+	Y2[0] = 1.h/2.h * sqrt(15.h/PI) * n.x * n.y;
+	Y2[1] = 1.h/2.h * sqrt(15.h/PI) * n.y * n.z;
+	Y2[2] = 1.h/4.h * sqrt( 5.h/PI) * (2.0*n2.z - n2.x - n2.y);
+	Y2[3] = 1.h/2.h * sqrt(15.h/PI) * n.z * n.x;
+	Y2[4] = 1.h/4.h * sqrt(15.h/PI) * (n2.x - n2.y);
 }
 
 half sh_lookup_band2(half x[9], half3 n) {
@@ -109,7 +109,7 @@ half sh_lookup_band2(half x[9], half3 n) {
 	sh_project_band1(n, Y1);
 	sh_project_band2(n, Y2);
 	
-	half value = half(0.0);
+	half value = half(0.h);
 	value += x[0] * Y0;
 	value += x[1] * Y1[0];
 	value += x[2] * Y1[1];

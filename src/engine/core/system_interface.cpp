@@ -3,6 +3,7 @@
 static SystemInterface* instance;
 
 #if defined(_WIN32)
+#include "core/win32_system_interface.hpp"
 void SystemInterface::initialize(GLFWwindow* window_in, const std::filesystem::path& exe_folder) {
     instance = new Win32SystemInterface{ window_in, exe_folder };
 }
@@ -21,12 +22,3 @@ void SystemInterface::set_ui_controller(ui::Controller* ui_controller_in) {
 }
 
 ui::Controller& SystemInterface::get_ui_controller() const { return *ui_controller; }
-
-bool SystemInterface::is_renderdoc_loaded() const {
-    return renderdoc != nullptr;
-}
-
-render::RenderDocWrapper& SystemInterface::get_renderdoc() const {
-    return *renderdoc;
-}
-

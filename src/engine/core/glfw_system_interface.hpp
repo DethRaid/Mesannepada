@@ -41,7 +41,7 @@ public:
 
     GLFWwindow* get_glfw_window() const;
 
-private:
+protected:
     std::shared_ptr<spdlog::logger> logger;
 
     GLFWwindow* window = nullptr;

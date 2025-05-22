@@ -5,7 +5,7 @@
 #include "pipeline_cache.hpp"
 #include "render/backend/render_backend.hpp"
 #include "render/backend/gpu_texture.hpp"
-#include "utils.hpp"
+#include "render/backend/utils.hpp"
 #include "console/cvars.hpp"
 #include "core/system_interface.hpp"
 

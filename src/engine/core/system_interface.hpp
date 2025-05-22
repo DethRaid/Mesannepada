@@ -11,8 +11,6 @@
 #include <spdlog/logger.h>
 #include <toml11/types.hpp>
 
-#include "render/render_doc_wrapper.hpp"
-
 namespace ui {
     class Controller;
 }
@@ -79,18 +77,12 @@ public:
     void set_ui_controller(ui::Controller* ui_controller_in);
 
     ui::Controller& get_ui_controller() const;
-
-    bool is_renderdoc_loaded() const;
-
-    render::RenderDocWrapper& get_renderdoc() const;
-
+    
     virtual const std::filesystem::path& get_native_library_dir() const = 0;
 
     virtual void request_window_close() = 0;
 
 protected:
-    eastl::unique_ptr<render::RenderDocWrapper> renderdoc;
-
     PlayerInputManager* input = nullptr;
 
     ui::Controller* ui_controller = nullptr;

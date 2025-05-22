@@ -40,9 +40,9 @@ target_compile_definitions(SahCore PUBLIC
         GLM_ENABLE_EXPERIMENTAL
         _SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING
         TRACY_ENABLE
-        SAH_USE_FFX=${SAH_USE_FFX}
-        SAH_USE_STREAMLINE=${SAH_USE_STREAMLINE}
-        SAH_USE_XESS=${SAH_USE_XESS}
+        SAH_USE_FFX=$<BOOL:${SAH_USE_FFX}>
+        SAH_USE_STREAMLINE=$<BOOL:${SAH_USE_STREAMLINE}>
+        SAH_USE_XESS=$<BOOL:${SAH_USE_XESS}>
         UTF_CPP_CPLUSPLUS=202002
         EASTL_EASTDC_VSNPRINTF=0
         SAH_USE_IRRADIANCE_CACHE=0
@@ -65,9 +65,20 @@ target_include_directories(SahCore PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}
         )
 target_include_directories(SahCore SYSTEM PUBLIC
-        "$ENV{VULKAN_SDK}/include"
         ${JoltPhysics_SOURCE_DIR}/..
         )
+
+if(WIN32)
+    message(STATUS "Adding include directory $ENV{VULKAN_SDK}/Include")
+    target_include_directories(SahCore SYSTEM PUBLIC
+            "$ENV{VULKAN_SDK}/Include"
+            )
+else()
+    message(STATUS "Adding include directory $ENV{VULKAN_SDK}/include")
+    target_include_directories(SahCore SYSTEM PUBLIC
+            "$ENV{VULKAN_SDK}/include"
+            )
+endif()
 
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-format-security")
 target_link_libraries(SahCore PUBLIC
@@ -83,8 +94,6 @@ target_link_libraries(SahCore PUBLIC
         KTX::ktx
         magic_enum::magic_enum
         plf_colony
-        renderdoc
-        slang
         spdlog::spdlog
         spirv-reflect-static
         stb
@@ -141,6 +150,13 @@ if(SAH_USE_XESS)
             ${SAH_OUTPUT_DIR})
 endif()
 
+# This library is stupid I need to replace it
+message(STATUS "Copying KTX DLL ${Ktx_DIR}/bin/ktx.dll")
+add_custom_command(TARGET SahCore POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${Ktx_DIR}/../../../bin/ktx.dll"
+    ${SAH_OUTPUT_DIR})
+
 #######################
 # Generate VS filters #
 #######################
@@ -150,4 +166,3 @@ foreach(source IN LISTS SOURCES)
     string(REPLACE "/" "\\" source_path_msvc "${source_path_relative}")
     source_group("${source_path_msvc}" FILES "${source}")
 endforeach()
-

@@ -18,6 +18,10 @@
 #include "core/issue_breakpoint.hpp"
 #include "render/upscaling/xess.hpp"
 
+#if defined(_WIN32)
+#include "core/win32_system_interface.hpp"
+#endif
+
 namespace render {
     [[maybe_unused]] static auto cvar_use_dgc = AutoCVar_Int{
         "r.RHI.DGC.Enable",
@@ -438,14 +442,6 @@ namespace render {
 
         device_features = **physical_device_features;
 
-        if(SystemInterface::get().is_renderdoc_loaded()) {
-            logger->info("RenderDoc is loaded! Turning ray tracing features off");
-            acceleration_structure_features.accelerationStructure = VK_FALSE;
-            acceleration_structure_features.accelerationStructureCaptureReplay = VK_FALSE;
-            acceleration_structure_features.accelerationStructureIndirectBuild = VK_FALSE;
-            acceleration_structure_features.accelerationStructureHostCommands = VK_FALSE;
-        }
-
         if(acceleration_structure_features.accelerationStructure) {
             logger->info("Ray tracing supported");
         }
@@ -518,6 +514,7 @@ namespace render {
                              )
             .build();
         if(!swapchain_ret) {
+            Surface lost?
             throw std::runtime_error{"Could not create swapchain"};
         }
 

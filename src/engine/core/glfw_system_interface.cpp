@@ -2,7 +2,6 @@
 
 #include <fstream>
 
-#include <renderdoc/renderdoc_app.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
@@ -10,7 +9,6 @@
 #include <GLFW/glfw3.h>
 
 #include "input/player_input_manager.hpp"
-#include "render/render_doc_wrapper.hpp"
 #include "ui/ui_controller.hpp"
 
 static void on_glfw_key(GLFWwindow* window, const int key, const int scancode, const int action, const int mods) {
@@ -132,10 +130,17 @@ eastl::optional<eastl::vector<std::byte>> GlfwSystemInterface::load_file(const s
 FILE* GlfwSystemInterface::open_file(const std::filesystem::path& filepath) {
     const auto path_string = filepath.string();
     FILE* file = nullptr;
+#if _WIN32
+    const auto result = fopen_s(&file, path_string.c_str(), "rb");
+    if (result != 0) {
+        logger->error("Could not open file {}: error code {}", filepath.string(), result);
+    }
+#else
     const auto result = fopen(path_string.c_str(), "rb");
-    if(result != 0) {
+    if(result == nullptr) {
         logger->error("Could not open file {}", filepath.string());
     }
+#endif
 
     return file;
 }
