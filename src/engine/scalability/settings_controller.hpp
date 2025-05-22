@@ -1,7 +1,9 @@
 #pragma once
 
+#if SAH_USE_STREAMLINE
 #include <sl.h>
 #include <sl_dlss.h>
+#endif
 #include <ffx_api/ffx_upscale.h>
 #include <toml11/types.hpp>
 
@@ -16,7 +18,9 @@ public:
 
     void set_antialiasing(render::AntiAliasingType antialiasing);
 
+#if SAH_USE_STREAMLINE
     void set_dlss_mode(sl::DLSSMode dlss_mode);
+#endif
 
     void set_use_ray_reconstruction(bool use_ray_reconstruction_in);
 
@@ -32,7 +36,9 @@ public:
 
     render::AntiAliasingType get_antialiasing() const;
 
+#if SAH_USE_STREAMLINE
     sl::DLSSMode get_dlss_mode() const;
+#endif
 
     bool get_ray_reconstruction() const;
 
@@ -66,7 +72,9 @@ private:
 
     render::AntiAliasingType anti_aliasing = render::AntiAliasingType::DLSS;
 
+#if SAH_USE_STREAMLINE
     sl::DLSSMode dlss_mode = sl::DLSSMode::eMaxQuality;
+#endif
 
     bool use_ray_reconstruction = false;
 

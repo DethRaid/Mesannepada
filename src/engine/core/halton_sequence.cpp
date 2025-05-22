@@ -7,7 +7,7 @@ HaltonSequence::HaltonSequence(const float base_in) : base{base_in} {}
 
 float HaltonSequence::get_next_value() {
     auto x = d - n;
-    if(abs(x - 1.f) < FLT_EPSILON) {
+    if(std::abs(x - 1.f) < FLT_EPSILON) {
         n = 1;
         d *= base;
     } else {

@@ -28,8 +28,6 @@ class SystemInterface
 public:
 #if defined(_WIN32)
     static void initialize(GLFWwindow* window_in, const std::filesystem::path& exe_folder);
-#elif defined(__ANDROID__)
-    static void initialize(android_app* app);
 #endif
 
     static SystemInterface& get();

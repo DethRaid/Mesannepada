@@ -42,29 +42,16 @@ void ResourceLoader::load_gltf_model(const std::filesystem::path& model_path) {
 
     logger->info("Beginning load of model {}", model_path.string());
 
-#if !defined(__ANDROID__)
     if(!exists(model_path)) {
         logger->error("Scene file {} does not exist!", model_path.string());
         throw std::runtime_error{"Scene does not exist"};
     }
-#endif
 
     if(!model_path.has_parent_path()) {
         logger->warn("Scene path {} has no parent path!", model_path.string());
     }
 
-#if defined(__ANDROID__)
-        auto& system_interface = reinterpret_cast<AndroidSystemInterface&>(SystemInterface::get());
-        auto data = fastgltf::AndroidGltfDataBuffer{ system_interface.get_asset_manager() };
-        {
-            ZoneScopedN("Load file data");
-            data.loadFromAndroidAsset(scene_path);
-        }
-#else
-
     auto data = fastgltf::GltfDataBuffer::FromPath(model_path);
-
-#endif
 
     ExtrasData extras_data;
     parser.setExtrasParseCallback(

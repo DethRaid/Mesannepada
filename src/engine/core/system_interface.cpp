@@ -6,10 +6,6 @@ static SystemInterface* instance;
 void SystemInterface::initialize(GLFWwindow* window_in, const std::filesystem::path& exe_folder) {
     instance = new Win32SystemInterface{ window_in, exe_folder };
 }
-#elif defined(__ANDROID__)
-void SystemInterface::initialize(android_app* app) {
-    instance = new AndroidSystemInterface{ app };
-}
 #endif
 
 SystemInterface& SystemInterface::get() {

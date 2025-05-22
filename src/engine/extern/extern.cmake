@@ -70,6 +70,11 @@ FetchContent_Declare(
         # GIT_TAG         308b996e13d765b7b29aff2791612a2c2a6f8b0b
 )
 FetchContent_Declare(
+        fetch_glfw
+        GIT_REPOSITORY  https://github.com/glfw/glfw.git
+        GIT_TAG         e7ea71be039836da3a98cea55ae5569cb5eb885c
+)
+FetchContent_Declare(
         glm
         GIT_REPOSITORY  https://github.com/g-truc/glm.git
         GIT_SHALLOW     ON
@@ -156,8 +161,9 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(
         eastl
         entt
-        glm
         fetch_fastgltf
+        fetch_glfw
+        glm
         JoltPhysics
         fetch_magic_enum
         rmlui

@@ -2,6 +2,7 @@
 
 #if _WIN32
 #define SAH_BREAKPOINT __debugbreak()
-#elif __ANDROID__
+#else
+#include <signal.h>
 #define SAH_BREAKPOINT raise(SIGINT)
 #endif

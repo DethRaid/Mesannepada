@@ -163,10 +163,6 @@ namespace render {
         // projection = glm::tweakedInfinitePerspective(glm::radians(fov), aspect, near_value);
         projection = inf_depth_reverse_z_perspective(glm::radians(fov), aspect, near_value);
 
-#if defined(__ANDROID__)
-        projection = glm::rotate(projection, glm::radians(270.f), glm::vec3{ 0, 0, 1 });
-#endif
-
         gpu_data.last_frame_projection = gpu_data.projection;
         gpu_data.projection = projection;
 

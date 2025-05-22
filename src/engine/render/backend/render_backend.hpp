@@ -1,11 +1,13 @@
 #pragma once
 
 #include <EASTL/array.h>
+#include <EASTL/unique_ptr.h>
 
 #include <volk.h>
 #include <VkBootstrap.h>
 #include <tracy/TracyVulkan.hpp>
 
+#include "render/backend/blas_build_queue.hpp"
 #include "render/backend/streamline_adapter.hpp"
 #include "render/backend/hit_group_builder.hpp"
 #include "render/backend/descriptor_set_allocator.hpp"
@@ -14,13 +16,14 @@
 #include "render/backend/resource_allocator.hpp"
 #include "render/backend/command_allocator.hpp"
 #include "render/backend/pipeline_builder.hpp"
+#include "render/backend/pipeline_cache.hpp"
+#include "render/backend/command_buffer.hpp"
 #include "render/backend/resource_upload_queue.hpp"
 #include "render/backend/constants.hpp"
 
 namespace render {
     class RenderGraph;
-    class BlasBuildQueue;
-    class PipelineCache;
+
     /**
      * Wraps a lot of low level Vulkan concerns
      *
@@ -195,7 +198,7 @@ namespace render {
         void set_object_name(VulkanType object, const std::string& name) const;
 
     private:
-        static inline std::unique_ptr<RenderBackend> g_render_backend = nullptr;
+        static inline eastl::unique_ptr<RenderBackend> g_render_backend = nullptr;
 
         bool is_first_frame = true;
 
@@ -223,19 +226,21 @@ namespace render {
         VkQueue transfer_queue;
         uint32_t transfer_queue_family_index;
 
+#if SAH_USE_STREAMLINE
         StreamlineAdapter streamline;
+#endif
 
-        std::unique_ptr<ResourceAllocator> allocator;
+        eastl::unique_ptr<ResourceAllocator> allocator;
 
-        std::unique_ptr<ResourceUploadQueue> upload_queue = {};
+        eastl::unique_ptr<ResourceUploadQueue> upload_queue = {};
 
-        std::unique_ptr<BlasBuildQueue> blas_build_queue = {};
+        eastl::unique_ptr<BlasBuildQueue> blas_build_queue = {};
 
         ResourceAccessTracker resource_access_synchronizer;
 
-        std::unique_ptr<PipelineCache> pipeline_cache = {};
+        eastl::unique_ptr<PipelineCache> pipeline_cache = {};
 
-        std::unique_ptr<TextureDescriptorPool> texture_descriptor_pool = {};
+        eastl::unique_ptr<TextureDescriptorPool> texture_descriptor_pool = {};
 
         VkCommandPool tracy_command_pool = VK_NULL_HANDLE;
         VkCommandBuffer tracy_command_buffer = VK_NULL_HANDLE;

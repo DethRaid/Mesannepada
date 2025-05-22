@@ -321,9 +321,10 @@ namespace render {
             [[fallthrough]];
         case VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_NV:
             return VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR;
-        }
 
-        return VK_ACCESS_2_NONE;
+        default:
+            return VK_ACCESS_2_NONE;
+        }
     }
 
     VkPipelineStageFlags2 to_pipeline_stage(const VkShaderStageFlags stage_flags) {
@@ -381,9 +382,10 @@ namespace render {
 
         case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
             throw std::runtime_error{ "Input attachments are not supported" };
-        }
 
-        return VK_IMAGE_LAYOUT_UNDEFINED;
+        default:
+            return VK_IMAGE_LAYOUT_UNDEFINED;
+        }
     }
 
     bool is_buffer_type(const VkDescriptorType vk_type) {

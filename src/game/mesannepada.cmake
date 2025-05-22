@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.22.1)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 set(SAH_USE_FFX_CACAO ON CACHE BOOL "" FORCE)
 
 project(mesannepada)
@@ -10,8 +7,11 @@ project(mesannepada)
 # Include the shared renderer
 
 set(SAH_USE_FFX 1 CACHE BOOL "" FORCE)
-set(SAH_USE_STREAMLINE 1 CACHE BOOL "" FORCE)
-set(SAH_USE_XESS 1 CACHE BOOL "" FORCE)
+if(WIN32)
+    set(SAH_USE_STREAMLINE 1 CACHE BOOL "" FORCE)
+else()
+    set(SAH_USE_STREAMLINE 0 CACHE BOOL "" FORCE)
+endif()
 include(${CMAKE_CURRENT_LIST_DIR}/../engine/SahCore.cmake)
 
 # Win32 dependencies

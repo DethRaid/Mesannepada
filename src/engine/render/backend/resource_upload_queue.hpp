@@ -105,7 +105,7 @@ namespace render {
             .data = eastl::vector<uint8_t>(data.size() * sizeof(DataType)),
             .dest_offset = dest_offset,
         };
-        std::memcpy(job.data.data(), data.data(), data.size() * sizeof(DataType));
+        memcpy(job.data.data(), data.data(), data.size() * sizeof(DataType));
 
         enqueue(std::move(job));
     }
@@ -119,7 +119,7 @@ namespace render {
             .data = eastl::vector<uint8_t>(data.size() * sizeof(DataType)),
             .dest_offset = dest_offset,
         };
-        std::memcpy(job.data.data(), data.data(), data.size() * sizeof(DataType));
+        memcpy(job.data.data(), data.data(), data.size() * sizeof(DataType));
 
         enqueue(std::move(job));
     }

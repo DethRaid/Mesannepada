@@ -1,25 +1,22 @@
 cmake_minimum_required(VERSION 3.26.1)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 project(mesannepada)
 
 # These must be 1 or 0 because of CMake skill issue
 option(SAH_USE_FFX "Whether to use AMD's FidelityFX library" 1)
-option(SAH_USE_STREAMLINE "Whether to use Nvidia's Streamline library" 1)
 option(SAH_USE_XESS "Whether to use Intel's XeSS library" 1)
-
-if(ANDROID)
-    # Integrate GameActivity, refer to
-    #     https://d.android.com/games/agdk/integrate-game-activity
-    # for the detailed instructions.
-    find_package(game-activity REQUIRED CONFIG)
-endif()
 
 if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
+
+if(WIN32)
+    set(USE_STREAMLINE_DEFAULT 1)
+elseif(Linux)
+    set(USE_STREAMLINE_DEFAULT 0)
+endif()
+
+option(SAH_USE_STREAMLINE "Whether to use Nvidia's Streamline library" ${USE_STREAMLINE_DEFAULT})
 
 # Shaders
 
@@ -38,6 +35,7 @@ include(${EXTERN_DIR}/extern.cmake)
 
 target_compile_definitions(SahCore PUBLIC
         VK_NO_PROTOTYPES
+        GLFW_INCLUDE_NONE
         GLM_FORCE_DEPTH_ZERO_TO_ONE
         GLM_ENABLE_EXPERIMENTAL
         _SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING
@@ -55,17 +53,19 @@ if(WIN32)
                 VK_USE_PLATFORM_WIN32_KHR
                 NOMINMAX
                 )
-elseif(ANDROID)
-        target_compile_definitions(SahCore PUBLIC
-                VK_USE_PLATFORM_ANDROID_KHR
-                )
+elseif(Linux)
+    target_compile_definitions(SahCore PUBLIC
+        VK_USE_PLATFORM_WAYLAND
+    )
 endif()
+
+message(STATUS "Vulkan SDK: $ENV{VULKAN_SDK}")
 
 target_include_directories(SahCore PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}
         )
 target_include_directories(SahCore SYSTEM PUBLIC
-        "$ENV{VK_SDK_PATH}/Include"
+        "$ENV{VULKAN_SDK}/include"
         ${JoltPhysics_SOURCE_DIR}/..
         )
 
@@ -76,6 +76,7 @@ target_link_libraries(SahCore PUBLIC
         fastgltf::fastgltf
         freetype
         glm::glm-header-only
+        glfw
         GPUOpen::VulkanMemoryAllocator
         imgui
         Jolt
@@ -95,20 +96,14 @@ target_link_libraries(SahCore PUBLIC
         volk::volk_headers
         )
 
-if(ANDROID)
-    target_link_libraries(SahCore PUBLIC
-            game-activity::game-activity
-            log
-            android
-            adrenotools
-    )
-elseif(WIN32)
-    target_link_libraries(SahCore PUBLIC
-        glfw
-    )
+if(WIN32)
     target_compile_options(SahCore PUBLIC 
         "/MP"
     )
+elseif(LINUX)
+    target_compile_options(SahCore PUBLIC
+        "-fms-extensions"
+        "-Wno-nullability-completeness")
 endif()
 
 if(SAH_USE_FFX)
@@ -130,7 +125,8 @@ if(SAH_USE_FFX)
         "${fidelityfx_SOURCE_DIR}/sdk/bin/ffx_sdk/ffx_fsr3_x64d.dll"
         ${SAH_OUTPUT_DIR})
 endif()
-if(SAH_USE_STREAMLINE)
+if(WIN32 AND SAH_USE_STREAMLINE)
+    message(STATUS "Including Streamline")
     target_link_libraries(SahCore PUBLIC
             streamline
     )
