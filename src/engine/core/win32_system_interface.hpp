@@ -19,8 +19,6 @@ public:
     HINSTANCE get_hinstance() const;
 
 private:
-    HWND hwnd = nullptr;
-
     HINSTANCE hinstance = nullptr;
 };
 #endif

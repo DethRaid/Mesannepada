@@ -514,7 +514,6 @@ namespace render {
                              )
             .build();
         if(!swapchain_ret) {
-            Surface lost?
             throw std::runtime_error{"Could not create swapchain"};
         }
 
