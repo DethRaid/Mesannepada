@@ -1,9 +1,15 @@
-[gd_scene load_steps=9 format=3 uid="uid://ibcoi6lpwgce"]
+[gd_scene load_steps=15 format=3 uid="uid://ibcoi6lpwgce"]
 
 [ext_resource type="PackedScene" uid="uid://887tk6sug6t0" path="res://environments/SM_Ur_ZigguratTerrace.glb" id="1_kmlrp"]
 [ext_resource type="PackedScene" uid="uid://dtpda7o0rktpc" path="res://props/SM_OilLampA.glb" id="2_qabim"]
 [ext_resource type="PackedScene" uid="uid://ck4quodd68bi3" path="res://props/SM_OfferingStandA.glb" id="3_0siq0"]
 [ext_resource type="PackedScene" uid="uid://ttgg7p15cbs3" path="res://props/SM_CopperAxe.glb" id="3_cqvnt"]
+[ext_resource type="PackedScene" uid="uid://ctnlc21l6y3a4" path="res://props/SM_ReedMat.glb" id="5_1tgwn"]
+[ext_resource type="PackedScene" uid="uid://ca5n7wwtv34vb" path="res://props/SM_LowTable_TamaraskWood.glb" id="6_re6a1"]
+[ext_resource type="PackedScene" uid="uid://dyruym2pvl7if" path="res://props/SM_CupA.glb" id="7_6vs0a"]
+[ext_resource type="PackedScene" uid="uid://byfoneooj1xp" path="res://props/SM_BowlA.glb" id="7_xfbx7"]
+[ext_resource type="PackedScene" uid="uid://cgqafi5qiulmy" path="res://props/SM_JarA.glb" id="8_2lsym"]
+[ext_resource type="PackedScene" uid="uid://cutesyrwbvejc" path="res://props/SM_JarB.glb" id="9_dfck3"]
 
 [sub_resource type="PhysicalSkyMaterial" id="PhysicalSkyMaterial_0siq0"]
 
@@ -97,9 +103,6 @@ transform = Transform3D(-0.667547, 0, 0.744568, 0, 1, 0, -0.744568, 0, -0.667547
 [node name="Flame" parent="SM_OilLampA/Cube" index="0"]
 shadow_enabled = true
 
-[node name="SM_CopperAxe2" parent="SM_OilLampA" instance=ExtResource("3_cqvnt")]
-transform = Transform3D(-0.667547, 0.744434, 0.0141249, 3.91155e-08, -0.0189706, 0.99982, 0.744568, 0.667427, 0.0126637, -3.9416, -0.304254, -8.01275)
-
 [node name="SM_OilLampA2" parent="." instance=ExtResource("2_qabim")]
 transform = Transform3D(0.823196, 0, -0.567757, 0, 1, 0, 0.567757, 0, 0.823196, -26.8731, 0.849023, -14.8906)
 
@@ -177,6 +180,69 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.54172, 4.09503, -10.7459)
 
 [node name="SM_OfferingStandA2" parent="." instance=ExtResource("3_0siq0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.9381, 4.09503, -10.7459)
+
+[node name="SM_ReedMat2" parent="." instance=ExtResource("5_1tgwn")]
+transform = Transform3D(0.0328412, 0, 0.999461, 0, 1, 0, -0.999461, 0, 0.0328412, -43.5023, 0.0155138, -37.0597)
+
+[node name="SM_ReedMat3" parent="." instance=ExtResource("5_1tgwn")]
+transform = Transform3D(-0.531443, 0, 0.847094, 0, 1, 0, -0.847094, 0, -0.531443, -44.0875, 0.0155138, -39.3327)
+
+[node name="SM_ReedMat4" parent="." instance=ExtResource("5_1tgwn")]
+transform = Transform3D(-0.853987, 0, 0.520295, 0, 1, 0, -0.520295, 0, -0.853987, -45.2771, 0.0155138, -40.65)
+
+[node name="SM_ReedMat5" parent="." instance=ExtResource("5_1tgwn")]
+transform = Transform3D(0.587828, 0, 0.808986, 0, 1, 0, -0.808986, 0, 0.587828, -43.8524, 0.0155157, -35.6833)
+
+[node name="SM_ReedMat6" parent="." instance=ExtResource("5_1tgwn")]
+transform = Transform3D(0.829516, 0, 0.558484, 0, 1, 0, -0.558484, 0, 0.829516, -45.5632, 0.0155157, -33.9122)
+
+[node name="SM_ReedMat7" parent="." instance=ExtResource("5_1tgwn")]
+transform = Transform3D(-0.00511374, 0, 0.999987, 0, 1, 0, -0.999987, 0, -0.00511374, -47.3555, 0.352856, -12.0185)
+
+[node name="SM_ReedMat8" parent="." instance=ExtResource("5_1tgwn")]
+transform = Transform3D(-0.0631214, 0, 0.998006, 0, 1, 0, -0.998006, 0, -0.0631214, -45.3086, 0.378085, -11.981)
+
+[node name="SM_ReedMat9" parent="." instance=ExtResource("5_1tgwn")]
+transform = Transform3D(-0.999974, 0, 0.00724315, 0, 1, 0, -0.00724315, 0, -0.999974, -46.2892, 0.371671, -11.1393)
+
+[node name="SM_LowTable_TamaraskWood" parent="." instance=ExtResource("6_re6a1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -46.4871, 0.356227, -11.794)
+
+[node name="SM_CupA2" parent="SM_LowTable_TamaraskWood" instance=ExtResource("7_6vs0a")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6478, 0.538474, 0.1226)
+
+[node name="SM_CupA3" parent="SM_LowTable_TamaraskWood" instance=ExtResource("7_6vs0a")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.257801, 0.538474, 0.2309)
+
+[node name="SM_CupA4" parent="SM_LowTable_TamaraskWood" instance=ExtResource("7_6vs0a")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.115299, 0.538474, 0.236199)
+
+[node name="SM_CupA5" parent="SM_LowTable_TamaraskWood" instance=ExtResource("7_6vs0a")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.462898, 0.538474, 0.238)
+
+[node name="SM_CupA6" parent="SM_LowTable_TamaraskWood" instance=ExtResource("7_6vs0a")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.602497, 0.538474, -0.0962)
+
+[node name="SM_BowlA2" parent="SM_LowTable_TamaraskWood" instance=ExtResource("7_xfbx7")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.666431, 0.51926, -0.054862)
+
+[node name="SM_BowlA3" parent="SM_LowTable_TamaraskWood" instance=ExtResource("7_xfbx7")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.679726, 0.516886, 0.0524073)
+
+[node name="SM_JarA2" parent="SM_LowTable_TamaraskWood" instance=ExtResource("8_2lsym")]
+transform = Transform3D(-0.81445, 0, -0.580234, 0, 1, 0, 0.580234, 0, -0.81445, 0.128773, 0.487615, -0.012639)
+
+[node name="SM_JarB" parent="SM_LowTable_TamaraskWood" instance=ExtResource("9_dfck3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.616383, 0.0362845, -0.667973)
+
+[node name="SM_JarB2" parent="SM_LowTable_TamaraskWood" instance=ExtResource("9_dfck3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.402912, 0.0362845, -0.880821)
+
+[node name="SM_JarB3" parent="SM_LowTable_TamaraskWood" instance=ExtResource("9_dfck3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.295273, 0.0362845, -0.607339)
+
+[node name="SM_CopperAxe2" parent="." instance=ExtResource("3_cqvnt")]
+transform = Transform3D(1, 1.19209e-07, -4.93601e-08, 3.91155e-08, -0.0189706, 0.99982, 0, -0.999821, -0.0189706, -49.8242, 0.927817, -7.05631)
 
 [editable path="SM_Ur_ZigguratTerrace"]
 [editable path="SM_OilLampA"]

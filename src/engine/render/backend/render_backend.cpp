@@ -7,15 +7,6 @@
 #include <tracy/Tracy.hpp>
 #include <vulkan/vk_enum_string_helper.h>
 
-#if defined(__ANDROID__)
-
-#include <adrenotools/driver.h>
-#include <linux/stat.h>
-#include <sys/stat.h>
-#include <dlfcn.h>
-
-#endif
-
 #include "render_graph.hpp"
 #include "console/cvars.hpp"
 #include "core/system_interface.hpp"
@@ -26,6 +17,10 @@
 #include "render/backend/resource_upload_queue.hpp"
 #include "core/issue_breakpoint.hpp"
 #include "render/upscaling/xess.hpp"
+
+#if defined(_WIN32)
+#include "core/win32_system_interface.hpp"
+#endif
 
 namespace render {
     [[maybe_unused]] static auto cvar_use_dgc = AutoCVar_Int{
@@ -38,7 +33,7 @@ namespace render {
 
     RenderBackend& RenderBackend::get() {
         if(g_render_backend == nullptr) {
-            g_render_backend = std::make_unique<RenderBackend>();
+            g_render_backend = eastl::make_unique<RenderBackend>();
             logger->debug("Assigned render backend to global pointer");
         }
 
@@ -51,24 +46,7 @@ namespace render {
     [[maybe_unused]]
     static void* replace_driver(const std::string& path, const char* hooksDir, const char* driverName) {
         void* lib_vulkan = nullptr;
-#if defined(__ANDROID__)
-    const auto temp_path = path + "temp";
-    mkdir(temp_path.c_str(), S_IRWXU | S_IRWXG);
 
-    // String nativeLibDir = getApplicationLibraryDir( appInfo );
-    // std::string nativeLibDir = GetJavaString( env, jNativeLibDir );
-
-    lib_vulkan = adrenotools_open_libvulkan(RTLD_NOW | RTLD_LOCAL, ADRENOTOOLS_DRIVER_CUSTOM,
-                                            temp_path.c_str(),  //
-                                            hooksDir,                   //
-                                            path.c_str(),               //
-                                            driverName, nullptr, nullptr);
-    if (!lib_vulkan) {
-        logger->error("Could not load replacement driver {}", driverName);
-    } else {
-        logger->info("Loaded replacement driver {}!", driverName);
-    }
-#endif
         return lib_vulkan;
     }
 
@@ -92,33 +70,7 @@ namespace render {
 
 #else
     {
-#if defined(__ANDROID__)
-        auto& sys_interface = dynamic_cast<AndroidSystemInterface&>(SystemInterface::get());
-        auto* app = sys_interface.get_app();
-        const auto srcFolder = std::filesystem::path{
-            app->activity->externalDataPath ? app->activity->externalDataPath : ""};
-        const auto dstFolder = std::filesystem::path{
-            app->activity->internalDataPath ? app->activity->internalDataPath : ""};
-
-        const auto driver_name = std::string{"libstinky.so"};
-
-        const auto driver_data = sys_interface.load_file(srcFolder / driver_name);
-        if (driver_data) {
-            sys_interface.write_file(dstFolder / driver_name, driver_data->data(), driver_data->size());
-        }
-
-        const auto native_lib_dir = SystemInterface::get().get_native_library_dir();
-        void* lib_vulkan = replace_driver(dstFolder, native_lib_dir.c_str(), driver_name.c_str());
-        if (lib_vulkan) {
-            auto vk_get_instance_proc_addr = reinterpret_cast<PFN_vkGetInstanceProcAddr>(dlsym(lib_vulkan,
-                                                                                               "vkGetInstanceProcAddr"));
-            volkInitializeCustom(vk_get_instance_proc_addr);
-        } else {
-#endif
             volk_result = volkInitialize();
-#if defined(__ANDROID__)
-        }
-#endif
     }
 #endif
 
@@ -161,16 +113,16 @@ namespace render {
         }
         descriptor_layout_cache.init(device.device);
 
-        allocator = std::make_unique<ResourceAllocator>(*this);
+        allocator = eastl::make_unique<ResourceAllocator>(*this);
         g_global_allocator = allocator.get();
 
-        upload_queue = std::make_unique<ResourceUploadQueue>(*this);
+        upload_queue = eastl::make_unique<ResourceUploadQueue>(*this);
 
-        blas_build_queue = std::make_unique<BlasBuildQueue>();
+        blas_build_queue = eastl::make_unique<BlasBuildQueue>();
 
-        pipeline_cache = std::make_unique<PipelineCache>(*this);
+        pipeline_cache = eastl::make_unique<PipelineCache>(*this);
 
-        texture_descriptor_pool = std::make_unique<TextureDescriptorPool>(*this);
+        texture_descriptor_pool = eastl::make_unique<TextureDescriptorPool>(*this);
 
         create_swapchain();
 
@@ -202,17 +154,10 @@ namespace render {
                                 .set_engine_name("𒊓𒊏")
                                 .set_app_version(0, 13, 0)
                                 .require_api_version(1, 4, 0)
-#if defined(_WIN32 )
-                .enable_extension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME)
-#endif
+                                .enable_extension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME)
+
             ;
 
-#if defined(__ANDROID__)
-    // Only enable the debug utils extension when we have validation layers. Apparently the validation layer
-    // provides that extension on Android
-    instance_builder.enable_extension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-    instance_builder.enable_layer("VK_LAYER_KHRONOS_validation");
-#endif
 
 #if SAH_USE_XESS
         const auto xess_extensions = XeSSAdapter::get_instance_extensions();
@@ -236,20 +181,7 @@ namespace render {
         }
         volkLoadInstance(instance.instance);
 
-#if defined(__ANDROID__)
-    auto& system_interface = reinterpret_cast<AndroidSystemInterface&>(SystemInterface::get());
-    const auto surface_create_info = VkAndroidSurfaceCreateInfoKHR{
-        .sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR,
-        .window = system_interface.get_window()
-    };
-
-    auto vk_result = vkCreateAndroidSurfaceKHR(instance.instance, &surface_create_info, nullptr,
-                                               &surface);
-    if (vk_result != VK_SUCCESS) {
-        throw std::runtime_error{"Could not create rendering surface"};
-    }
-
-#elif defined(_WIN32)
+#if defined(_WIN32)
         auto& system_interface = reinterpret_cast<Win32SystemInterface&>(SystemInterface::get());
         const auto surface_create_info = VkWin32SurfaceCreateInfoKHR{
             .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
@@ -275,12 +207,8 @@ namespace render {
             .drawIndirectFirstInstance = VK_TRUE,
             .depthClamp = VK_TRUE,
             .samplerAnisotropy = VK_TRUE,
-#if defined(__ANDROID__)
-        .textureCompressionASTC_LDR = VK_TRUE,
-#else
             .textureCompressionBC = VK_TRUE,
             .vertexPipelineStoresAndAtomics = VK_TRUE,
-#endif
             .fragmentStoresAndAtomics = VK_TRUE,
             .shaderImageGatherExtended = VK_TRUE,
             .shaderSampledImageArrayDynamicIndexing = VK_TRUE,
@@ -322,9 +250,6 @@ namespace render {
         auto required_1_3_features = VkPhysicalDeviceVulkan13Features{
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
             .synchronization2 = VK_TRUE,
-#if defined(__ANDROID__)
-        .textureCompressionASTC_HDR = VK_TRUE,
-#endif
             .dynamicRendering = VK_TRUE,
             .shaderIntegerDotProduct = VK_TRUE,
             .maintenance4 = VK_TRUE,
@@ -517,14 +442,6 @@ namespace render {
 
         device_features = **physical_device_features;
 
-        if(SystemInterface::get().is_renderdoc_loaded()) {
-            logger->info("RenderDoc is loaded! Turning ray tracing features off");
-            acceleration_structure_features.accelerationStructure = VK_FALSE;
-            acceleration_structure_features.accelerationStructureCaptureReplay = VK_FALSE;
-            acceleration_structure_features.accelerationStructureIndirectBuild = VK_FALSE;
-            acceleration_structure_features.accelerationStructureHostCommands = VK_FALSE;
-        }
-
         if(acceleration_structure_features.accelerationStructure) {
             logger->info("Ray tracing supported");
         }
@@ -595,9 +512,6 @@ namespace render {
                              .set_image_usage_flags(
                                  VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT
                              )
-#if defined(__ANDROID__)
-        .set_composite_alpha_flags(VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR)
-#endif
             .build();
         if(!swapchain_ret) {
             throw std::runtime_error{"Could not create swapchain"};
@@ -729,11 +643,13 @@ namespace render {
 
         if(!is_first_frame) {
             graphics_command_allocators[cur_frame_idx].reset();
+            transfer_command_allocators[cur_frame_idx].reset();
 
             auto& semaphores = zombie_semaphores[cur_frame_idx];
-            for(const auto& semaphore : semaphores) {
-                vkDestroySemaphore(device, semaphore, nullptr);
-            }
+            available_semaphores.insert(available_semaphores.end(), semaphores.begin(), semaphores.end());
+            // for(const auto& semaphore : semaphores) {
+            //     vkDestroySemaphore(device, semaphore, nullptr);
+            // }
             semaphores.clear();
 
             allocator->free_resources_for_frame(cur_frame_idx);
@@ -1073,8 +989,6 @@ namespace render {
             semaphore = available_semaphores.back();
             available_semaphores.pop_back();
 
-            logger->debug("Using existing semaphore {} for {}", static_cast<void*>(semaphore), name);
-
         } else {
             constexpr auto create_info = VkSemaphoreCreateInfo{
                 .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
@@ -1083,15 +997,15 @@ namespace render {
             vkCreateSemaphore(device, &create_info, nullptr, &semaphore);
         }
 
-        if(!name.empty() && vkSetDebugUtilsObjectNameEXT != nullptr) {
-            const auto name_info = VkDebugUtilsObjectNameInfoEXT{
-                .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
-                .objectType = VK_OBJECT_TYPE_SEMAPHORE,
-                .objectHandle = reinterpret_cast<uint64_t>(semaphore),
-                .pObjectName = name.c_str(),
-            };
-            vkSetDebugUtilsObjectNameEXT(device, &name_info);
-        }
+        // if(!name.empty() && vkSetDebugUtilsObjectNameEXT != nullptr) {
+        //     const auto name_info = VkDebugUtilsObjectNameInfoEXT{
+        //         .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
+        //         .objectType = VK_OBJECT_TYPE_SEMAPHORE,
+        //         .objectHandle = reinterpret_cast<uint64_t>(semaphore),
+        //         .pObjectName = name.c_str(),
+        //     };
+        //     vkSetDebugUtilsObjectNameEXT(device, &name_info);
+        // }
 
         return semaphore;
     }
@@ -1130,6 +1044,10 @@ namespace render {
 
     uint32_t RenderBackend::get_default_normalmap_srv() const {
         return default_normalmap_srv;
+    }
+
+    void RenderBackend::deinit() {
+        pipeline_cache->destroy_all_pipelines();
     }
 
     void RenderBackend::create_default_resources() {

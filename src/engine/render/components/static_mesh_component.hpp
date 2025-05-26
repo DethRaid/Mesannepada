@@ -16,6 +16,8 @@ namespace render {
         PooledObject<BasicPbrMaterialProxy> material;
 
         MeshPrimitiveProxyHandle proxy;
+
+        bool visible_to_ray_tracing = true;
     };
 
     /**

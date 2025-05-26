@@ -69,6 +69,8 @@ Engine::Engine() : physics_scene{ scene }, animation_system{ scene } {
 }
 
 Engine::~Engine() {
+    render::RenderBackend::get().deinit();
+
     logger->warn("REMAIN INDOORS");
 }
 
@@ -177,7 +179,7 @@ void Engine::give_player_full_control() {
     registry.patch<GameObjectComponent>(
         player,
         [&](const GameObjectComponent& comp) {
-            auto& fp_player = dynamic_cast<FirstPersonPlayer&>(*comp.game_object);
+            auto& fp_player = static_cast<FirstPersonPlayer&>(*comp.game_object);
             const auto& transform = registry.get<TransformComponent>(player);
             const auto location = transform.local_to_parent * float4{0, 0, 0, 1};
             fp_player.set_worldspace_location(float3{location});
@@ -218,7 +220,7 @@ ResourceLoader& Engine::get_resource_loader() {
     return resource_loader;
 }
 
-entt::handle Engine::get_player() { return player; }
+entt::handle Engine::get_player() const { return player; }
 
 void Engine::update_time() {
     const auto frame_start_time = std::chrono::high_resolution_clock::now();

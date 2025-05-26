@@ -42,7 +42,8 @@ namespace render {
         void update_mesh_proxy(MeshPrimitiveProxyHandle handle);
 
         MeshPrimitiveProxyHandle create_static_mesh_proxy(
-            const float4x4& transform, MeshHandle mesh, PooledObject<BasicPbrMaterialProxy> material
+            const float4x4& transform, MeshHandle mesh, PooledObject<BasicPbrMaterialProxy> material,
+            bool visible_to_ray_tracing
         );
 
         void destroy_primitive(MeshPrimitiveProxyHandle primitive);

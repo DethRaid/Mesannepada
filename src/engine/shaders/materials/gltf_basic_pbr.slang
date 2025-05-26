@@ -490,9 +490,7 @@ void main_closesthit(inout IrradiancePayload payload, in float2 barycentrics) {
 
         const float3 bounce_radiance = bounce_ndotl * bounce_brdf_result * new_payload.irradiance;
 
-        // if (!any(isnan(bounce_radiance)) && !any(isinf(bounce_radiance))) {
-        //     payload.irradiance += bounce_radiance;
-        // }
+        payload.irradiance += bounce_radiance;
     }
 
     if (HitKind() == HIT_KIND_TRIANGLE_BACK_FACE) {

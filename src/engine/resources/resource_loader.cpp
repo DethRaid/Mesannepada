@@ -42,29 +42,16 @@ void ResourceLoader::load_gltf_model(const std::filesystem::path& model_path) {
 
     logger->info("Beginning load of model {}", model_path.string());
 
-#if !defined(__ANDROID__)
     if(!exists(model_path)) {
         logger->error("Scene file {} does not exist!", model_path.string());
         throw std::runtime_error{"Scene does not exist"};
     }
-#endif
 
     if(!model_path.has_parent_path()) {
         logger->warn("Scene path {} has no parent path!", model_path.string());
     }
 
-#if defined(__ANDROID__)
-        auto& system_interface = reinterpret_cast<AndroidSystemInterface&>(SystemInterface::get());
-        auto data = fastgltf::AndroidGltfDataBuffer{ system_interface.get_asset_manager() };
-        {
-            ZoneScopedN("Load file data");
-            data.loadFromAndroidAsset(scene_path);
-        }
-#else
-
     auto data = fastgltf::GltfDataBuffer::FromPath(model_path);
-
-#endif
 
     ExtrasData extras_data;
     parser.setExtrasParseCallback(
@@ -74,8 +61,7 @@ void ResourceLoader::load_gltf_model(const std::filesystem::path& model_path) {
         void* user_pointer
     ) {
             if(object_type == fastgltf::Category::Nodes) {
-                auto* node_extras = static_cast<ExtrasData*>(
-                    user_pointer);
+                auto* node_extras = static_cast<ExtrasData*>(user_pointer);
                 const auto file_reference = extras->at_key("file_reference").get_string();
                 if(file_reference.error() == simdjson::error_code::SUCCESS) {
                     node_extras->file_references_map.emplace(
@@ -86,6 +72,11 @@ void ResourceLoader::load_gltf_model(const std::filesystem::path& model_path) {
                 const auto player_parent = extras->at_key("player_parent").get_bool();
                 if(player_parent.error() == simdjson::error_code::SUCCESS) {
                     node_extras->player_parent_node = object_index;
+                }
+
+                const auto visible_to_rt = extras->at_key("visible_to_ray_tracing").get_bool();
+                if(visible_to_rt.error() == simdjson::error_code::SUCCESS) {
+                    node_extras->visible_to_ray_tracing.emplace(object_index, visible_to_rt.value_unsafe());
                 }
             }
         });

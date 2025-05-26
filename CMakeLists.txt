@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22.1)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(mesannepada
@@ -8,20 +8,6 @@ project(mesannepada
     DESCRIPTION "A game set in the First Dynasty of Ur"
     LANGUAGES CXX
 )
-
-# Oh whoops the internet died
-execute_process(
-        COMMAND ping www.google.com -n 2
-        ERROR_QUIET
-        RESULT_VARIABLE NO_CONNECTION
-)
-
-if(NOT NO_CONNECTION EQUAL 0)
-        set(FETCHCONTENT_FULLY_DISCONNECTED ON)
-        message(WARNING "FetchContent offline mode: requires an already populated _deps")
-else()
-        set(FETCHCONTENT_FULLY_DISCONNECTED OFF)
-endif()
 
 # Address sanitizer please save me
 # set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /fsanitize=address")

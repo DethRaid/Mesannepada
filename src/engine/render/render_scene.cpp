@@ -96,7 +96,7 @@ namespace render {
     }
 
     MeshPrimitiveProxyHandle RenderScene::create_static_mesh_proxy(
-        const float4x4& transform, const MeshHandle mesh, const PooledObject<BasicPbrMaterialProxy> material
+        const float4x4& transform, const MeshHandle mesh, const PooledObject<BasicPbrMaterialProxy> material, const bool visible_to_ray_tracing
     ) {
         auto primitive = MeshPrimitiveProxy{
             .data = {
@@ -106,7 +106,8 @@ namespace render {
                 .mesh_id = mesh.index,
             },
             .mesh = mesh,
-            .material = material
+            .material = material,
+            .visible_to_ray_tracing = visible_to_ray_tracing
         };
 
         const auto& bounds = mesh->bounds;
@@ -153,7 +154,7 @@ namespace render {
             new_emissive_objects.push_back(handle);
         }
 
-        if(raytracing_scene) {
+        if(raytracing_scene && handle->visible_to_ray_tracing) {
             raytracing_scene->add_primitive(handle);
         }
 
@@ -525,7 +526,8 @@ namespace render {
             primitive.proxy = create_static_mesh_proxy(
                 transform.cached_parent_to_world * transform.local_to_parent,
                 primitive.mesh,
-                primitive.material);
+                primitive.material,
+                primitive.visible_to_ray_tracing);
         }
     }
 
@@ -594,7 +596,7 @@ namespace render {
                 primitive.proxy->data.model = matrix;
                 update_mesh_proxy(primitive.proxy);
 
-                if(raytracing_scene) {
+                if(raytracing_scene && primitive.visible_to_ray_tracing) {
                     raytracing_scene->update_primitive(primitive.proxy);
                 }
             }

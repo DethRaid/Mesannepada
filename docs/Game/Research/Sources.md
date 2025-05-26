@@ -186,3 +186,23 @@ Gold oil lamp, circular base. Very different from others
 
 http://www.ur-online.org/subject/27239/
 Copper cylinder - interpreted as either a vessel or a sheath for a furnature leg. Did they have copper things on the bottom of chair legs to protext them? Copper is pretty soft, these sheats might have only been needed for reeds?
+
+http://www.ur-online.org/subject/28561/
+Cup A - a clay cup, possibly spun or made of coiled clay? Similar shape to a lot of the metal cups found in the Royal Cemetery
+
+http://www.ur-online.org/subject/33717/ 
+Cup B - still clay, different shape
+
+http://www.ur-online.org/subject/33742/
+Cup C - yet another shape! Wow!
+
+Some or all of these cups may date to different time periods. All well. Woolley did not document where he found these, so it's hard to say
+
+http://www.ur-online.org/subject/11782/
+Pot A - pouring vessel found in the Royal Cemetery. Kinda small, maybe for a sauce or more valuable liquid?
+
+http://www.ur-online.org/subject/11834/ 
+Bowl A
+
+http://www.ur-online.org/subject/33706/
+Pot B

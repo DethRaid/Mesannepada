@@ -93,6 +93,7 @@ namespace render {
             "RT instances buffer",
             sizeof(VkAccelerationStructureInstanceKHR) * active_blases.size(),
             BufferUsage::StagingBuffer);
+        allocator.destroy_buffer(instances_buffer);
 
         eastl::vector<VkAccelerationStructureInstanceKHR> instances;
         instances.reserve(active_blases.size());
@@ -147,6 +148,10 @@ namespace render {
             &count_instance,
             &size_info);
 
+        if(acceleration_structure) {
+            allocator.destroy_acceleration_structure(acceleration_structure);
+            acceleration_structure = nullptr;
+        }
         acceleration_structure = allocator.create_acceleration_structure(
             size_info.accelerationStructureSize,
             VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR);

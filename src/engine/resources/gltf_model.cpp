@@ -163,7 +163,7 @@ entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<e
                 });
 
             if(node.meshIndex) {
-                add_static_mesh_component(entity, node);
+                add_static_mesh_component(entity, node, node_index);
             }
 
             if(node.cameraIndex) {
@@ -213,13 +213,18 @@ entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<e
     return root_entity;
 }
 
-void GltfModel::add_static_mesh_component(const entt::handle& entity, const fastgltf::Node& node) const {
+void GltfModel::add_static_mesh_component(const entt::handle& entity, const fastgltf::Node& node, const size_t node_index) const {
     ZoneScopedN("create mesh");
     const auto mesh_index = *node.meshIndex;
     const auto& mesh = asset.meshes[mesh_index];
 
     eastl::fixed_vector<render::MeshPrimitive, 8> primitives;
     primitives.reserve(mesh.primitives.size());
+
+    auto cast_shadows = true;
+    if(auto itr = extras.visible_to_ray_tracing.find(node_index); itr != extras.visible_to_ray_tracing.end()) {
+        cast_shadows = itr->second;
+    }
 
     for(auto i = 0u; i < mesh.primitives.size(); i++) {
         const auto& gltf_primitive = mesh.primitives.at(i);
@@ -234,7 +239,7 @@ void GltfModel::add_static_mesh_component(const entt::handle& entity, const fast
             i,
             node.name);
 
-        primitives.emplace_back(render::MeshPrimitive{.mesh = imported_mesh, .material = imported_material});
+        primitives.emplace_back(render::MeshPrimitive{.mesh = imported_mesh, .material = imported_material, .visible_to_ray_tracing = cast_shadows});
     }
 
     entity.emplace<render::StaticMeshComponent>(primitives);
@@ -416,14 +421,16 @@ JPH::Ref<JPH::Shape> GltfModel::create_jolt_shape(const fastgltf::Collider& coll
                     }
                 },
                 [&](const fastgltf::CylinderShape& cylinder) {
-                    if(abs(cylinder.radiusBottom - cylinder.radiusTop) < eastl::numeric_limits<
+                    const auto radius_top = eastl::max(cylinder.radiusTop, JPH::cDefaultConvexRadius);
+                    const auto radius_bottom = eastl::max(cylinder.radiusBottom, JPH::cDefaultConvexRadius);
+                    if(abs(radius_bottom - radius_top) < eastl::numeric_limits<
                         fastgltf::num>::epsilon()) {
                         shape_settings = new JPH::CylinderShapeSettings{
-                            cylinder.height / 2.f, cylinder.radiusTop
+                            cylinder.height / 2.f, radius_top
                         };
                     } else {
                         shape_settings = new JPH::TaperedCylinderShapeSettings{
-                            cylinder.height / 2.f, cylinder.radiusTop, cylinder.radiusBottom
+                            cylinder.height / 2.f, radius_top, radius_bottom
                         };
                     }
                 },
@@ -869,9 +876,7 @@ void GltfModel::import_single_texture(
     );
 
     auto handle = eastl::optional<render::TextureHandle>{};
-    if(mime_type == fastgltf::MimeType::KTX2) {
-        handle = texture_storage.upload_texture_ktx(image_name, image_data);
-    } else if(mime_type == fastgltf::MimeType::PNG || mime_type == fastgltf::MimeType::JPEG) {
+    if(mime_type == fastgltf::MimeType::PNG || mime_type == fastgltf::MimeType::JPEG) {
         handle = texture_storage.upload_texture_stbi(image_name, image_data, type);
     }
 

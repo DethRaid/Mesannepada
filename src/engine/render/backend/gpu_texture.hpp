@@ -4,22 +4,16 @@
 
 #include <volk.h>
 #include <vk_mem_alloc.h>
-#include <ktxvulkan.h>
 
 namespace render {
     enum class TextureAllocationType {
         Vma,
-        Ktx,
         Swapchain,
     };
 
     struct VmaTextureAllocation {
         VmaAllocation allocation;
         VmaAllocationInfo allocation_info;
-    };
-
-    struct KtxTextureAllocation {
-        ktxVulkanTexture ktx_vk_tex;
     };
 
     struct GpuTexture {
@@ -49,10 +43,7 @@ namespace render {
          */
         eastl::vector<VkImageView> mip_views;
 
-        union {
-            VmaTextureAllocation vma;
-            KtxTextureAllocation ktx;
-        };
+        VmaTextureAllocation vma;
 
         bool operator==(const GpuTexture& other) const;
 

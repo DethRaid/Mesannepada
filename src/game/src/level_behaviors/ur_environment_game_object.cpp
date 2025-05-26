@@ -16,7 +16,7 @@ UrEnvironmentGameObject::UrEnvironmentGameObject(const entt::handle entity) : Ga
     auto& scene = engine.get_scene();
     level_entity = level_scene->add_to_scene(scene, root_entity.entity());
 
-    const auto* level_godot_scene = dynamic_cast<const godot::GodotScene*>(level_scene.get());
+    const auto* level_godot_scene = static_cast<const godot::GodotScene*>(level_scene.get());
     const auto gltf_node_idx = level_godot_scene->find_node("SM_UrEnvironment");
 
     const auto gltf_entity = level_entity.get<ImportedModelComponent>().node_to_entity.at(*gltf_node_idx);
@@ -24,7 +24,7 @@ UrEnvironmentGameObject::UrEnvironmentGameObject(const entt::handle entity) : Ga
     // The entity from the scene spawns the glTF model, so we need to go one level deeper
     ur_gltf_entity = entt::handle{*gltf_entity.registry(), gltf_entity.get<TransformComponent>().children[0]};
 
-    // Add our animation event track. We KNOW that this will will only be instantiated once, right?????
+    // Add our animation event track. We KNOW that this will only be instantiated once, right?????
     auto& animations = engine.get_animation_system();
     auto& animation = animations.get_animation("FlyIn_Level1");
     animation.add_event(

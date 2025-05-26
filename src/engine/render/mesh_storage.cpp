@@ -13,13 +13,9 @@
 
 namespace render {
     constexpr uint32_t max_num_meshes = 65536;
-#if defined(__ANDROID__)
-    constexpr const uint32_t max_num_vertices = 1000000;
-    constexpr const uint32_t max_num_indices = 1000000;
-#else
+
     constexpr const uint32_t max_num_vertices = 100000000;
     constexpr const uint32_t max_num_indices = 100000000;
-#endif
 
     static std::shared_ptr<spdlog::logger> logger;
 

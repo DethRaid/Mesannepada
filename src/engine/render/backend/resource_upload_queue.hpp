@@ -23,14 +23,6 @@ namespace render {
         eastl::vector<uint8_t> data;
     };
 
-    /**
-     * Uploads data from a KTX texture to a texture
-     */
-    struct KtxUploadJob {
-        TextureHandle destination;
-        std::unique_ptr<ktxTexture, std::function<void(ktxTexture*)>> source;
-    };
-
     struct BufferUploadJob {
         BufferHandle buffer;
         eastl::vector<uint8_t> data;
@@ -58,8 +50,6 @@ namespace render {
         template <typename DataType>
         void upload_to_buffer(BufferHandle buffer, eastl::span<DataType> data, uint32_t dest_offset = 0);
 
-        void enqueue(KtxUploadJob&& job);
-
         /**
          * Enqueues a job to upload data to one mip of a texture
          *
@@ -82,13 +72,7 @@ namespace render {
 
         eastl::vector<TextureUploadJob> texture_uploads;
 
-        eastl::vector<KtxUploadJob> ktx_uploads;
-
         eastl::vector<BufferUploadJob> buffer_uploads;
-
-        void upload_ktx(
-            VkCommandBuffer cmds, const KtxUploadJob& job, const GpuBuffer& staging_buffer, size_t offset
-        ) const;
     };
 
     template <typename DataType>
@@ -105,7 +89,7 @@ namespace render {
             .data = eastl::vector<uint8_t>(data.size() * sizeof(DataType)),
             .dest_offset = dest_offset,
         };
-        std::memcpy(job.data.data(), data.data(), data.size() * sizeof(DataType));
+        memcpy(job.data.data(), data.data(), data.size() * sizeof(DataType));
 
         enqueue(std::move(job));
     }
@@ -119,7 +103,7 @@ namespace render {
             .data = eastl::vector<uint8_t>(data.size() * sizeof(DataType)),
             .dest_offset = dest_offset,
         };
-        std::memcpy(job.data.data(), data.data(), data.size() * sizeof(DataType));
+        memcpy(job.data.data(), data.data(), data.size() * sizeof(DataType));
 
         enqueue(std::move(job));
     }

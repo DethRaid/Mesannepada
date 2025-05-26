@@ -35,17 +35,21 @@ void SettingsController::set_antialiasing(const render::AntiAliasingType antiali
     anti_aliasing = antialiasing;
 }
 
+#if SAH_USE_STREAMLINE
 void SettingsController::set_dlss_mode(const sl::DLSSMode dlss_mode) {
     this->dlss_mode = dlss_mode;
 }
+#endif
 
 void SettingsController::set_use_ray_reconstruction(const bool use_ray_reconstruction_in) {
     use_ray_reconstruction = use_ray_reconstruction_in;
 }
 
+#if SAH_USE_FFX
 void SettingsController::set_fsr3_mode(FfxApiUpscaleQualityMode fsr3_mode_in) {
     fsr3_mode = fsr3_mode_in;
 }
+#endif
 
 void SettingsController::set_overall_graphics_fidelity(const FidelityLevel fidelity) {
     graphics_fidelity = fidelity;
@@ -94,17 +98,21 @@ render::AntiAliasingType SettingsController::get_antialiasing() const {
     return anti_aliasing;
 }
 
+#if SAH_USE_STREAMLINE
 sl::DLSSMode SettingsController::get_dlss_mode() const {
     return dlss_mode;
 }
+#endif
 
 bool SettingsController::get_ray_reconstruction() const {
     return use_ray_reconstruction;
 }
 
+#if SAH_USE_FFX
 FfxApiUpscaleQualityMode SettingsController::get_fsr3_mode() const {
     return fsr3_mode;
 }
+#endif
 
 FidelityLevel SettingsController::get_overall_fidelity() const {
     return graphics_fidelity;
@@ -122,12 +130,17 @@ void SettingsController::apply_graphics_settings() {
     auto* cvars = CVarSystem::Get();
 
     cvars->SetEnumCVar("r.AntiAliasing", anti_aliasing);
+#if SAH_USE_STREAMLINE
     if(anti_aliasing == render::AntiAliasingType::DLSS) {
         cvars->SetEnumCVar("r.DLSS.Mode", dlss_mode);
         cvars->SetIntCVar("r.DLSS-RR.Enabled", use_ray_reconstruction);
-    } else if(anti_aliasing == render::AntiAliasingType::FSR3) {
+    } else
+#endif
+#if SAH_USE_FFX
+    if(anti_aliasing == render::AntiAliasingType::FSR3) {
         cvars->SetIntCVar("r.FSR3.Quality", fsr3_mode);
     }
+#endif
 
     set_texture_fidelity(texture_fidelity);
     set_shadow_fidelity(shadow_fidelity);
@@ -147,9 +160,14 @@ void SettingsController::save_graphics_settings_file() const {
     auto data_file = toml::parse<TomlTypeConfig>(data_file_path);
 
     data_file["graphics"]["antialiasing"] = static_cast<uint32_t>(anti_aliasing);
+#if SAH_USE_STREAMLINE
     data_file["graphics"]["dlss_mode"] = static_cast<uint32_t>(dlss_mode);
     data_file["graphics"]["dlss_ray_reconstruction"] = use_ray_reconstruction;
+#endif
+
+#if SAH_USE_FFX
     data_file["graphics"]["fsr3_mode"] = static_cast<uint32_t>(fsr3_mode);
+#endif
     data_file["graphics"]["shadow_fidelity"] = to_string(shadow_fidelity);
     data_file["graphics"]["gi_fidelity"] = to_string(gi_fidelity);
 
@@ -207,15 +225,19 @@ void SettingsController::load_settings_file() {
         if(const auto& itr = graphics_settings.find("antialiasing"); itr != graphics_settings.end()) {
             anti_aliasing = static_cast<render::AntiAliasingType>(itr->second.as_integer());
         }
+#if SAH_USE_STREAMLINE
         if (const auto itr = graphics_settings.find("dlss_mode"); itr != graphics_settings.end()) {
             dlss_mode = static_cast<sl::DLSSMode>(itr->second.as_integer());
         }
+#endif
         if(const auto itr = graphics_settings.find("dlss_ray_reconstruction"); itr != graphics_settings.end()) {
             use_ray_reconstruction = itr->second.as_boolean();
         }
+#if SAH_USE_FFX
         if(const auto itr = graphics_settings.find("fsr3_mode"); itr != graphics_settings.end()) {
             fsr3_mode = static_cast<FfxApiUpscaleQualityMode>(itr->second.as_integer());
         }
+#endif
         if(const auto itr = graphics_settings.find("shadow_fidelity"); itr != graphics_settings.end()) {
             shadow_fidelity = from_string(itr->second.as_string().c_str());
         }

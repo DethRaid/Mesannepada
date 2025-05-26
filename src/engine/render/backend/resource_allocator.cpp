@@ -417,37 +417,6 @@ namespace render {
     }
 
     TextureHandle ResourceAllocator::emplace_texture(GpuTexture&& new_texture) {
-        if(new_texture.type == TextureAllocationType::Ktx) {
-            // Name the image, create an image view, name the image view
-
-            const auto& device = backend.get_device();
-
-            if(new_texture.image_view == VK_NULL_HANDLE) {
-                VkImageAspectFlags view_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
-                if(is_depth_format(new_texture.create_info.format)) {
-                    view_aspect = VK_IMAGE_ASPECT_DEPTH_BIT;
-                }
-
-                const auto view_create_info = VkImageViewCreateInfo{
-                    .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-                    .image = new_texture.image,
-                    .viewType = new_texture.ktx.ktx_vk_tex.viewType,
-                    .format = new_texture.create_info.format,
-                    .subresourceRange = {
-                        .aspectMask = view_aspect,
-                        .baseMipLevel = 0,
-                        .levelCount = new_texture.create_info.mipLevels,
-                        .baseArrayLayer = 0,
-                        .layerCount = new_texture.create_info.arrayLayers,
-                    },
-                };
-                const auto result = vkCreateImageView(device, &view_create_info, nullptr, &new_texture.image_view);
-                if(result != VK_SUCCESS) {
-                    throw std::runtime_error{fmt::format("Could not create image view for image {}", new_texture.name)};
-                }
-            }
-        }
-
         if(new_texture.attachment_view == VK_NULL_HANDLE) {
             new_texture.attachment_view = new_texture.image_view;
         }
@@ -695,10 +664,6 @@ namespace render {
                 switch(handle->type) {
                 case TextureAllocationType::Vma:
                     vmaDestroyImage(vma, handle->image, handle->vma.allocation);
-                    break;
-
-                case TextureAllocationType::Ktx:
-                    ktxVulkanTexture_Destruct(&handle->ktx.ktx_vk_tex, device, nullptr);
                     break;
 
                 case TextureAllocationType::Swapchain:

@@ -46,6 +46,15 @@ namespace render {
 
         RayTracingPipelineHandle create_ray_tracing_pipeline(const std::filesystem::path& raygen_shader_path, bool skip_gi_miss_shader = false);
 
+        /**
+         * Destroys all the pipelines in the cache
+         *
+         * This should be called explicitly on shutdown. The render backend global pointer gets destroyed on shutdown,
+         * but the pipeline destructors try to access the backend. This tried to re-initialize the render backend,
+         * which causes issues. Thus, we need to explicitly destroy pipelines before destructing the render backend
+         */
+        void destroy_all_pipelines();
+
     private:
         RenderBackend& backend;
 

@@ -1,8 +1,12 @@
-[gd_scene load_steps=4 format=3 uid="uid://xig2s3lw00ct"]
+[gd_scene load_steps=8 format=3 uid="uid://xig2s3lw00ct"]
 
 [ext_resource type="PackedScene" uid="uid://d177d1qqyjjfn" path="res://environments/SM_UrEnvironment.glb" id="1_q20gi"]
 [ext_resource type="PackedScene" uid="uid://ibcoi6lpwgce" path="res://environments/ZigguratEnclosure.tscn" id="2_gfmrx"]
 [ext_resource type="PackedScene" uid="uid://dwd6xkgtxv1mf" path="res://environments/trees/BigTamarask.glb" id="3_gfmrx"]
+[ext_resource type="PackedScene" uid="uid://c401ejk3rsu7v" path="res://environments/plants/SM_Reeds_Cluster.glb" id="4_crp7t"]
+[ext_resource type="PackedScene" uid="uid://fisjhgtodtmf" path="res://boats/SM_CoracleA.glb" id="5_i3nh5"]
+[ext_resource type="PackedScene" uid="uid://cm0a6fasf6avr" path="res://boats/LoadedCoracle.tscn" id="6_3qbx4"]
+[ext_resource type="PackedScene" uid="uid://bx5ajkftq7l6n" path="res://boats/SM_ReedBoat_Sailing.glb" id="7_ix7af"]
 
 [node name="Node3D" type="Node3D"]
 
@@ -24,5 +28,59 @@ transform = Transform3D(-0.892026, 0, -0.451983, 0, 1, 0, 0.451983, 0, -0.892026
 
 [node name="ZigguratComplex" parent="." instance=ExtResource("2_gfmrx")]
 transform = Transform3D(-0.552823, 0, 0.833299, 0, 1, 0, -0.833299, 0, -0.552823, -154.139, 19.3726, -173.538)
+
+[node name="SM_Reeds_Cluster" parent="." instance=ExtResource("4_crp7t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -143.964, 3.43744, 139.245)
+
+[node name="SM_Reeds_Cluster2" parent="." instance=ExtResource("4_crp7t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -148.193, 3.43744, 142.505)
+
+[node name="SM_Reeds_Cluster3" parent="." instance=ExtResource("4_crp7t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -148.193, 3.43744, 137.505)
+
+[node name="SM_Reeds_Cluster4" parent="." instance=ExtResource("4_crp7t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -152.52, 3.43744, 140.157)
+
+[node name="SM_Reeds_Cluster5" parent="." instance=ExtResource("4_crp7t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -153.52, 3.43744, 146.157)
+
+[node name="SM_Reeds_Cluster6" parent="." instance=ExtResource("4_crp7t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -169.52, 3.43744, 128.157)
+
+[node name="SM_Reeds_Cluster9" parent="." instance=ExtResource("4_crp7t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -191.881, 3.43744, 71.9144)
+
+[node name="SM_Reeds_Cluster10" parent="." instance=ExtResource("4_crp7t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -192.657, 3.43744, 76.6442)
+
+[node name="SM_Reeds_Cluster11" parent="." instance=ExtResource("4_crp7t")]
+transform = Transform3D(0.152072, 0, 0.988369, 0, 1, 0, -0.988369, 0, 0.152072, -189.302, 3.43744, 75.8721)
+
+[node name="SM_Reeds_Cluster12" parent="." instance=ExtResource("4_crp7t")]
+transform = Transform3D(-0.0748047, 0, -0.997198, 0, 1, 0, 0.997198, 0, -0.0748047, -187.892, 3.43744, 78.8858)
+
+[node name="SM_Reeds_Cluster7" parent="." instance=ExtResource("4_crp7t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -165.52, 3.43744, 126.157)
+
+[node name="SM_Reeds_Cluster8" parent="." instance=ExtResource("4_crp7t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -165.52, 3.43744, 131.157)
+
+[node name="SM_CoracleA2" parent="." instance=ExtResource("5_i3nh5")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -270.17, 3.6355, 174.751)
+
+[node name="Node3D" parent="." instance=ExtResource("6_3qbx4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -207.508, 3.67338, 76.0134)
+
+[node name="SM_ReedBoat_Sailing" parent="." instance=ExtResource("7_ix7af")]
+transform = Transform3D(-0.447369, 0, 0.89435, 0, 1, 0, -0.89435, 0, -0.447369, -197.638, 3.46701, 70.8656)
+
+[node name="SM_ReedBoat_Sailing" parent="SM_ReedBoat_Sailing" instance=ExtResource("7_ix7af")]
+transform = Transform3D(-0.447369, 0, 0.89435, 0, 1, 0, -0.89435, 0, -0.447369, -197.363, 3.46701, 70.7944)
+
+[node name="SM_ReedBoat_Sailing2" parent="." instance=ExtResource("7_ix7af")]
+transform = Transform3D(0.847808, 0, 0.530304, 0, 1, 0, -0.530304, 0, 0.847808, -184.421, 3.46701, 75.5469)
+
+[node name="SM_ReedBoat_Sailing" parent="SM_ReedBoat_Sailing2" instance=ExtResource("7_ix7af")]
+transform = Transform3D(-0.447369, 0, 0.89435, 0, 1, 0, -0.89435, 0, -0.447369, -197.363, 3.46701, 70.7944)
 
 [editable path="SM_UrEnvironment"]

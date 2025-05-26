@@ -15,6 +15,7 @@
 
 #include "console/cvars.hpp"
 #include "core/engine.hpp"
+#include "core/glfw_system_interface.hpp"
 #include "core/system_interface.hpp"
 #include "physics/collider_component.hpp"
 #include "render/sarah_renderer.hpp"
@@ -70,6 +71,7 @@ static void key_callback(GLFWwindow* window, const int key, const int scancode, 
         prev_key_callback(window, key, scancode, action, mods);
     }
 
+    // TODO: Use the new io.AddKeyEvent API? We'd have to convert from raw keycode to ImGUI named key, which is slightly annoying
     auto& io = ImGui::GetIO();
     if(action == GLFW_PRESS) {
         io.KeysDown[key] = true;
@@ -111,7 +113,7 @@ DebugUI::DebugUI(render::SarahRenderer& renderer_in) : renderer{renderer_in} {
     ImGui::CreateContext();
 
 #if defined(_WIN32)
-    auto& system_interface = reinterpret_cast<Win32SystemInterface&>(SystemInterface::get());
+    auto& system_interface = reinterpret_cast<GlfwSystemInterface&>(SystemInterface::get());
     window = system_interface.get_glfw_window();
 #endif
 
@@ -444,39 +446,39 @@ void DebugUI::draw_taa_menu() {
         } else
 #endif
 #if SAH_USE_FFX
-            if(current_taa == 2) {
-                CVarSystem::Get()->SetIntCVar("r.AntiAliasing", static_cast<int32_t>(render::AntiAliasingType::FSR3));
+        if(current_taa == 2) {
+            CVarSystem::Get()->SetIntCVar("r.AntiAliasing", static_cast<int32_t>(render::AntiAliasingType::FSR3));
 
-                draw_combo_box(
-                    "FSR Mode",
-                    eastl::array<std::string, 5>{
-                        "Native AA", "Quality", "Balanced", "Performance", "Ultra Performance"
-                    },
-                    current_fsr_mode);
-                auto* fsr_quality = CVarSystem::Get()->GetIntCVar("r.FSR3.Quality");
-                switch(current_fsr_mode) {
-                case 0:
-                    *fsr_quality = FFX_UPSCALE_QUALITY_MODE_NATIVEAA;
-                    break;
-                case 1:
-                    *fsr_quality = FFX_UPSCALE_QUALITY_MODE_QUALITY;
-                    break;
-                case 2:
-                    *fsr_quality = FFX_UPSCALE_QUALITY_MODE_BALANCED;
-                    break;
-                case 3:
-                    *fsr_quality = FFX_UPSCALE_QUALITY_MODE_PERFORMANCE;
-                    break;
-                case 4:
-                    *fsr_quality = FFX_UPSCALE_QUALITY_MODE_ULTRA_PERFORMANCE;
-                    break;
-                }
-
-            } else
-#endif
-            {
-                CVarSystem::Get()->SetIntCVar("r.AntiAliasing", static_cast<int32_t>(render::AntiAliasingType::None));
+            draw_combo_box(
+                "FSR Mode",
+                eastl::array<std::string, 5>{
+                    "Native AA", "Quality", "Balanced", "Performance", "Ultra Performance"
+                },
+                current_fsr_mode);
+            auto* fsr_quality = CVarSystem::Get()->GetIntCVar("r.FSR3.Quality");
+            switch(current_fsr_mode) {
+            case 0:
+                *fsr_quality = FFX_UPSCALE_QUALITY_MODE_NATIVEAA;
+                break;
+            case 1:
+                *fsr_quality = FFX_UPSCALE_QUALITY_MODE_QUALITY;
+                break;
+            case 2:
+                *fsr_quality = FFX_UPSCALE_QUALITY_MODE_BALANCED;
+                break;
+            case 3:
+                *fsr_quality = FFX_UPSCALE_QUALITY_MODE_PERFORMANCE;
+                break;
+            case 4:
+                *fsr_quality = FFX_UPSCALE_QUALITY_MODE_ULTRA_PERFORMANCE;
+                break;
             }
+
+        } else
+#endif
+        {
+            CVarSystem::Get()->SetIntCVar("r.AntiAliasing", static_cast<int32_t>(render::AntiAliasingType::None));
+        }
 
     ImGui::Separator();
 }

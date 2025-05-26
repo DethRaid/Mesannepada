@@ -47,7 +47,7 @@ public:
 
     void tick();
 
-    void exit();
+    static void exit();
 
     render::SarahRenderer& get_renderer() const;
 
@@ -79,7 +79,7 @@ public:
 
     ResourceLoader& get_resource_loader();
 
-    entt::handle get_player();
+    entt::handle get_player() const;
 
 private:
     std::chrono::high_resolution_clock::time_point application_start_time;

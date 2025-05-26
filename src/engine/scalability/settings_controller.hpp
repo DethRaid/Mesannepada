@@ -1,8 +1,12 @@
 #pragma once
 
+#if SAH_USE_STREAMLINE
 #include <sl.h>
 #include <sl_dlss.h>
+#endif
+#if SAH_USE_FFX
 #include <ffx_api/ffx_upscale.h>
+#endif
 #include <toml11/types.hpp>
 
 #include "core/fidelity_level.hpp"
@@ -16,11 +20,15 @@ public:
 
     void set_antialiasing(render::AntiAliasingType antialiasing);
 
+#if SAH_USE_STREAMLINE
     void set_dlss_mode(sl::DLSSMode dlss_mode);
+#endif
 
     void set_use_ray_reconstruction(bool use_ray_reconstruction_in);
 
+#if SAH_USE_FFX
     void set_fsr3_mode(FfxApiUpscaleQualityMode fsr3_mode_in);
+#endif
 
     void set_overall_graphics_fidelity(FidelityLevel fidelity);
 
@@ -32,11 +40,15 @@ public:
 
     render::AntiAliasingType get_antialiasing() const;
 
+#if SAH_USE_STREAMLINE
     sl::DLSSMode get_dlss_mode() const;
+#endif
 
     bool get_ray_reconstruction() const;
 
+#if SAH_USE_FFX
     FfxApiUpscaleQualityMode get_fsr3_mode() const;
+#endif
 
     FidelityLevel get_overall_fidelity() const;
 
@@ -66,11 +78,15 @@ private:
 
     render::AntiAliasingType anti_aliasing = render::AntiAliasingType::DLSS;
 
+#if SAH_USE_STREAMLINE
     sl::DLSSMode dlss_mode = sl::DLSSMode::eMaxQuality;
+#endif
 
     bool use_ray_reconstruction = false;
 
+#if SAH_USE_FFX
     FfxApiUpscaleQualityMode fsr3_mode = FFX_UPSCALE_QUALITY_MODE_QUALITY;
+#endif
 
     FidelityLevel graphics_fidelity = FidelityLevel::Ultra;
     FidelityLevel texture_fidelity = FidelityLevel::Ultra;

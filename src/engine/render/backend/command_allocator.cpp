@@ -22,7 +22,7 @@ namespace render {
         const auto& device = backend->get_device();
         const auto result = vkCreateCommandPool(device, &create_info, nullptr, &command_pool);
         if (result != VK_SUCCESS) {
-            logger->error("Could not create command pool: Vulkan error {}", result);
+            logger->error("Could not create command pool: Vulkan error {}", string_VkResult(result));
             throw std::runtime_error{ "Could not create command pool" };
         }
         const auto name = fmt::format("Command allocator for queue family {}", queue_index);
@@ -88,7 +88,7 @@ namespace render {
         auto commands = VkCommandBuffer{};
         const auto result = vkAllocateCommandBuffers(device, &alloc_info, &commands);
         if (result != VK_SUCCESS) {
-            throw std::runtime_error{ fmt::format("Could not allocate command buffer: Vulkan error {}", result) };
+            throw std::runtime_error{ fmt::format("Could not allocate command buffer: Vulkan error {}", string_VkResult(result)) };
         }
 
         backend->set_object_name(commands, name);

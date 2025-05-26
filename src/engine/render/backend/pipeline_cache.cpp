@@ -121,7 +121,7 @@ namespace render {
             nullptr,
             &pipeline.pipeline);
         if (result != VK_SUCCESS) {
-            logger->error("Could not create pipeline {}: Vulkan error {}", shader_file_path.string(), result);
+            logger->error("Could not create pipeline {}: Vulkan error {}", shader_file_path.string(), string_VkResult(result));
             return {};
         }
 
@@ -835,5 +835,12 @@ namespace render {
         }
 
         return &(*ray_tracing_pipelines.emplace(std::move(pipeline)));
+    }
+
+    void PipelineCache::destroy_all_pipelines() {
+        pipelines.clear();
+        shader_groups.clear();
+        ray_tracing_pipelines.clear();
+        compute_pipelines.clear();
     }
 }

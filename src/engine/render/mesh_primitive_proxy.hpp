@@ -15,6 +15,8 @@ namespace render {
 
         BufferHandle emissive_points_buffer = {};
 
+        bool visible_to_ray_tracing = true;
+
         size_t placed_blas_index = eastl::numeric_limits<size_t>::max();
     };
 

@@ -2,6 +2,8 @@
 // Created by gold1 on 9/5/2022.
 //
 
+#include <cstdint>
+
 #include "percent_encoding.hpp"
 
 char decode(char c1, char c2);
