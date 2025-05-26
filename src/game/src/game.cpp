@@ -3,9 +3,6 @@
 #include <core/system_interface.hpp>
 #include <GLFW/glfw3.h>
 
-#define GLFW_EXPOSE_NATIVE_WIN32
-#include <GLFW/glfw3native.h>
-
 #include <core/engine.hpp>
 #include <tracy/Tracy.hpp>
 
