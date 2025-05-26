@@ -121,7 +121,7 @@ namespace render {
             nullptr,
             &pipeline.pipeline);
         if (result != VK_SUCCESS) {
-            logger->error("Could not create pipeline {}: Vulkan error {}", shader_file_path.string(), result);
+            logger->error("Could not create pipeline {}: Vulkan error {}", shader_file_path.string(), string_VkResult(result));
             return {};
         }
 

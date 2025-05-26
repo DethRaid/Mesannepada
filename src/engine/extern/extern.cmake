@@ -30,7 +30,8 @@ set(STREAMLINE_FEATURE_DLSS_RR ON CACHE BOOL "" FORCE)
 set(CAULDRON_VK ON CACHE BOOL "" FORCE)
 
 set(RMLUI_BACKEND GLFW_VK CACHE STRING "" FORCE)
-set(RMLUI_TRACY_PROFILING OFF CACHE BOOL "" FORCE) 
+set(RMLUI_TRACY_PROFILING OFF CACHE BOOL "" FORCE)
+set(RMLUI_CUSTOM_RTTI ON CACHE BOOL "" FORCE)
 
 set(ENTT_INCLUDE_NATVIS ON CACHE BOOL "" FORCE)
 
@@ -89,8 +90,7 @@ FetchContent_Declare(
 FetchContent_Declare(
         spdlog
         GIT_REPOSITORY  https://github.com/gabime/spdlog.git
-        GIT_SHALLOW     ON
-        GIT_TAG         v1.13.0
+        GIT_TAG         v1.15.3
 )
 FetchContent_Declare(
         fetch_spirv_reflect
@@ -319,16 +319,3 @@ if(WIN32)
     )
     FetchContent_MakeAvailable(fetch_glfw)
 endif()
-
-# libKTX
-# The build script has a hard dependency on Bash, so we have this malarkey for the precompiled binaries
-if(ANDROID)
-    set(Ktx_DIR "${CMAKE_CURRENT_LIST_DIR}/libktx/arm64-v8a/lib/cmake/ktx")
-elseif(WIN32)
-    set(Ktx_DIR "D:/Program Files/KTX-Software/lib/cmake/ktx")
-elseif(LINUX)
-    # There's gotta be a better way to do this...
-    set(Ktx_DIR "/lib/cmake/ktx")
-endif()
-
-find_package(Ktx REQUIRED)

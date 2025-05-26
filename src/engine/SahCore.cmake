@@ -5,18 +5,11 @@ project(mesannepada)
 # These must be 1 or 0 because of CMake skill issue
 option(SAH_USE_FFX "Whether to use AMD's FidelityFX library" 1)
 option(SAH_USE_XESS "Whether to use Intel's XeSS library" 1)
+option(SAH_USE_STREAMLINE "Whether to use Nvidia's Streamline library" 1)
 
 if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
-
-if(WIN32)
-    set(USE_STREAMLINE_DEFAULT 1)
-elseif(Linux)
-    set(USE_STREAMLINE_DEFAULT 0)
-endif()
-
-option(SAH_USE_STREAMLINE "Whether to use Nvidia's Streamline library" ${USE_STREAMLINE_DEFAULT})
 
 # Shaders
 
@@ -91,7 +84,6 @@ target_link_libraries(SahCore PUBLIC
         GPUOpen::VulkanMemoryAllocator
         imgui
         Jolt
-        KTX::ktx
         magic_enum::magic_enum
         plf_colony
         spdlog::spdlog
@@ -149,13 +141,6 @@ if(SAH_USE_XESS)
             "${xess_SOURCE_DIR}/bin/libxess.dll"
             ${SAH_OUTPUT_DIR})
 endif()
-
-# This library is stupid I need to replace it
-message(STATUS "Copying KTX DLL ${Ktx_DIR}/bin/ktx.dll")
-add_custom_command(TARGET SahCore POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${Ktx_DIR}/../../../bin/ktx.dll"
-    ${SAH_OUTPUT_DIR})
 
 #######################
 # Generate VS filters #

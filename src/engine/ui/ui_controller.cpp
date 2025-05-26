@@ -45,7 +45,7 @@ namespace ui {
         system_interface = std::make_unique<SystemInterface_GLFW>();
 
         // TODO: Figure out something to do if we ever support Android again
-        auto& my_system_interface = dynamic_cast<GlfwSystemInterface&>(SystemInterface::get());
+        auto& my_system_interface = static_cast<GlfwSystemInterface&>(SystemInterface::get());
         system_interface->SetWindow(my_system_interface.get_glfw_window());
 
         Rml::SetSystemInterface(system_interface.get());

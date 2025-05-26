@@ -4,7 +4,9 @@
 #include <sl.h>
 #include <sl_dlss.h>
 #endif
+#if SAH_USE_FFX
 #include <ffx_api/ffx_upscale.h>
+#endif
 #include <toml11/types.hpp>
 
 #include "core/fidelity_level.hpp"
@@ -24,7 +26,9 @@ public:
 
     void set_use_ray_reconstruction(bool use_ray_reconstruction_in);
 
+#if SAH_USE_FFX
     void set_fsr3_mode(FfxApiUpscaleQualityMode fsr3_mode_in);
+#endif
 
     void set_overall_graphics_fidelity(FidelityLevel fidelity);
 
@@ -42,7 +46,9 @@ public:
 
     bool get_ray_reconstruction() const;
 
+#if SAH_USE_FFX
     FfxApiUpscaleQualityMode get_fsr3_mode() const;
+#endif
 
     FidelityLevel get_overall_fidelity() const;
 
@@ -78,7 +84,9 @@ private:
 
     bool use_ray_reconstruction = false;
 
+#if SAH_USE_FFX
     FfxApiUpscaleQualityMode fsr3_mode = FFX_UPSCALE_QUALITY_MODE_QUALITY;
+#endif
 
     FidelityLevel graphics_fidelity = FidelityLevel::Ultra;
     FidelityLevel texture_fidelity = FidelityLevel::Ultra;

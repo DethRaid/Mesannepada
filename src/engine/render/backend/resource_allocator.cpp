@@ -697,10 +697,6 @@ namespace render {
                     vmaDestroyImage(vma, handle->image, handle->vma.allocation);
                     break;
 
-                case TextureAllocationType::Ktx:
-                    ktxVulkanTexture_Destruct(&handle->ktx.ktx_vk_tex, device, nullptr);
-                    break;
-
                 case TextureAllocationType::Swapchain:
                     // We just need to destroy the image view
                     vkDestroyImageView(device, handle->image_view, nullptr);

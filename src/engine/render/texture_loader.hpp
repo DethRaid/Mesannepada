@@ -1,19 +1,15 @@
 #pragma once
 
-// Un-comment if you use the debug library
-// #define KHRONOS_STATIC
-
 #include <filesystem>
 #include <unordered_map>
 
 #include <EASTL/optional.h>
 #include <volk.h>
-#include <ktxvulkan.h>
+#include <spdlog/logger.h>
 
 #include "render/backend/handles.hpp"
 #include "render/texture_type.hpp"
 #include "render/backend/resource_allocator.hpp"
-#include <spdlog/logger.h>
 
 namespace render {
     class RenderBackend;
@@ -24,8 +20,6 @@ namespace render {
     class TextureLoader {
     public:
         explicit TextureLoader();
-
-        ~TextureLoader();
 
         /**
          * Loads a texture from disk
@@ -57,15 +51,8 @@ namespace render {
         );
 
     private:
-        VkCommandPool ktx_command_pool;
-        ktxVulkanDeviceInfo ktx;
-
         std::shared_ptr<spdlog::logger> logger;
 
         std::unordered_map<std::string, TextureHandle> loaded_textures;
-
-        eastl::optional<TextureHandle> load_texture_ktx(const std::filesystem::path& filepath, TextureType type);
-
-        eastl::optional<TextureHandle> load_texture_stbi(const std::filesystem::path& filepath, TextureType type);
     };
 }

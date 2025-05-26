@@ -1,10 +1,15 @@
 #include "game_settings.hpp"
 
+#if SAH_USE_STREAMLINE
 #include <sl.h>
 #include <sl_dlss.h>
+#endif
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/DataModelHandle.h>
+
+#if SAH_USE_FFX
 #include <ffx_api/ffx_upscale.h>
+#endif
 
 #include "console/cvars.hpp"
 #include "core/engine.hpp"
@@ -142,9 +147,11 @@ namespace ui {
             settings.set_antialiasing(render::AntiAliasingType::None);
             break;
 
+#if SAH_USE_STREAMLINE
         case 1:
             settings.set_antialiasing(render::AntiAliasingType::DLSS);
             break;
+#endif
 
         case 2:
             settings.set_antialiasing(render::AntiAliasingType::FSR3);
@@ -170,6 +177,7 @@ namespace ui {
 
         if(antialiasing == 0) {
             settings.set_antialiasing(render::AntiAliasingType::None);
+
         } else if(antialiasing == 1) {
             settings.set_antialiasing(render::AntiAliasingType::DLSS);
             set_dlss_options(settings);
@@ -188,12 +196,16 @@ namespace ui {
     }
 
     void SettingsScreen::set_dlss_options(SettingsController& settings) {
+#if SAH_USE_STREAMLINE
         settings.set_dlss_mode(static_cast<sl::DLSSMode>(dlss_mode));
         settings.set_use_ray_reconstruction(dlss_ray_reconstruction);
+#endif
     }
 
     void SettingsScreen::set_fsr3_options(SettingsController& settings) {
+#if SAH_USE_FFX
         settings.set_fsr3_mode(static_cast<FfxApiUpscaleQualityMode>(fsr3_mode));
+#endif
     }
 
     // ReSharper disable once CppMemberFunctionMayBeConst
@@ -237,16 +249,23 @@ namespace ui {
         const auto aa = settings.get_antialiasing();
         if(aa == render::AntiAliasingType::None) {
             antialiasing = 0;
+
+#if SAH_USE_STREAMLINE
         } else if(aa == render::AntiAliasingType::DLSS) {
             antialiasing = 1;
+#endif
         } else if(aa == render::AntiAliasingType::FSR3) {
             antialiasing = 2;
         }
 
+#if SAH_USE_STREAMLINE
         dlss_mode = static_cast<uint32_t>(settings.get_dlss_mode());
         dlss_ray_reconstruction = settings.get_ray_reconstruction();
+#endif
 
+#if SAH_USE_FFX
         fsr3_mode = static_cast<uint32_t>(settings.get_fsr3_mode());
+#endif
 
         shadow_fidelity = to_string(settings.get_shadow_fidelity());
         gi_fidelity = to_string(settings.get_global_illumination_fidelity());

@@ -206,13 +206,13 @@ namespace render {
 
             break;
 
-        case AntiAliasingType::DLSS:
 #if SAH_USE_STREAMLINE
+        case AntiAliasingType::DLSS:
             if (cached_aa != AntiAliasingType::DLSS) {
                 upscaler = eastl::make_unique<DLSSAdapter>();
             }
-#endif
             break;
+#endif
         case AntiAliasingType::FSR3:
 #if SAH_USE_FFX
             if (cached_aa != AntiAliasingType::FSR3) {
