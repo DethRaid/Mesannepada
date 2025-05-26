@@ -110,6 +110,9 @@ namespace render {
 #endif
 
     AmbientOcclusionPhase::AmbientOcclusionPhase() {
+        uint32_t val = 0;
+        const auto count = static_cast<uint8_t>(std::popcount(val));
+
 #if SAH_USE_FFX
         const auto& backend = RenderBackend::get();
 

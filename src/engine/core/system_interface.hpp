@@ -24,7 +24,7 @@ class PlayerInputManager;
 class SystemInterface
 {
 public:
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(__linux__)
     static void initialize(GLFWwindow* window_in, const std::filesystem::path& exe_folder);
 #endif
 

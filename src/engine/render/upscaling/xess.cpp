@@ -113,7 +113,7 @@ namespace render {
             backend.get_device(),
             &context);
         if (result != XESS_RESULT_SUCCESS) {
-            logger->error("Could not create XeSS context: {}", result);
+            logger->error("Could not create XeSS context: {}", static_cast<uint32_t>(result));
         }
 
         xessSetLoggingCallback(context, XESS_LOGGING_LEVEL_DEBUG, xess_log);
@@ -147,7 +147,7 @@ namespace render {
 
             auto init_result = xessVKInit(context, &init_params);
             if (init_result != XESS_RESULT_SUCCESS) {
-                logger->error("Could not initialize XeSS: {}", init_result);
+                logger->error("Could not initialize XeSS: {}", static_cast<uint32_t>(init_result));
             }
         }
 
@@ -224,7 +224,7 @@ namespace render {
 
                     auto result = xessVKExecute(context, commands.get_vk_commands(), &params);
                     if (result != XESS_RESULT_SUCCESS) {
-                        logger->error("Could not evaluate XeSS: {}", result);
+                        logger->error("Could not evaluate XeSS: {}", static_cast<uint32_t>(result));
                     }
                 }
             });

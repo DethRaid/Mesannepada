@@ -756,7 +756,7 @@ namespace render {
             return VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
 
         default:
-            spdlog::error("Unknown descriptor type {}", type);
+            spdlog::error("Unknown descriptor type {}", static_cast<uint32_t>(type));
             return VK_DESCRIPTOR_TYPE_MAX_ENUM;
         }
     }

@@ -91,7 +91,6 @@ target_link_libraries(SahCore PUBLIC
         GPUOpen::VulkanMemoryAllocator
         imgui
         Jolt
-        KTX::ktx
         magic_enum::magic_enum
         plf_colony
         spdlog::spdlog
@@ -149,13 +148,6 @@ if(SAH_USE_XESS)
             "${xess_SOURCE_DIR}/bin/libxess.dll"
             ${SAH_OUTPUT_DIR})
 endif()
-
-# This library is stupid I need to replace it
-message(STATUS "Copying KTX DLL ${Ktx_DIR}/bin/ktx.dll")
-add_custom_command(TARGET SahCore POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${Ktx_DIR}/../../../bin/ktx.dll"
-    ${SAH_OUTPUT_DIR})
 
 #######################
 # Generate VS filters #

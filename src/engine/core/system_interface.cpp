@@ -7,6 +7,11 @@ static SystemInterface* instance;
 void SystemInterface::initialize(GLFWwindow* window_in, const std::filesystem::path& exe_folder) {
     instance = new Win32SystemInterface{ window_in, exe_folder };
 }
+#elif defined(__linux__)
+#include "core/linux_system_interface.hpp"
+void SystemInterface::initialize(GLFWwindow* window_in, const std::filesystem::path& exe_folder) {
+    instance = new LinuxSystemInterface{ window_in, exe_folder };
+}
 #endif
 
 SystemInterface& SystemInterface::get() {
