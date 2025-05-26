@@ -1,7 +1,9 @@
 #include "game_settings.hpp"
 
+#if SAH_USE_STREAMLINE
 #include <sl.h>
 #include <sl_dlss.h>
+#endif
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/DataModelHandle.h>
 #include <ffx_api/ffx_upscale.h>
@@ -170,6 +172,7 @@ namespace ui {
 
         if(antialiasing == 0) {
             settings.set_antialiasing(render::AntiAliasingType::None);
+
         } else if(antialiasing == 1) {
             settings.set_antialiasing(render::AntiAliasingType::DLSS);
             set_dlss_options(settings);
@@ -188,8 +191,10 @@ namespace ui {
     }
 
     void SettingsScreen::set_dlss_options(SettingsController& settings) {
+#if SAH_USE_STREAMLINE
         settings.set_dlss_mode(static_cast<sl::DLSSMode>(dlss_mode));
         settings.set_use_ray_reconstruction(dlss_ray_reconstruction);
+#endif
     }
 
     void SettingsScreen::set_fsr3_options(SettingsController& settings) {
@@ -243,8 +248,10 @@ namespace ui {
             antialiasing = 2;
         }
 
+#if SAH_USE_STREAMLINE
         dlss_mode = static_cast<uint32_t>(settings.get_dlss_mode());
         dlss_ray_reconstruction = settings.get_ray_reconstruction();
+#endif
 
         fsr3_mode = static_cast<uint32_t>(settings.get_fsr3_mode());
 
