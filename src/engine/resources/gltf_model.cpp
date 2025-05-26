@@ -876,9 +876,7 @@ void GltfModel::import_single_texture(
     );
 
     auto handle = eastl::optional<render::TextureHandle>{};
-    if(mime_type == fastgltf::MimeType::KTX2) {
-        handle = texture_storage.upload_texture_ktx(image_name, image_data);
-    } else if(mime_type == fastgltf::MimeType::PNG || mime_type == fastgltf::MimeType::JPEG) {
+    if(mime_type == fastgltf::MimeType::PNG || mime_type == fastgltf::MimeType::JPEG) {
         handle = texture_storage.upload_texture_stbi(image_name, image_data, type);
     }
 

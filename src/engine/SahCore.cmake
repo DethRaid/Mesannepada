@@ -5,18 +5,11 @@ project(mesannepada)
 # These must be 1 or 0 because of CMake skill issue
 option(SAH_USE_FFX "Whether to use AMD's FidelityFX library" 1)
 option(SAH_USE_XESS "Whether to use Intel's XeSS library" 1)
+option(SAH_USE_STREAMLINE "Whether to use Nvidia's Streamline library" 1)
 
 if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
-
-if(WIN32)
-    set(USE_STREAMLINE_DEFAULT 1)
-elseif(Linux)
-    set(USE_STREAMLINE_DEFAULT 0)
-endif()
-
-option(SAH_USE_STREAMLINE "Whether to use Nvidia's Streamline library" ${USE_STREAMLINE_DEFAULT})
 
 # Shaders
 

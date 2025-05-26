@@ -6,7 +6,10 @@
 #endif
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/DataModelHandle.h>
+
+#if SAH_USE_FFX
 #include <ffx_api/ffx_upscale.h>
+#endif
 
 #include "console/cvars.hpp"
 #include "core/engine.hpp"
@@ -144,9 +147,11 @@ namespace ui {
             settings.set_antialiasing(render::AntiAliasingType::None);
             break;
 
+#if SAH_USE_STREAMLINE
         case 1:
             settings.set_antialiasing(render::AntiAliasingType::DLSS);
             break;
+#endif
 
         case 2:
             settings.set_antialiasing(render::AntiAliasingType::FSR3);
@@ -198,7 +203,9 @@ namespace ui {
     }
 
     void SettingsScreen::set_fsr3_options(SettingsController& settings) {
+#if SAH_USE_FFX
         settings.set_fsr3_mode(static_cast<FfxApiUpscaleQualityMode>(fsr3_mode));
+#endif
     }
 
     // ReSharper disable once CppMemberFunctionMayBeConst
@@ -242,8 +249,11 @@ namespace ui {
         const auto aa = settings.get_antialiasing();
         if(aa == render::AntiAliasingType::None) {
             antialiasing = 0;
+
+#if SAH_USE_STREAMLINE
         } else if(aa == render::AntiAliasingType::DLSS) {
             antialiasing = 1;
+#endif
         } else if(aa == render::AntiAliasingType::FSR3) {
             antialiasing = 2;
         }
@@ -253,7 +263,9 @@ namespace ui {
         dlss_ray_reconstruction = settings.get_ray_reconstruction();
 #endif
 
+#if SAH_USE_FFX
         fsr3_mode = static_cast<uint32_t>(settings.get_fsr3_mode());
+#endif
 
         shadow_fidelity = to_string(settings.get_shadow_fidelity());
         gi_fidelity = to_string(settings.get_global_illumination_fidelity());

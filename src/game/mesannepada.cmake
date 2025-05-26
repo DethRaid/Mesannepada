@@ -6,10 +6,13 @@ project(mesannepada)
 
 # Include the shared renderer
 
-set(SAH_USE_FFX 1 CACHE BOOL "" FORCE)
+set(SAH_USE_XESS 0 CACHE BOOL "" FORCE)
+
 if(WIN32)
+    set(SAH_USE_FFX 1 CACHE BOOL "" FORCE)
     set(SAH_USE_STREAMLINE 1 CACHE BOOL "" FORCE)
 else()
+    set(SAH_USE_FFX 0 CACHE BOOL "" FORCE)
     set(SAH_USE_STREAMLINE 0 CACHE BOOL "" FORCE)
 endif()
 include(${CMAKE_CURRENT_LIST_DIR}/../engine/SahCore.cmake)

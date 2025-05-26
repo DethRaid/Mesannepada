@@ -31,13 +31,8 @@ namespace render {
             JPH::RVec3Arg v0, JPH::RVec3Arg v1, JPH::RVec3Arg v2, JPH::ColorArg color, ECastShadow cast_shadow
         ) override;
 
-        void DrawText3D(
-            JPH::RVec3Arg position, const std::string_view& string, JPH::ColorArg color, float height
-        ) override;
-
         void draw(RenderGraph& graph, const RenderScene& scene, const GBuffer& gbuffer, TextureHandle lit_scene_handle);
 
-    protected:
         Batch CreateTriangleBatch(const Triangle* raw_triangles, int triangle_count) override;
 
         Batch CreateTriangleBatch(
@@ -48,6 +43,10 @@ namespace render {
             JPH::RMat44Arg model_matrix, const JPH::AABox& world_space_bounds, float lod_scale_squared,
             JPH::ColorArg model_color, const GeometryRef& geometry, ECullMode cull_mode, ECastShadow cast_shadow,
             EDrawMode draw_mode
+            ) override;
+
+        void DrawText3D(
+            JPH::RVec3Arg position, const std::string_view& string, JPH::ColorArg color, float height
         ) override;
 
     private:
