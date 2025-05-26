@@ -4,14 +4,12 @@
 
 namespace render {
     PipelineBase::~PipelineBase() {
-        auto& backend = RenderBackend::get();
-
         if (layout != VK_NULL_HANDLE) {
-            vkDestroyPipelineLayout(backend.get_device(), layout, nullptr);
+            vkDestroyPipelineLayout(RenderBackend::get().get_device(), layout, nullptr);
         }
 
         if (pipeline != VK_NULL_HANDLE) {
-            vkDestroyPipeline(backend.get_device(), pipeline, nullptr);
+            vkDestroyPipeline(RenderBackend::get().get_device(), pipeline, nullptr);
         }
     }
 

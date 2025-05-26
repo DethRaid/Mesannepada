@@ -69,6 +69,8 @@ Engine::Engine() : physics_scene{ scene }, animation_system{ scene } {
 }
 
 Engine::~Engine() {
+    render::RenderBackend::get().deinit();
+
     logger->warn("REMAIN INDOORS");
 }
 
@@ -218,7 +220,7 @@ ResourceLoader& Engine::get_resource_loader() {
     return resource_loader;
 }
 
-entt::handle Engine::get_player() { return player; }
+entt::handle Engine::get_player() const { return player; }
 
 void Engine::update_time() {
     const auto frame_start_time = std::chrono::high_resolution_clock::now();

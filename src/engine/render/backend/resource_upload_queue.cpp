@@ -1,7 +1,5 @@
 #include "resource_upload_queue.hpp"
 
-#include <ktx.h>
-
 #include "render/backend/render_backend.hpp"
 #include "render/backend/utils.hpp"
 #include "core/system_interface.hpp"

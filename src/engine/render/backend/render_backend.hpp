@@ -197,6 +197,8 @@ namespace render {
         template <typename VulkanType>
         void set_object_name(VulkanType object, const std::string& name) const;
 
+        void deinit();
+
     private:
         static inline eastl::unique_ptr<RenderBackend> g_render_backend = nullptr;
 

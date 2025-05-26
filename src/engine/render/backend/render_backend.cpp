@@ -1046,6 +1046,10 @@ namespace render {
         return default_normalmap_srv;
     }
 
+    void RenderBackend::deinit() {
+        pipeline_cache->destroy_all_pipelines();
+    }
+
     void RenderBackend::create_default_resources() {
         ZoneScoped;
 

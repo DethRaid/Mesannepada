@@ -836,4 +836,11 @@ namespace render {
 
         return &(*ray_tracing_pipelines.emplace(std::move(pipeline)));
     }
+
+    void PipelineCache::destroy_all_pipelines() {
+        pipelines.clear();
+        shader_groups.clear();
+        ray_tracing_pipelines.clear();
+        compute_pipelines.clear();
+    }
 }
