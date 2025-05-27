@@ -20,3 +20,4 @@ void main() {
 
     lighting = vec4(emission_sample.rgb * exposure_factor, 1.f);
 }
+

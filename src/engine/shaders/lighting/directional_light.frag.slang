@@ -94,3 +94,4 @@ float4 main(float2 texcoord, float2 fragcoord : SV_Position) {
 
     // lighting = float4(ndotl.xxx, 1.0);
 }
+

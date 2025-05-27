@@ -844,3 +844,4 @@ namespace render {
         compute_pipelines.clear();
     }
 }
+

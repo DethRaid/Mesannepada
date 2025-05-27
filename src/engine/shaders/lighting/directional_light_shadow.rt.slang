@@ -99,3 +99,4 @@ void main_raygen() {
 
     shadow_mask[thread_id] = shadow / (half)sun_light.num_shadow_samples;
 }
+

@@ -166,10 +166,6 @@ entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<e
                 add_static_mesh_component(entity, node, node_index);
             }
 
-            if(node.cameraIndex) {
-                registry.emplace<CameraComponent>(entity);
-            }
-
             if(node.physicsRigidBody) {
                 add_collider_component(entity, node, node_index, parent_to_world * node_to_parent);
             }

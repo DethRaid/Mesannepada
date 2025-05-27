@@ -206,3 +206,16 @@ Bowl A
 
 http://www.ur-online.org/subject/33706/
 Pot B
+
+Towards a Chronology of Early Dynastic Rulers
+https://www.academia.edu/10655886/Toward_a_Chronology_of_Early_Dynastic_Rulers_in_Mesopotamia?auto=download 
+2015 source attempting to piece together what in the heck was going on
+
+This casts a lot of doubt on the existance of the First Dynasty of Ur lmao. It posits that the title "King of Kish" we see in a lot of rulers of Ur really referred to Uruk, that the kings of Uruk stled themselves as King of Kish. Kish was apparently metaphorical in this title?
+
+This document is concerned with Ur, Uruk, Lagash, Umma, Adab, Kish, and Mari
+
+https://www.science.org/content/article/skeleton-closet-identified-bones-ancient-ur
+Average man was 1.6 meters, but this skeleton is 1.7 meters. 
+
+For comparison: An average American man is 5'9", 1.76 meters

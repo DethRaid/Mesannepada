@@ -6,6 +6,7 @@
 #include <simdjson.h>
 
 #include "system_interface.hpp"
+#include "glm/gtx/matrix_decompose.hpp"
 #include "resources/gltf_model.hpp"
 #include "resources/gltf_model_component.hpp"
 #include "player/first_person_player.hpp"
@@ -181,8 +182,17 @@ void Engine::give_player_full_control() {
         [&](const GameObjectComponent& comp) {
             auto& fp_player = static_cast<FirstPersonPlayer&>(*comp.game_object);
             const auto& transform = registry.get<TransformComponent>(player);
-            const auto location = transform.local_to_parent * float4{0, 0, 0, 1};
-            fp_player.set_worldspace_location(float3{location});
+
+            float3 scale;
+            glm::quat orientation;
+            float3 translation;
+            float3 skew;
+            float4 perspective;
+            glm::decompose(transform.local_to_parent, scale, orientation, translation, skew, perspective);
+
+            fp_player.set_worldspace_location(float3{ translation });
+
+            
 
             fp_player.enabled = true;
         });

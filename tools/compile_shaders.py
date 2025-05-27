@@ -13,6 +13,9 @@ from pathlib import Path
 glsl_extensions = ['.vert', '.geom', '.frag', '.comp']
 
 
+shader_compile_tasks = list()
+
+
 def are_dependencies_modified(depfile_path, last_compile_time):    
     with open(depfile_path, 'r') as depfile:
         for dependency in depfile:
@@ -51,7 +54,8 @@ def compile_slang_shader(input_file, output_file, include_directories, defines=[
 
     print(f"Compiling {input_file} as Slang")
     print(f"output_file={output_file}")
-    subprocess.run(command)
+    p = subprocess.Popen(command)
+    shader_compile_tasks.append(p)
 
     # use -output-includes to get a list of included files, de-duplicate that to get a dependency list, recompile the shader if any of its dependencies have changed
     includes_command = command + ['-output-includes']    
@@ -196,7 +200,8 @@ def compile_glsl_shader(input_file, output_file, include_directories):
 
     print(f"Compiling {input_file} as GLSL")
     print(f"output_file={output_file}")
-    subprocess.run(command)
+    p = subprocess.Popen(command)
+    shader_compile_tasks.append(p)
 
 
 def compile_shaders_in_path(path, root_dir, output_dir, extra_include_paths):
@@ -264,4 +269,8 @@ if __name__ == '__main__':
     # Iterate over the input directory. For every .slang file, compile it to the output directory. Create a folder structure mirroring the folder structure in the input directory
 
     compile_shaders_in_path(input_dir, input_dir, output_dir, extra_paths)
+
+    # wait for the tasks to finish
+    for task in shader_compile_tasks:
+        task.wait()
 

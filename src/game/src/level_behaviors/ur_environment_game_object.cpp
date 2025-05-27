@@ -51,3 +51,4 @@ void UrEnvironmentGameObject::tick(const float delta_time, Scene& scene) {
         registry.remove<AnimationEventComponent>(root_entity);
     }
 }
+

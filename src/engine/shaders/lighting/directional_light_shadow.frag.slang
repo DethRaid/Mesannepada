@@ -89,3 +89,4 @@ float main(float2 texcoord, float2 fragcoord : SV_Position) {
 
     return shadow;
 }
+

@@ -113,4 +113,3 @@ float4 main(float2 texcoord, float2 fragcoord : SV_Position) {
 
     return float4(color, 1);
 }
-
