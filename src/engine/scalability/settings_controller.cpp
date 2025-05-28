@@ -157,6 +157,10 @@ void SettingsController::save_graphics_settings_file() const {
 
     data_file_path /= "settings.toml";
 
+    if (!exists(data_file_path)) {
+        SystemInterface::get().write_file(data_file_path, "");
+    }
+
     auto data_file = toml::parse<TomlTypeConfig>(data_file_path);
 
     data_file["graphics"]["antialiasing"] = static_cast<uint32_t>(anti_aliasing);
@@ -201,6 +205,10 @@ void SettingsController::save_audio_settings_file() const {
     }
 
     data_file_path /= "settings.toml";
+
+    if (!exists(data_file_path)) {
+        SystemInterface::get().write_file(data_file_path, "");
+    }
 
     auto data_file = toml::parse<TomlTypeConfig>(data_file_path);
 

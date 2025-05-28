@@ -164,7 +164,7 @@ void SystemInterface::flush_all_loggers() {
 
 std::filesystem::path SystemInterface::get_write_folder() {
 #if __linux__
-    return "./mesannepada";
+    return "~/.mesannepada";
 #endif
 }
 

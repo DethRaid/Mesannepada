@@ -42,7 +42,7 @@ Engine::Engine() : physics_scene{ scene }, animation_system{ scene } {
     render::RenderBackend::construct_singleton();
 
     SystemInterface::get().create_window();
-    render::RenderBackend::get().init(SystemInterface::get().get_surface());
+    render::RenderBackend::get().init(SystemInterface::get().get_surface(), SystemInterface::get().get_resolution());
 
     renderer = eastl::make_unique<render::SarahRenderer>();
 

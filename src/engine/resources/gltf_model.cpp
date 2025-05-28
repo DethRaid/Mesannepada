@@ -204,8 +204,6 @@ entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<e
         }
     }
 
-    logger->info("Added nodes to the render scene");
-
     return root_entity;
 }
 

@@ -17,6 +17,7 @@
 #include "render/backend/resource_upload_queue.hpp"
 #include "core/issue_breakpoint.hpp"
 #include "render/upscaling/xess.hpp"
+#include "shared/prelude.h"
 
 #if defined(_WIN32)
 #include "core/win32_system_interface.hpp"
@@ -427,7 +428,7 @@ namespace render {
             shading_rate_properties.maxFragmentShadingRateAttachmentTexelSize.height);
     }
 
-    void RenderBackend::create_swapchain() {
+    void RenderBackend::create_swapchain(const uint2 resolution) {
         ZoneScoped;
 
         auto swapchain_ret = vkb::SwapchainBuilder{device}
@@ -441,6 +442,7 @@ namespace render {
                              .set_image_usage_flags(
                                  VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT
                              )
+        .set_desired_extent(resolution.x, resolution.y)
             .build();
         if(!swapchain_ret) {
             throw std::runtime_error{"Could not create swapchain"};
@@ -453,7 +455,7 @@ namespace render {
         wait_for_idle();
     }
 
-    void RenderBackend::init(VkSurfaceKHR surface) {
+    void RenderBackend::init(VkSurfaceKHR surface, const uint2 resolution) {
         create_device(surface);
 
         graphics_queue = *device.get_queue(vkb::QueueType::graphics);
@@ -496,7 +498,7 @@ namespace render {
 
         texture_descriptor_pool = eastl::make_unique<TextureDescriptorPool>(*this);
 
-        create_swapchain();
+        create_swapchain(resolution);
 
         create_command_pools();
 

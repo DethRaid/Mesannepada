@@ -27,7 +27,6 @@
 
 static bool g_MouseJustPressed[5] = {false, false, false, false, false};
 
-#if defined(_WIN32)
 #include <GLFW/glfw3.h>
 
 static GLFWmousebuttonfun prev_mouse_button_callback;
@@ -106,15 +105,12 @@ static void char_callback(GLFWwindow* window, const unsigned int c) {
     auto& io = ImGui::GetIO();
     io.AddInputCharacter(c);
 }
-#endif
 
 DebugUI::DebugUI(render::SarahRenderer& renderer_in) : renderer{renderer_in} {
     ImGui::CreateContext();
 
-#if defined(_WIN32)
-    auto& system_interface = reinterpret_cast<GlfwSystemInterface&>(SystemInterface::get());
+    auto& system_interface = SystemInterface::get();
     window = system_interface.get_glfw_window();
-#endif
 
     ImGui::CreateContext();
 
@@ -125,7 +121,6 @@ DebugUI::DebugUI(render::SarahRenderer& renderer_in) : renderer{renderer_in} {
 
     io.ConfigFlags |= ImGuiConfigFlags_IsSRGB;
 
-#if defined(_WIN32)
     io.SetClipboardTextFn = set_clipboard_text;
     io.GetClipboardTextFn = get_clipboard_text;
     io.ClipboardUserData = window;
@@ -166,7 +161,6 @@ DebugUI::DebugUI(render::SarahRenderer& renderer_in) : renderer{renderer_in} {
     prev_scroll_callback = glfwSetScrollCallback(window, scroll_callback);
     prev_key_callback = glfwSetKeyCallback(window, key_callback);
     prev_char_callback = glfwSetCharCallback(window, char_callback);
-#endif
 
     create_font_texture();
 
@@ -199,10 +193,8 @@ void DebugUI::draw() {
     // Setup display size (every frame to accommodate for window resizing)
     int w, h;
     int display_w, display_h;
-#if defined(_WIN32)
     glfwGetWindowSize(window, &w, &h);
     glfwGetFramebufferSize(window, &display_w, &display_h);
-#endif
     io.DisplaySize = ImVec2(static_cast<float>(w), static_cast<float>(h));
     if(w > 0 && h > 0) {
         io.DisplayFramebufferScale = ImVec2(
@@ -212,18 +204,12 @@ void DebugUI::draw() {
     }
 
     // Setup time step
-#if defined(_WIN32)
     const auto current_time = glfwGetTime();
     io.DeltaTime = last_start_time > 0.0 ? static_cast<float>(current_time - last_start_time) : 1.0f / 60.0f;
     last_start_time = current_time;
-#else
-    io.DeltaTime = 1.f / 60.f;
-#endif
 
-#if defined(_WIN32)
     update_mouse_pos_and_buttons();
     update_mouse_cursor();
-#endif
 
     ImGui::NewFrame();
 
@@ -282,7 +268,6 @@ void DebugUI::create_font_texture() {
     io.Fonts->TexID = reinterpret_cast<ImTextureID>(font_atlas_descriptor_set);
 }
 
-#if defined(_WIN32)
 void DebugUI::update_mouse_pos_and_buttons() const {
     // Update buttons
     auto& io = ImGui::GetIO();
@@ -329,7 +314,6 @@ void DebugUI::update_mouse_cursor() const {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }
 }
-#endif
 
 void DebugUI::draw_fps_info() {
     const auto& application = Engine::get();

@@ -20,6 +20,7 @@
 #include "render/backend/command_buffer.hpp"
 #include "render/backend/resource_upload_queue.hpp"
 #include "render/backend/constants.hpp"
+#include "shared/prelude.h"
 
 namespace render {
     class RenderGraph;
@@ -71,7 +72,7 @@ namespace render {
          * - Init glfw, create a window and surface
          * - init RenderBackend
          */
-        void init(VkSurfaceKHR surface);
+        void init(VkSurfaceKHR surface, uint2 resolution);
 
         bool supports_ray_tracing() const;
 
@@ -332,7 +333,7 @@ namespace render {
 
         void query_physical_device_properties();
 
-        void create_swapchain();
+        void create_swapchain(uint2 resolution);
 
         void create_tracy_context();
 

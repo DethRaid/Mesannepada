@@ -2,9 +2,7 @@
 
 #include <vulkan/vulkan.h>
 
-#if defined(_WIN32)
 #include <GLFW/glfw3.h>
-#endif
 
 #include <string>
 #include <EASTL/span.h>
@@ -26,9 +24,7 @@ public:
     void draw();
 
 private:
-#if defined(_WIN32)
     GLFWwindow* window = nullptr;
-#endif
 
     render::SarahRenderer& renderer;
 
@@ -57,11 +53,9 @@ private:
 
     void create_font_texture();
 
-#if defined(_WIN32)
     void update_mouse_pos_and_buttons() const;
 
     void update_mouse_cursor() const;
-#endif
 
     void draw_fps_info();
 
