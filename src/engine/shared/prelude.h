@@ -6,6 +6,7 @@
 // Typedefs so we can share structs between C++, GLSL, and Slang
 
 #include <glm/gtx/compatibility.hpp>
+#include <glm/ext/scalar_constants.hpp>
 
 using unorm4 = uint32_t;
 
@@ -27,6 +28,9 @@ using glm::float4x4;
 
 using half3 = glm::mediump_vec3;
 using half4 = glm::mediump_vec4;
+
+
+#define PI glm::pi<float>()
 
 #elif defined(GL_core_profile)
 

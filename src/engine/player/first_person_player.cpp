@@ -77,6 +77,11 @@ void FirstPersonPlayer::set_worldspace_location(const float3 location_in) const 
     character->SetPosition(to_jolt(location_in));
 }
 
+void FirstPersonPlayer::set_pitch_and_yaw(const float pitch_in, const float yaw_in) {
+    pitch = pitch_in;
+    yaw = yaw_in;
+}
+
 // based on https://github.com/jrouwe/JoltPhysics/blob/master/Samples/Tests/Character/CharacterVirtualTest.cpp
 void FirstPersonPlayer::handle_input(
     const float delta_time, const float3 player_movement_input, const float delta_pitch, const float delta_yaw,

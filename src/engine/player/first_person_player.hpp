@@ -22,6 +22,8 @@ public:
 
     void set_worldspace_location(float3 location_in) const;
 
+    void set_pitch_and_yaw(float pitch_in, float yaw_in);
+
     /**
      * @param delta_time Change in time since the last input was processed
      * @param player_movement_input The movement input, in normalize local space
