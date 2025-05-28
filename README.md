@@ -44,7 +44,8 @@ WASD to move, mouse to look around, E to interact. When you're holding an object
 
 # Known-good configurations
 
-- This program definitely works on a Nvidia RTX 4070 Super GPU
+- This program has been tested on a RTX 4070 Super GPu, on both Windows 11 and Manjaro Linux. It does not support X11-based Linux systems, but _should_ otherwise work on systems that support Vulkan
+- This program does not support macOS, iOS, or Android
 
 ## Acknowledgements
 
