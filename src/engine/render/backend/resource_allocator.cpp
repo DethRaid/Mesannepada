@@ -20,19 +20,21 @@ namespace render {
             logger = SystemInterface::get().get_logger("ResourceAllocator");
             logger->set_level(spdlog::level::info);
         }
-        const auto functions = VmaVulkanFunctions{
-            .vkGetInstanceProcAddr = vkGetInstanceProcAddr,
-            .vkGetDeviceProcAddr = vkGetDeviceProcAddr,
-        };
-        const auto create_info = VmaAllocatorCreateInfo{
+        auto create_info = VmaAllocatorCreateInfo{
             .flags = VMA_ALLOCATOR_CREATE_EXTERNALLY_SYNCHRONIZED_BIT | VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT,
             .physicalDevice = backend.get_physical_device(),
             .device = backend.get_device(),
-            .pVulkanFunctions = &functions,
             .instance = backend.get_instance(),
             .vulkanApiVersion = VK_API_VERSION_1_3
         };
-        const auto result = vmaCreateAllocator(&create_info, &vma);
+        auto functions = VmaVulkanFunctions{};
+        auto result = vmaImportVulkanFunctionsFromVolk(&create_info, &functions);
+        if(result != VK_SUCCESS) {
+            throw std::runtime_error{"Could not import functions from Volk"};
+        }
+
+        create_info.pVulkanFunctions = &functions;
+        result = vmaCreateAllocator(&create_info, &vma);
         if(result != VK_SUCCESS) {
             throw std::runtime_error{"Could not create VMA instance"};
         }
