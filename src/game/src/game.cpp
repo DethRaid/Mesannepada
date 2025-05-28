@@ -1,8 +1,6 @@
 #include "game.hpp"
 
 #include <core/system_interface.hpp>
-#include <volk/volk.h>
-#include <GLFW/glfw3.h>
 
 #include <core/engine.hpp>
 #include <tracy/Tracy.hpp>

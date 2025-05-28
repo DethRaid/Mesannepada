@@ -5,7 +5,7 @@
 #include <EASTL/optional.h>
 #include <string>
 
-#include <volk/volk.h>
+#include <volk.h>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <spdlog/logger.h>

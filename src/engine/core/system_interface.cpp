@@ -162,9 +162,36 @@ void SystemInterface::flush_all_loggers() {
     }
 }
 
+#if _WIN32
+#include <Shlobj.h>
+#endif
+
 std::filesystem::path SystemInterface::get_write_folder() {
-#if __linux__
+#if defined(__linux__)
     return "~/.mesannepada";
+#else
+
+    PWSTR folder_path;
+    const auto result = SHGetKnownFolderPath(FOLDERID_SavedGames, 0, nullptr, &folder_path);
+    if (result != S_OK) {
+        logger->error("Could not retrieve SavedGames folder path");
+        return {};
+    }
+
+    const auto chonker = std::wstring{ folder_path };
+
+    int count = WideCharToMultiByte(
+        CP_UTF8,
+        0,
+        chonker.c_str(),
+        static_cast<int32_t>(chonker.size()),
+        nullptr,
+        0,
+        nullptr,
+        nullptr);
+    std::string str(count, 0);
+    WideCharToMultiByte(CP_UTF8, 0, chonker.c_str(), -1, str.data(), count, nullptr, nullptr);
+    return std::filesystem::path{ str } / "mesannapada";
 #endif
 }
 

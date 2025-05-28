@@ -19,10 +19,6 @@
 #include "render/upscaling/xess.hpp"
 #include "shared/prelude.h"
 
-#if defined(_WIN32)
-#include "core/win32_system_interface.hpp"
-#endif
-
 namespace render {
     [[maybe_unused]] static auto cvar_use_dgc = AutoCVar_Int{
         "r.RHI.DGC.Enable",

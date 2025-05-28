@@ -219,3 +219,6 @@ https://www.science.org/content/article/skeleton-closet-identified-bones-ancient
 Average man was 1.6 meters, but this skeleton is 1.7 meters. 
 
 For comparison: An average American man is 5'9", 1.76 meters
+
+https://www.smithsonianmag.com/science-nature/rare-ancient-dna-south-asia-reveals-complexities-little-known-civilization-180973053/
+A genetic study of Harappans, and other people, has yielded interesting information. The Harappan geneomes didnt't show any influence from Sumerians or other Mesopotamians, but there's a few individuals in Mesopotamia that are genetic outliers. Many of these people are burried with Harappan artifacts. This suggests that some people migrated to Mesopotamia and kept their culture with them
