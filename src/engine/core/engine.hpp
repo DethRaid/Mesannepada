@@ -84,7 +84,7 @@ public:
 private:
     std::chrono::high_resolution_clock::time_point application_start_time;
 
-    float time_since_start;
+    float time_since_start = 0.f;
 
     std::chrono::high_resolution_clock::time_point last_frame_start_time;
 

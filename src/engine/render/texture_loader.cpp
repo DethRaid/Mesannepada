@@ -56,6 +56,7 @@ namespace render {
             4
         );
         if (decoded_data == nullptr) {
+            logger->error("Cannot decode texture {}: {}", filepath.string(), stbi_failure_reason());
             return eastl::nullopt;
         }
 

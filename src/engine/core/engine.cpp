@@ -3,7 +3,6 @@
 #include <imgui.h>
 #include <magic_enum.hpp>
 #include <tracy/Tracy.hpp>
-#include <simdjson.h>
 
 #include "system_interface.hpp"
 #include "glm/gtx/matrix_decompose.hpp"
@@ -39,6 +38,11 @@ Engine::Engine() : physics_scene{ scene }, animation_system{ scene } {
     application_start_time = std::chrono::high_resolution_clock::now();
 
     SystemInterface::get().set_input_manager(player_input);
+
+    render::RenderBackend::construct_singleton();
+
+    SystemInterface::get().create_window();
+    render::RenderBackend::get().init(SystemInterface::get().get_surface());
 
     renderer = eastl::make_unique<render::SarahRenderer>();
 
@@ -134,8 +138,6 @@ void Engine::tick() {
     renderer->set_imgui_commands(ImGui::GetDrawData());
 
     renderer->render();
-
-    // TODO: Would be nice if we had UI as a separate render thing... for now the "scene" renderer does it
 }
 
 render::SarahRenderer& Engine::get_renderer() const {

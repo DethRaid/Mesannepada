@@ -31,12 +31,13 @@ namespace render {
 
     static std::shared_ptr<spdlog::logger> logger;
 
-    RenderBackend& RenderBackend::get() {
+    void RenderBackend::construct_singleton() {
         if(g_render_backend == nullptr) {
             g_render_backend = eastl::make_unique<RenderBackend>();
-            logger->debug("Assigned render backend to global pointer");
         }
+    }
 
+    RenderBackend& RenderBackend::get() {
         return *g_render_backend;
     }
 
@@ -82,82 +83,24 @@ namespace render {
 
         supports_raytracing = *CVarSystem::Get()->GetIntCVar("r.Raytracing.Enable") != 0;
 
-        create_instance_and_device();
-
-        graphics_queue = *device.get_queue(vkb::QueueType::graphics);
-        graphics_queue_family_index = *device.get_queue_index(vkb::QueueType::graphics);
-
-        set_object_name(graphics_queue, "Graphics Queue");
-
-        // Don't use a dedicated transfer queue, because my attempts at a queue ownership transfer have failed
-
-        // const auto transfer_queue_maybe = device.get_queue(vkb::QueueType::transfer);
-        // if (transfer_queue_maybe) {
-        //     transfer_queue = *transfer_queue_maybe;
-        // } else {
-        transfer_queue = graphics_queue;
-        // }
-
-        // const auto transfer_queue_family_index_maybe = device.get_queue_index(vkb::QueueType::transfer);
-        // if (transfer_queue_family_index_maybe) {
-        //     transfer_queue_family_index = *transfer_queue_family_index_maybe;
-        // } else {
-        transfer_queue_family_index = graphics_queue_family_index;
-        // }
-
-        create_tracy_context();
-
-        global_descriptor_allocator.init(device.device);
-        for(auto& frame_allocator : frame_descriptor_allocators) {
-            frame_allocator.init(device.device);
-        }
-        descriptor_layout_cache.init(device.device);
-
-        allocator = eastl::make_unique<ResourceAllocator>(*this);
-        g_global_allocator = allocator.get();
-
-        upload_queue = eastl::make_unique<ResourceUploadQueue>(*this);
-
-        blas_build_queue = eastl::make_unique<BlasBuildQueue>();
-
-        pipeline_cache = eastl::make_unique<PipelineCache>(*this);
-
-        texture_descriptor_pool = eastl::make_unique<TextureDescriptorPool>(*this);
-
-        create_swapchain();
-
-        create_command_pools();
-
-        constexpr auto fence_create_info = VkFenceCreateInfo{
-            .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
-            .flags = VK_FENCE_CREATE_SIGNALED_BIT,
-        };
-        for(auto& fence : frame_fences) {
-            vkCreateFence(device.device, &fence_create_info, nullptr, &fence);
-        }
-
-        create_default_resources();
-
-        logger->info("Initialized backend");
+        create_instance();
     }
 
     void RenderBackend::add_transfer_barrier(const VkImageMemoryBarrier2& barrier) {
         transfer_barriers.push_back(barrier);
     }
 
-    void RenderBackend::create_instance_and_device() {
+    void RenderBackend::create_instance() {
         ZoneScoped;
 
         // vkb enables the surface extensions for us
         auto instance_builder = vkb::InstanceBuilder{vkGetInstanceProcAddr}
-                                .set_app_name("𒈩𒀭𒉌𒅆𒊒𒁕")
-                                .set_engine_name("𒊓𒊏")
-                                .set_app_version(0, 13, 0)
-                                .require_api_version(1, 4, 0)
-                                .enable_extension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME)
-
-            ;
-
+        .set_app_name("𒈩𒀭𒉌𒅆𒊒𒁕")
+        .set_engine_name("𒊓𒊏")
+        .set_app_version(0, 13, 0)
+        .require_api_version(1, 4, 0)
+        .enable_extension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME)
+;
 
 #if SAH_USE_XESS
         const auto xess_extensions = XeSSAdapter::get_instance_extensions();
@@ -180,24 +123,10 @@ namespace render {
             instance = instance_ret.value();
         }
         volkLoadInstance(instance.instance);
+    }
 
-#if defined(_WIN32)
-        auto& system_interface = reinterpret_cast<Win32SystemInterface&>(SystemInterface::get());
-        const auto surface_create_info = VkWin32SurfaceCreateInfoKHR{
-            .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
-            .hinstance = system_interface.get_hinstance(),
-            .hwnd = system_interface.get_hwnd(),
-        };
-
-        VkResult vk_result;
-        {
-            ZoneScopedN("vkCreateWin32SurfaceKHR");
-            vk_result = vkCreateWin32SurfaceKHR(instance.instance, &surface_create_info, nullptr, &surface);
-        }
-        if(vk_result != VK_SUCCESS) {
-            throw std::runtime_error{"Could not create rendering surface"};
-        }
-#endif
+    void RenderBackend::create_device(VkSurfaceKHR surface) {
+        ZoneScoped;
 
         constexpr auto required_features = VkPhysicalDeviceFeatures{
             .imageCubeArray = VK_TRUE,
@@ -294,8 +223,9 @@ namespace render {
         supports_rt &= physical_device.enable_extension_if_present(VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME);
         supports_rt &= physical_device.enable_extension_if_present(VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME);
 
+        auto supports_rt_validation = false;
         if(supports_rt) {
-            physical_device.enable_extension_if_present(VK_NV_RAY_TRACING_VALIDATION_EXTENSION_NAME);
+            supports_rt_validation = physical_device.enable_extension_if_present(VK_NV_RAY_TRACING_VALIDATION_EXTENSION_NAME);
         }
 
         physical_device.enable_extension_if_present(VK_NV_DEVICE_GENERATED_COMMANDS_EXTENSION_NAME);
@@ -315,9 +245,6 @@ namespace render {
         }
 
         physical_device.enable_extension_if_present(VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
-
-        const auto supports_dr = physical_device.enable_extension_if_present(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
-        logger->info("Supports DR extension: {}", supports_dr);
 
 #if SAH_USE_XESS
         const auto xess_device_extensions = XeSSAdapter::get_device_extensions(instance, physical_device);
@@ -360,7 +287,9 @@ namespace render {
             device_builder.add_pNext(&acceleration_structure_features);
             device_builder.add_pNext(&ray_pipeline_features);
             device_builder.add_pNext(&ray_query_features);
-            device_builder.add_pNext(&rt_validation_features);
+            if(supports_rt_validation) {
+                device_builder.add_pNext(&rt_validation_features);
+            }
         }
 
         if(supports_device_generated_commands()) {
@@ -522,6 +451,66 @@ namespace render {
 
     RenderBackend::~RenderBackend() {
         wait_for_idle();
+    }
+
+    void RenderBackend::init(VkSurfaceKHR surface) {
+        create_device(surface);
+
+        graphics_queue = *device.get_queue(vkb::QueueType::graphics);
+        graphics_queue_family_index = *device.get_queue_index(vkb::QueueType::graphics);
+
+        set_object_name(graphics_queue, "Graphics Queue");
+
+        // Don't use a dedicated transfer queue, because my attempts at a queue ownership transfer have failed
+
+        // const auto transfer_queue_maybe = device.get_queue(vkb::QueueType::transfer);
+        // if (transfer_queue_maybe) {
+        //     transfer_queue = *transfer_queue_maybe;
+        // } else {
+        transfer_queue = graphics_queue;
+        // }
+
+        // const auto transfer_queue_family_index_maybe = device.get_queue_index(vkb::QueueType::transfer);
+        // if (transfer_queue_family_index_maybe) {
+        //     transfer_queue_family_index = *transfer_queue_family_index_maybe;
+        // } else {
+        transfer_queue_family_index = graphics_queue_family_index;
+        // }
+
+        create_tracy_context();
+
+        global_descriptor_allocator.init(device.device);
+        for(auto& frame_allocator : frame_descriptor_allocators) {
+            frame_allocator.init(device.device);
+        }
+        descriptor_layout_cache.init(device.device);
+
+        allocator = eastl::make_unique<ResourceAllocator>(*this);
+        g_global_allocator = allocator.get();
+
+        upload_queue = eastl::make_unique<ResourceUploadQueue>(*this);
+
+        blas_build_queue = eastl::make_unique<BlasBuildQueue>();
+
+        pipeline_cache = eastl::make_unique<PipelineCache>(*this);
+
+        texture_descriptor_pool = eastl::make_unique<TextureDescriptorPool>(*this);
+
+        create_swapchain();
+
+        create_command_pools();
+
+        constexpr auto fence_create_info = VkFenceCreateInfo{
+            .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+            .flags = VK_FENCE_CREATE_SIGNALED_BIT,
+        };
+        for(auto& fence : frame_fences) {
+            vkCreateFence(device.device, &fence_create_info, nullptr, &fence);
+        }
+
+        create_default_resources();
+
+        logger->info("Initialized backend");
     }
 
     bool RenderBackend::supports_ray_tracing() const {
@@ -1044,6 +1033,10 @@ namespace render {
 
     uint32_t RenderBackend::get_default_normalmap_srv() const {
         return default_normalmap_srv;
+    }
+
+    PFN_vkGetInstanceProcAddr RenderBackend::get_vk_load_proc_addr() {
+        return vkGetInstanceProcAddr;
     }
 
     void RenderBackend::deinit() {

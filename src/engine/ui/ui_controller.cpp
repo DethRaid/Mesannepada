@@ -13,10 +13,7 @@
 #include "external/rmlui/RmlUi_Platform_GLFW.h"
 #include "console/cvars.hpp"
 
-#include "core/glfw_system_interface.hpp"
 #include "core/system_interface.hpp"
-
-
 namespace ui {
     const static eastl::string CONTEXT_NAME = "game_ui";
     static constexpr auto FONT_NAMES = eastl::array{
@@ -45,8 +42,7 @@ namespace ui {
         system_interface = std::make_unique<SystemInterface_GLFW>();
 
         // TODO: Figure out something to do if we ever support Android again
-        auto& my_system_interface = static_cast<GlfwSystemInterface&>(SystemInterface::get());
-        system_interface->SetWindow(my_system_interface.get_glfw_window());
+        system_interface->SetWindow(SystemInterface::get().get_glfw_window());
 
         Rml::SetSystemInterface(system_interface.get());
         Rml::SetRenderInterface(renderer);

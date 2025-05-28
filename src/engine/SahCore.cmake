@@ -48,7 +48,7 @@ if(WIN32)
                 )
 elseif(Linux)
     target_compile_definitions(SahCore PUBLIC
-        VK_USE_PLATFORM_WAYLAND
+            VK_USE_PLATFORM_WAYLAND_KHR
     )
 endif()
 

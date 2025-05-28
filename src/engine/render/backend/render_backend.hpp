@@ -38,6 +38,8 @@ namespace render {
      */
     class RenderBackend {
     public:
+        static void construct_singleton();
+
         static RenderBackend& get();
 
         bool supports_nv_diagnostics_config = false;
@@ -59,6 +61,17 @@ namespace render {
         RenderBackend& operator=(RenderBackend&& old) noexcept = delete;
 
         ~RenderBackend();
+
+        /**
+         * Initializes the render backend to render to the provided surface
+         *
+         * This is kinda funky because glfw. We need to load Vulkan functions before initializing glfw, and we need to
+         * create a surface before creating a VkPhysicalDevice. The intended order of operaitons is:
+         * - Consturct RenderBackend
+         * - Init glfw, create a window and surface
+         * - init RenderBackend
+         */
+        void init(VkSurfaceKHR surface);
 
         bool supports_ray_tracing() const;
 
@@ -194,6 +207,8 @@ namespace render {
 
         uint32_t get_default_normalmap_srv() const;
 
+        static PFN_vkGetInstanceProcAddr get_vk_load_proc_addr();
+
         template <typename VulkanType>
         void set_object_name(VulkanType object, const std::string& name) const;
 
@@ -309,7 +324,9 @@ namespace render {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_PROPERTIES_KHR
         };
 
-        void create_instance_and_device();
+        void create_instance();
+
+        void create_device(VkSurfaceKHR surface);
 
         void query_physical_device_features();
 

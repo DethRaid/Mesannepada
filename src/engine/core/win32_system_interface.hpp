@@ -1,7 +1,5 @@
 #pragma once
 
-#include "core/glfw_system_interface.hpp"
-
 #if defined(_WIN32)
 
 #include <Windows.h>

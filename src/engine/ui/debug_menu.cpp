@@ -15,7 +15,6 @@
 
 #include "console/cvars.hpp"
 #include "core/engine.hpp"
-#include "core/glfw_system_interface.hpp"
 #include "core/system_interface.hpp"
 #include "physics/collider_component.hpp"
 #include "render/sarah_renderer.hpp"
@@ -185,7 +184,9 @@ DebugUI::DebugUI(render::SarahRenderer& renderer_in) : renderer{renderer_in} {
         current_taa = 3;
     }
 
+#if SAH_USE_STREAMLINE
     use_ray_reconstruction = *CVarSystem::Get()->GetIntCVar("r.DLSS-RR.Enabled") != 0;
+#endif
 }
 
 void DebugUI::draw() {
