@@ -104,7 +104,8 @@ if(WIN32)
 elseif(LINUX)
     target_compile_options(SahCore PUBLIC
         "-fms-extensions"
-        "-Wno-nullability-completeness")
+        "-Wno-nullability-completeness"
+        "-fno-rtti")
 endif()
 
 if(SAH_USE_FFX)
