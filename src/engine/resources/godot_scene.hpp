@@ -34,6 +34,7 @@ namespace godot {
         eastl::optional<eastl::string> instance;
         float4x4 transform = float4x4{1.f};
         eastl::fixed_vector<size_t, 8> children;
+        eastl::unordered_map<eastl::string, eastl::string> metadata;
 
         bool operator==(const Node& other) const {
             return name == other.name && parent == other.parent;

@@ -1,0 +1,14 @@
+{
+    "components": [
+        {
+            "type": "TransformComponent"
+        },
+        {
+            "type": "SkeletalMeshComponent",
+            "skeletal_mesh": "SK_BaseSumerian.glb"
+        },
+        {
+            "type": "ai::BehaviorTreeComponent"
+        }
+    ]
+}

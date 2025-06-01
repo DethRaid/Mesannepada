@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://paagtini8aq6"]
+
+[ext_resource type="PackedScene" uid="uid://j1nyyjf73m7i" path="res://characters/SK_BaseSumerian.glb" id="1_rdgaw"]
+
+[node name="GoBasicGuard" type="Node3D"]
+
+[node name="SK_BaseSumerian2" parent="." instance=ExtResource("1_rdgaw")]

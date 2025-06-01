@@ -14,6 +14,10 @@ config/name="LevelEditor"
 config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://icon.svg"
 
+[dotnet]
+
+project/assembly_name="LevelEditor"
+
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/gltfx_reference_format/plugin.cfg")

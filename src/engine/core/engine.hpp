@@ -116,7 +116,19 @@ private:
 
     entt::handle player = {};
 
+    /**
+     * Registers all the components with the EnTT reflector
+     *
+     * TODO: Codegen or macros?
+     */
+    void register_components();
+
     void update_time();
+
+    /**
+     * Spawns new GameObjects from SpawnGameObject components
+     */
+    void spawn_new_game_objects();
 };
 
 template <typename PlayerType>

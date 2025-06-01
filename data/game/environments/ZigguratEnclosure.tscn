@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://ibcoi6lpwgce"]
+[gd_scene load_steps=16 format=3 uid="uid://ibcoi6lpwgce"]
 
 [ext_resource type="PackedScene" uid="uid://887tk6sug6t0" path="res://environments/SM_Ur_ZigguratTerrace.glb" id="1_kmlrp"]
 [ext_resource type="PackedScene" uid="uid://dtpda7o0rktpc" path="res://props/SM_OilLampA.glb" id="2_qabim"]
@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://byfoneooj1xp" path="res://props/SM_BowlA.glb" id="7_xfbx7"]
 [ext_resource type="PackedScene" uid="uid://cgqafi5qiulmy" path="res://props/SM_JarA.glb" id="8_2lsym"]
 [ext_resource type="PackedScene" uid="uid://cutesyrwbvejc" path="res://props/SM_JarB.glb" id="9_dfck3"]
+[ext_resource type="PackedScene" uid="uid://j1nyyjf73m7i" path="res://characters/SK_BaseSumerian.glb" id="11_2lsym"]
 
 [sub_resource type="PhysicalSkyMaterial" id="PhysicalSkyMaterial_0siq0"]
 
@@ -243,6 +244,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.295273, 0.0362845, -0.60733
 
 [node name="SM_CopperAxe2" parent="." instance=ExtResource("3_cqvnt")]
 transform = Transform3D(1, 1.19209e-07, -4.93601e-08, 3.91155e-08, -0.0189706, 0.99982, 0, -0.999821, -0.0189706, -49.8242, 0.927817, -7.05631)
+
+[node name="SK_BaseSumerian2" parent="." instance=ExtResource("11_2lsym")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.28434, 0, 0)
+
+[node name="Marker3D" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.0177, 0.178309, -7.19268)
+metadata/spawn_gameobject = "data/game/characters/basic_guard.json"
 
 [editable path="SM_Ur_ZigguratTerrace"]
 [editable path="SM_OilLampA"]

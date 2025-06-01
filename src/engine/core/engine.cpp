@@ -4,11 +4,15 @@
 #include <magic_enum.hpp>
 #include <tracy/Tracy.hpp>
 
+#include "spawn_gameobject_component.hpp"
 #include "system_interface.hpp"
+#include "ai/behavior_tree_component.hpp"
 #include "glm/gtx/matrix_decompose.hpp"
 #include "resources/gltf_model.hpp"
 #include "resources/gltf_model_component.hpp"
 #include "player/first_person_player.hpp"
+#include "render/components/static_mesh_component.hpp"
+#include "scene/camera_component.hpp"
 #include "scene/game_object_component.hpp"
 #include "scene/transform_component.hpp"
 #include "ui/ui_controller.hpp"
@@ -22,7 +26,8 @@ Engine& Engine::get() {
     return *instance;
 }
 
-Engine::Engine() : physics_scene{ scene }, animation_system{ scene } {
+Engine::Engine() :
+    physics_scene{scene}, animation_system{scene} {
     ZoneScoped;
 
     instance = this;
@@ -52,9 +57,9 @@ Engine::Engine() : physics_scene{ scene }, animation_system{ scene } {
     SystemInterface::get().set_ui_controller(ui_controller.get());
 
     render_scene = eastl::make_unique<render::RenderScene>(
-        renderer->get_mesh_storage(),
-        renderer->get_material_storage()
-    );
+            renderer->get_mesh_storage(),
+            renderer->get_material_storage()
+            );
 
     render_scene->setup_observers(scene);
 
@@ -70,6 +75,8 @@ Engine::Engine() : physics_scene{ scene }, animation_system{ scene } {
 
     update_resolution();
 
+    register_components();
+
     logger->info("HELLO HUMAN");
 }
 
@@ -80,8 +87,8 @@ Engine::~Engine() {
 }
 
 entt::handle Engine::add_model_to_scene(
-    const std::filesystem::path& scene_path, const eastl::optional<entt::handle>& parent_node
-) {
+        const std::filesystem::path& scene_path, const eastl::optional<entt::handle>& parent_node
+        ) {
     ZoneScoped;
 
     logger->info("Beginning import of scene {}", scene_path.string());
@@ -105,7 +112,7 @@ void Engine::tick() {
 
     update_time();
 
-    // Input
+    spawn_new_game_objects();
 
     SystemInterface::get().poll_input(player_input);
 
@@ -113,11 +120,11 @@ void Engine::tick() {
 
     auto& registry = scene.get_registry();
     registry.view<GameObjectComponent>().each(
-        [&](const GameObjectComponent& go) {
-            if (go->enabled) {
-                go->tick(delta_time, scene);
-            }
-        });
+            [&](const GameObjectComponent& go) {
+                if(go->enabled) {
+                    go->tick(delta_time, scene);
+                }
+            });
 
     physics_scene.tick(delta_time, scene);
 
@@ -168,43 +175,43 @@ void Engine::give_player_full_control() {
     auto& registry = scene.get_registry();
     eastl::optional<entt::entity> parent_entity = eastl::nullopt;
     registry.patch<TransformComponent>(
-        player,
-        [&](TransformComponent& transform) {
-            if(transform.parent != entt::null) {
-                parent_entity = transform.parent;
-                transform.parent = entt::null;
-            }
+            player,
+            [&](TransformComponent& transform) {
+                if(transform.parent != entt::null) {
+                    parent_entity = transform.parent;
+                    transform.parent = entt::null;
+                }
 
-            const auto local_to_world = transform.cached_parent_to_world * transform.local_to_parent;
-            transform.cached_parent_to_world = float4x4{1.f};
-            transform.local_to_parent = local_to_world;
-        });
+                const auto local_to_world = transform.cached_parent_to_world * transform.local_to_parent;
+                transform.cached_parent_to_world = float4x4{1.f};
+                transform.local_to_parent = local_to_world;
+            });
     registry.patch<GameObjectComponent>(
-        player,
-        [&](const GameObjectComponent& comp) {
-            auto& fp_player = static_cast<FirstPersonPlayer&>(*comp.game_object);
-            const auto& transform = registry.get<TransformComponent>(player);
+            player,
+            [&](const GameObjectComponent& comp) {
+                auto& fp_player = static_cast<FirstPersonPlayer&>(*comp.game_object);
+                const auto& transform = registry.get<TransformComponent>(player);
 
-            float3 scale;
-            glm::quat orientation;
-            float3 translation;
-            float3 skew;
-            float4 perspective;
-            glm::decompose(transform.local_to_parent, scale, orientation, translation, skew, perspective);
+                float3 scale;
+                glm::quat orientation;
+                float3 translation;
+                float3 skew;
+                float4 perspective;
+                glm::decompose(transform.local_to_parent, scale, orientation, translation, skew, perspective);
 
-            fp_player.set_worldspace_location(float3{ translation });
+                fp_player.set_worldspace_location(float3{translation});
 
-            fp_player.set_pitch_and_yaw(pitch(orientation), PI - yaw(orientation));
+                fp_player.set_pitch_and_yaw(pitch(orientation), PI - yaw(orientation));
 
-            fp_player.enabled = true;
-        });
+                fp_player.enabled = true;
+            });
 
     if(parent_entity) {
         registry.patch<TransformComponent>(
-            *parent_entity,
-            [&](TransformComponent& transform) {
-                transform.children.erase_first_unsorted(player);
-            });
+                *parent_entity,
+                [&](TransformComponent& transform) {
+                    transform.children.erase_first_unsorted(player);
+                });
     }
 
     scene.add_top_level_entities(eastl::array{player.entity()});
@@ -232,13 +239,26 @@ ResourceLoader& Engine::get_resource_loader() {
     return resource_loader;
 }
 
-entt::handle Engine::get_player() const { return player; }
+entt::handle Engine::get_player() const {
+    return player;
+}
+
+void Engine::register_components() {
+#define REGISTER_COMPONENT(name) entt::meta_factory<name>{}.type(entt::hashed_string{#name})
+
+    REGISTER_COMPONENT(TransformComponent);
+    REGISTER_COMPONENT(CameraComponent);
+    REGISTER_COMPONENT(render::StaticMeshComponent);
+    REGISTER_COMPONENT(ai::BehaviorTreeComponent);
+
+#undef REGISTER_COMPONENT
+}
 
 void Engine::update_time() {
     const auto frame_start_time = std::chrono::high_resolution_clock::now();
     const auto last_frame_duration = frame_start_time - last_frame_start_time;
     delta_time = static_cast<float>(std::chrono::duration_cast<std::chrono::microseconds>(last_frame_duration).count())
-        / 1000000.f;
+                 / 1000000.f;
     last_frame_start_time = frame_start_time;
 
     // TODO: Support pausing. Maybe we can add the delta time to the time since start? I'm worried about precision,
@@ -246,8 +266,16 @@ void Engine::update_time() {
 
     const auto application_duration = frame_start_time - application_start_time;
     time_since_start = static_cast<float>(std::chrono::duration_cast<std::chrono::microseconds>(application_duration).
-            count())
-        / 1000000.f;
+                           count())
+                       / 1000000.f;
+}
+
+void Engine::spawn_new_game_objects() {
+    auto& registry = scene.get_registry();
+    registry.view<TransformComponent, SpawnGameObjectComponent>().each(
+            [&](entt::entity entity, const TransformComponent& transform,
+                const SpawnGameObjectComponent& spawn_go_comp) {
+            });
 }
 
 void Engine::exit() {
