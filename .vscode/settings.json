@@ -1,5 +1,5 @@
 {
     "cmake.configureOnOpen": false,
     "cmake.sourceDirectory": "${workspaceFolder}/Windows",
-    "godotTools.editorPath.godot4": "d:\\Program Files\\Godot\\Godot_v4.4.1-stable_win64\\Godot_v4.4.1-stable_win64.exe"
+    "godotTools.editorPath.godot4": "/bin/godot-mono"
 }
