@@ -72,10 +72,6 @@ namespace render {
         32.f
     };
 
-    static auto cvar_enable_mesh_lights = AutoCVar_Int{
-        "r.GI.LPV.MeshLight.Enable", "Whether or not to inject mesh lights into the LPV", 0
-    };
-
     static auto cvar_lpv_exposure = AutoCVar_Float{
         "r.GI.LPV.Exposure", "Exposure to use when applying the LPV to the scene", std::numbers::pi * 1000
     };
@@ -230,10 +226,6 @@ namespace render {
         // VPL cloud generation
 
         inject_indirect_sun_light(graph, scene);
-
-        if(cvar_enable_mesh_lights.Get()) {
-            inject_emissive_point_clouds(graph, scene);
-        }
     }
 
     void LightPropagationVolume::post_render(
@@ -849,59 +841,6 @@ namespace render {
                 }
             );
         }
-    }
-
-
-    void LightPropagationVolume::inject_emissive_point_clouds(RenderGraph& graph, const RenderScene& scene) const {
-        ZoneScoped;
-
-        graph.begin_label("Emissive mesh injection");
-        auto& backend = RenderBackend::get();
-
-        for(auto cascade_index = 0u; cascade_index < cvar_lpv_num_cascades.Get(); cascade_index++) {
-            const auto& cascade = cascades[cascade_index];
-
-            const auto& primitives = scene.get_primitives_in_bounds(cascade.min_bounds, cascade.max_bounds);
-            if(primitives.empty()) {
-                continue;
-            }
-
-            const auto set = backend.get_transient_descriptor_allocator().build_set(vpl_injection_pipeline, 0)
-                                    .bind(cascade_data_buffer)
-                                    .build();
-
-            graph.add_render_pass(
-                {
-                    .name = "emissive_mesh_injection",
-                    .descriptor_sets = {set},
-                    .color_attachments = {
-                        {.image = lpv_a_red,},
-                        {.image = lpv_a_green},
-                        {.image = lpv_a_blue}
-                    },
-                    .execute = [&](CommandBuffer& commands) {
-                        commands.bind_descriptor_set(0, set);
-
-                        commands.set_push_constant(2, cascade_index);
-                        commands.set_push_constant(3, static_cast<uint32_t>(cvar_lpv_num_cascades.Get()));
-
-                        commands.bind_pipeline(vpl_injection_pipeline);
-
-                        for(const auto& primitive : primitives) {
-                            if(!primitive->material->first.emissive) {
-                                continue;
-                            }
-
-                            commands.bind_buffer_reference(0, primitive->emissive_points_buffer);
-                            commands.draw(primitive->mesh->num_points);
-                        }
-
-                        commands.clear_descriptor_set(0);
-                    }
-                });
-        }
-
-        graph.end_label();
     }
 
     void LightPropagationVolume::clear_volume(RenderGraph& render_graph) const {

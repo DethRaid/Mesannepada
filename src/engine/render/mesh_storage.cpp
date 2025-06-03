@@ -112,7 +112,7 @@ namespace render {
                     }
                     );
 
-                return handle;
+                return eastl::make_optional(handle);
             });
     }
 

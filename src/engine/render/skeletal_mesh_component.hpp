@@ -21,8 +21,6 @@ namespace render {
     };
 
     struct SkeletalMeshComponent {
-        entt::handle animating_entity;
-
         eastl::fixed_vector<SkeletalMeshPrimitive, 8> primitives;
     };
 } // render

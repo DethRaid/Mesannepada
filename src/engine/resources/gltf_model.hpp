@@ -2,26 +2,24 @@
 
 #include <filesystem>
 
-#include <EASTL/unordered_map.h>
 #include <EASTL/optional.h>
+#include <EASTL/unordered_map.h>
 #include <EASTL/unordered_set.h>
-
-#include <entt/entity/entity.hpp>
+#include <entt/entt.hpp>
 #include <entt/resource/cache.hpp>
-
-#include <glm/gtc/type_ptr.hpp>
 #include <fastgltf/types.hpp>
+#include <fastgltf/glm_element_traits.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "animation/animation_system.hpp"
-#include "animation/animation_system.hpp"
-#include "resources/gltf_animations.hpp"
-#include "resources/imodel.hpp"
 #include "physics/physics_scene.hpp"
 #include "physics/physics_shape_loader.hpp"
-#include "render/mesh_primitive_proxy.hpp"
-#include "render/texture_type.hpp"
 #include "render/material_storage.hpp"
+#include "render/mesh_primitive_proxy.hpp"
 #include "render/mesh_storage.hpp"
+#include "render/texture_type.hpp"
+#include "resources/gltf_animations.hpp"
+#include "resources/imodel.hpp"
 
 class Scene;
 
@@ -128,8 +126,9 @@ private:
 
     entt::handle add_nodes_to_scene(Scene& scene, const eastl::optional<entt::entity>& parent_node) const;
 
-    template<typename PrimitiveType, typename ComponentType>
-    void add_mesh_component(const entt::handle& entity, const fastgltf::Node& node, size_t node_index) const;
+    void add_static_mesh_component(const entt::handle& entity, const fastgltf::Node& node, size_t node_index) const;
+
+    void add_skeletal_mesh_component(const entt::handle& entity, const fastgltf::Node& node, size_t node_index) const;
 
     void add_collider_component(
         const entt::handle& entity, const fastgltf::Node& node, size_t node_index, const float4x4& transform
@@ -171,33 +170,6 @@ void GltfModel::traverse_nodes(TraversalFunction traversal_function, const float
     for(const auto& node : gltf_scene.nodeIndices) {
         visit_node(traversal_function, node, asset.nodes[node], parent_to_world);
     }
-}
-
-template<typename PrimitiveType, typename ComponentType>
-void GltfModel::add_mesh_component(const entt::handle& entity, const fastgltf::Node& node, size_t node_index) const {
-    ZoneScopedN("create_skeletal_mesh");
-    const auto mesh_index = *node.meshIndex;
-    const auto& mesh = asset.meshes[mesh_index];
-
-    eastl::fixed_vector<PrimitiveType, 8> primitives;
-    primitives.reserve(mesh.primitives.size());
-
-    auto cast_shadows = true;
-    if(const auto itr = extras.visible_to_ray_tracing.find(node_index); itr != extras.visible_to_ray_tracing.end()) {
-        cast_shadows = itr->second;
-    }
-
-    for(auto i = 0u; i < mesh.primitives.size(); i++) {
-        const auto& gltf_primitive = mesh.primitives.at(i);
-        const auto& imported_mesh = gltf_primitive_to_mesh.at(mesh_index).at(i);
-        const auto& imported_material = gltf_material_to_material_handle.at(
-            gltf_primitive.materialIndex.value_or(0)
-        );
-
-        primitives.emplace_back(PrimitiveType{.mesh = imported_mesh, .material = imported_material, .visible_to_ray_tracing = cast_shadows});
-    }
-
-    entity.emplace<ComponentType>(primitives);
 }
 
 template <typename TraversalFunction>

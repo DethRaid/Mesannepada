@@ -474,11 +474,7 @@ namespace render {
     void RenderScene::on_construct_skeletal_mesh(entt::registry& registry, entt::entity entity) {
         auto [transform, mesh] = registry.get<TransformComponent, SkeletalMeshComponent>(entity);
         for(auto& primitive : mesh.primitives) {
-            primitive.proxy = create_static_mesh_proxy(
-                transform.cached_parent_to_world * transform.local_to_parent,
-                primitive.mesh,
-                primitive.material,
-                primitive.visible_to_ray_tracing);
+            // TODO
         }
     }
 

@@ -188,23 +188,7 @@ namespace render {
             RenderGraph& graph, uint32_t cascade_index, const CascadeData& cascade, BufferHandle sun_light_buffer
         ) const;
 
-        /**
-         * \brief Injects emissive mesh VPL clouds into the LPV
-         */
-        void inject_emissive_point_clouds(RenderGraph& graph, const RenderScene& scene) const;
-
         void propagate_lighting(RenderGraph& render_graph) const;
-
-        /**
-         * Additively renders the LPV onto the bound framebuffer
-         *
-         * @param commands The command buffer to render with. Should already have a framebuffer bound
-         * @param scene_view_buffer Buffer with the matrices of the scene view
-         * @param ao_texture Ambient occlusion texture
-         */
-        void add_lighting_to_scene(
-            CommandBuffer& commands, BufferHandle scene_view_buffer, TextureHandle ao_texture
-        ) const;
 
         /**
          * \brief Injects the RSM depth and normals buffers for a given cascade into that cascade's geometry volume

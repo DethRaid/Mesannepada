@@ -169,15 +169,9 @@ entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<e
 
             if(node.meshIndex) {
                 if(node.skinIndex) {
-                    add_mesh_component<render::SkeletalMeshPrimitive, render::SkeletalMeshComponent>(
-                        entity,
-                        node,
-                        node_index);
+                    add_skeletal_mesh_component(entity, node, node_index);
                 } else {
-                    add_mesh_component<render::StaticMeshPrimitive, render::StaticMeshComponent>(
-                        entity,
-                        node,
-                        node_index);
+                    add_static_mesh_component(entity, node, node_index);
                 }
             }
 
@@ -231,6 +225,60 @@ entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<e
     }
 
     return root_entity;
+}
+
+void GltfModel::add_static_mesh_component(const entt::handle& entity, const fastgltf::Node& node, size_t node_index
+    ) const {
+    ZoneScoped;
+    const auto mesh_index = *node.meshIndex;
+    const auto& mesh = asset.meshes[mesh_index];
+
+    eastl::fixed_vector<render::StaticMeshPrimitive, 8> primitives;
+    primitives.reserve(mesh.primitives.size());
+
+    auto cast_shadows = true;
+    if(const auto itr = extras.visible_to_ray_tracing.find(node_index); itr != extras.visible_to_ray_tracing.end()) {
+        cast_shadows = itr->second;
+    }
+
+    for(auto i = 0u; i < mesh.primitives.size(); i++) {
+        const auto& gltf_primitive = mesh.primitives.at(i);
+        const auto& imported_mesh = gltf_primitive_to_mesh.at(mesh_index).at(i);
+        const auto& imported_material = gltf_material_to_material_handle.at(
+            gltf_primitive.materialIndex.value_or(0)
+        );
+
+        primitives.emplace_back(render::StaticMeshPrimitive{.mesh = imported_mesh, .material = imported_material, .visible_to_ray_tracing = cast_shadows});
+    }
+
+    entity.emplace<render::StaticMeshComponent>(primitives);
+}
+
+void GltfModel::add_skeletal_mesh_component(const entt::handle& entity, const fastgltf::Node& node, size_t node_index
+    ) const {
+    ZoneScoped;
+    const auto mesh_index = *node.meshIndex;
+    const auto& mesh = asset.meshes[mesh_index];
+
+    eastl::fixed_vector<render::SkeletalMeshPrimitive, 8> primitives;
+    primitives.reserve(mesh.primitives.size());
+
+    auto cast_shadows = true;
+    if(const auto itr = extras.visible_to_ray_tracing.find(node_index); itr != extras.visible_to_ray_tracing.end()) {
+        cast_shadows = itr->second;
+    }
+
+    for(auto i = 0u; i < mesh.primitives.size(); i++) {
+        const auto& gltf_primitive = mesh.primitives.at(i);
+        const auto& imported_mesh = gltf_primitive_to_mesh.at(mesh_index).at(i);
+        const auto& imported_material = gltf_material_to_material_handle.at(
+            gltf_primitive.materialIndex.value_or(0)
+        );
+
+        primitives.emplace_back(render::SkeletalMeshPrimitive{.mesh = imported_mesh, .material = imported_material, .visible_to_ray_tracing = cast_shadows});
+    }
+
+    entity.emplace<render::SkeletalMeshComponent>(primitives);
 }
 
 void GltfModel::add_collider_component(
@@ -1117,7 +1165,8 @@ void copy_vertex_data_to_vector(
     ) {
     ZoneScoped;
 
-    if(const auto position_attribute = primitive.findAttribute("POSITION"); position_attribute != primitive.attributes.end()) {
+    if(const auto position_attribute = primitive.findAttribute("POSITION");
+        position_attribute != primitive.attributes.end()) {
         const auto& attribute_accessor = model.accessors[position_attribute->accessorIndex];
 
         fastgltf::iterateAccessorWithIndex<glm::vec3>(
@@ -1128,7 +1177,8 @@ void copy_vertex_data_to_vector(
             });
     }
 
-    if(const auto normal_attribute = primitive.findAttribute("NORMAL"); normal_attribute != primitive.attributes.end()) {
+    if(const auto normal_attribute = primitive.findAttribute("NORMAL");
+        normal_attribute != primitive.attributes.end()) {
         const auto& attribute_accessor = model.accessors[normal_attribute->accessorIndex];
 
         fastgltf::iterateAccessorWithIndex<glm::vec3>(
@@ -1139,7 +1189,8 @@ void copy_vertex_data_to_vector(
             });
     }
 
-    if(const auto tangent_attribute = primitive.findAttribute("TANGENT"); tangent_attribute != primitive.attributes.end()) {
+    if(const auto tangent_attribute = primitive.findAttribute("TANGENT");
+        tangent_attribute != primitive.attributes.end()) {
         const auto& attribute_accessor = model.accessors[tangent_attribute->accessorIndex];
 
         fastgltf::iterateAccessorWithIndex<glm::vec4>(
@@ -1153,7 +1204,8 @@ void copy_vertex_data_to_vector(
             });
     }
 
-    if(const auto texcoord_attribute = primitive.findAttribute("TEXCOORD_0"); texcoord_attribute != primitive.attributes.end()) {
+    if(const auto texcoord_attribute = primitive.findAttribute("TEXCOORD_0");
+        texcoord_attribute != primitive.attributes.end()) {
         const auto& attribute_accessor = model.accessors[texcoord_attribute->accessorIndex];
 
         fastgltf::iterateAccessorWithIndex<glm::vec2>(
