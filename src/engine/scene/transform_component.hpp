@@ -3,6 +3,7 @@
 #include <entt/entity/entity.hpp>
 #include <EASTL/fixed_vector.h>
 
+#include "simdjson.h"
 #include "shared/prelude.h"
 
 struct TransformComponent {
@@ -19,5 +20,7 @@ struct TransformComponent {
     entt::entity parent = entt::null;
 
     eastl::fixed_vector<entt::entity, 16> children;
+
+    static TransformComponent from_json(const simdjson::simdjson_result<simdjson::ondemand::value>& component_definition);
 };
 

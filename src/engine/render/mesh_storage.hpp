@@ -26,9 +26,15 @@ namespace render {
 
         ~MeshStorage();
 
-        eastl::optional<MeshHandle> add_mesh(
-            eastl::span<const StandardVertex> vertices, eastl::span<const uint32_t> indices, const Box& bounds
-        );
+        eastl::optional<MeshHandle> add_mesh(eastl::span<const StandardVertex> vertices,
+                                             eastl::span<const uint32_t> indices, const Box& bounds
+            );
+
+        eastl::optional<SkeletalMeshHandle> add_skeletal_mesh(eastl::span<const StandardVertex> vertices,
+                                                              eastl::span<const uint32_t> indices, const Box& bounds,
+                                                              eastl::span<const u16vec4> bone_ids,
+                                                              eastl::span<const float4> weights
+            );
 
         void free_mesh(MeshHandle mesh);
 
@@ -45,7 +51,9 @@ namespace render {
         void bind_to_commands(const CommandBuffer& commands) const;
 
     private:
-        ObjectPool<Mesh> meshes;
+        ObjectPool<Mesh> static_meshes;
+
+        ObjectPool<SkeletalMesh> skeletal_meshes;
 
         ScatterUploadBuffer<VkDrawIndexedIndirectCommand> mesh_draw_args_upload_buffer;
         BufferHandle mesh_draw_args_buffer = {};
@@ -59,19 +67,16 @@ namespace render {
         VmaVirtualBlock index_block = {};
         BufferHandle index_buffer = {};
 
-        std::pair<eastl::vector<StandardVertex>, float> generate_surface_point_cloud(
-            eastl::span<const StandardVertex> vertices, eastl::span<const uint32_t> indices
-        ) const;
+        VmaVirtualBlock weights_block = {};
+        BufferHandle weights_buffer = {};
+        BufferHandle joints_buffer = {};
 
-        static StandardVertex interpolate_vertex(
-            eastl::span<const StandardVertex> vertices, eastl::span<const uint32_t> indices, size_t triangle_id,
-            glm::vec3 barycentric
-        );
-
-        BufferHandle generate_sh_point_cloud(const eastl::vector<StandardVertex>& point_cloud) const;
+        eastl::optional<Mesh> add_mesh_internal(
+            eastl::span<const StandardVertex> vertices, eastl::span<const uint32_t> indices, const Box& bounds
+            );
 
         AccelerationStructureHandle create_blas_for_mesh(
             uint32_t first_vertex, uint32_t num_vertices, uint32_t first_index, uint num_triangles
-        ) const;
+            ) const;
     };
 }

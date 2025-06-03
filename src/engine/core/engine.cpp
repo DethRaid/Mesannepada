@@ -4,13 +4,14 @@
 #include <magic_enum.hpp>
 #include <tracy/Tracy.hpp>
 
-#include "spawn_gameobject_component.hpp"
-#include "system_interface.hpp"
+#include "core/spawn_gameobject_component.hpp"
+#include "core/system_interface.hpp"
 #include "ai/behavior_tree_component.hpp"
 #include "glm/gtx/matrix_decompose.hpp"
 #include "resources/gltf_model.hpp"
 #include "resources/gltf_model_component.hpp"
 #include "player/first_person_player.hpp"
+#include "render/skeletal_mesh_component.hpp"
 #include "render/components/static_mesh_component.hpp"
 #include "scene/camera_component.hpp"
 #include "scene/game_object_component.hpp"
@@ -244,14 +245,20 @@ entt::handle Engine::get_player() const {
 }
 
 void Engine::register_components() {
-#define REGISTER_COMPONENT(name) entt::meta_factory<name>{}.type(entt::hashed_string{#name})
+    prefab_loader.register_component_creator("TransformComponent",
+                                             [](entt::handle entity,
+                                                simdjson::simdjson_result<simdjson::ondemand::value> json) {
+                                                 entity.emplace<TransformComponent>();
+                                             });
 
-    REGISTER_COMPONENT(TransformComponent);
-    REGISTER_COMPONENT(CameraComponent);
-    REGISTER_COMPONENT(render::StaticMeshComponent);
-    REGISTER_COMPONENT(ai::BehaviorTreeComponent);
-
-#undef REGISTER_COMPONENT
+    prefab_loader.register_component_creator("render::SkeletalMeshComponent", [&](entt::handle entity,
+                                                simdjson::simdjson_result<simdjson::ondemand::value> json) {
+        std::string_view model_path;
+        json["skeletal_mesh"].get_string(model_path);
+        const auto& model = resource_loader.get_model(model_path);
+        const auto model_entity = model->add_to_scene(scene, entity.entity());
+        entity.emplace<render::SkeletalMeshComponent>(model_entity);
+    });
 }
 
 void Engine::update_time() {
@@ -272,9 +279,12 @@ void Engine::update_time() {
 
 void Engine::spawn_new_game_objects() {
     auto& registry = scene.get_registry();
-    registry.view<TransformComponent, SpawnGameObjectComponent>().each(
-            [&](entt::entity entity, const TransformComponent& transform,
-                const SpawnGameObjectComponent& spawn_go_comp) {
+    registry.view<TransformComponent, SpwanPrefabComponent>().each(
+            [&](const entt::entity entity, const TransformComponent& transform,
+                const SpwanPrefabComponent& spawn_prefab_comp) {
+                prefab_loader.load_prefab(spawn_prefab_comp.prefab_path.c_str(), scene,
+                                          transform.cached_parent_to_world * transform.local_to_parent);
+                registry.remove<SpwanPrefabComponent>(entity);
             });
 }
 

@@ -4,8 +4,8 @@
             "type": "TransformComponent"
         },
         {
-            "type": "SkeletalMeshComponent",
-            "skeletal_mesh": "SK_BaseSumerian.glb"
+            "type": "render::SkeletalMeshComponent",
+            "skeletal_mesh": "data/game/characters/SK_BaseSumerian.glb"
         },
         {
             "type": "ai::BehaviorTreeComponent"

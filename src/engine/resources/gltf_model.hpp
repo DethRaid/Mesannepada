@@ -12,6 +12,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <fastgltf/types.hpp>
 
+#include "animation/animation_system.hpp"
+#include "animation/animation_system.hpp"
 #include "resources/gltf_animations.hpp"
 #include "resources/imodel.hpp"
 #include "physics/physics_scene.hpp"
@@ -19,6 +21,7 @@
 #include "render/mesh_primitive_proxy.hpp"
 #include "render/texture_type.hpp"
 #include "render/material_storage.hpp"
+#include "render/mesh_storage.hpp"
 
 class Scene;
 
@@ -104,7 +107,6 @@ private:
     ExtrasData extras;
 
 #pragma region init
-
     void import_resources_for_model(render::SarahRenderer& renderer);
 
     void import_materials(
@@ -112,6 +114,8 @@ private:
     );
 
     void import_meshes(render::SarahRenderer& renderer);
+
+    void import_skins(render::MeshStorage& mesh_storage);
 
     /**
      * Adds all of this model's animations to the global animation system
@@ -125,6 +129,8 @@ private:
     entt::handle add_nodes_to_scene(Scene& scene, const eastl::optional<entt::entity>& parent_node) const;
 
     void add_static_mesh_component(const entt::handle& entity, const fastgltf::Node& node, size_t node_index) const;
+
+    void add_skeletal_mesh_component(entt::handle entity, const fastgltf::Node& node, size_t node_index) const;
 
     void add_collider_component(
         const entt::handle& entity, const fastgltf::Node& node, size_t node_index, const float4x4& transform

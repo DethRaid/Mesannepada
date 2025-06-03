@@ -93,11 +93,6 @@ namespace render {
             const glm::vec3& min_bounds, const glm::vec3& max_bounds
         ) const;
 
-        /**
-         * \brief Generates emissive point clouds for new emissive meshes
-         */
-        void generate_emissive_point_clouds(RenderGraph& render_graph);
-
         void draw_opaque(CommandBuffer& commands, GraphicsPipelineHandle pso) const;
 
         void draw_masked(CommandBuffer& commands, GraphicsPipelineHandle pso) const;
@@ -171,8 +166,6 @@ namespace render {
         ScatterUploadBuffer<SpotLightGPU> spot_light_uploads;
         BufferHandle spot_light_data_buffer;
 
-        BufferHandle generate_vpls_for_primitive(RenderGraph& graph, const MeshPrimitiveProxyHandle& primitive) const;
-
         void draw_primitives(
             CommandBuffer& commands, GraphicsPipelineHandle pso, eastl::span<const MeshPrimitiveProxyHandle> primitives
         ) const;
@@ -181,6 +174,10 @@ namespace render {
         void on_construct_static_mesh(entt::registry& registry, entt::entity entity);
 
         void on_destroy_static_mesh(entt::registry& registry, entt::entity entity);
+
+        void on_construct_skeletal_mesh(entt::registry& registry, entt::entity entity);
+
+        void on_destroy_skeletal_mesh(entt::registry& registry, entt::entity entity);
 
         void on_construct_light(entt::registry& registry, entt::entity entity);
 

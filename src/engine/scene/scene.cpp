@@ -2,6 +2,10 @@
 
 #include <tracy/Tracy.hpp>
 
+#include "simdjson.h"
+#include "RmlUi/Core/Transform.h"
+#include "ai/behavior_tree_component.hpp"
+#include "core/issue_breakpoint.hpp"
 #include "scene/transform_component.hpp"
 #include "scene/transform_parent_component.hpp"
 #include "core/system_interface.hpp"
@@ -49,15 +53,15 @@ void Scene::parent_entity_to_entity(const entt::entity child, const entt::entity
     }
 
     registry.patch<TransformComponent>(
-        parent,
-        [&](TransformComponent& transform) {
-            transform.children.emplace_back(child);
-        });
+            parent,
+            [&](TransformComponent& transform) {
+                transform.children.emplace_back(child);
+            });
     registry.patch<TransformComponent>(
-        child,
-        [&](TransformComponent& transform) {
-            transform.parent = parent;
-        });
+            child,
+            [&](TransformComponent& transform) {
+                transform.parent = parent;
+            });
 
     top_level_entities.erase_first_unsorted(child);
 }
@@ -86,10 +90,10 @@ void Scene::propagate_transform(const entt::entity entity, const float4x4& paren
     const auto& transform = registry.get<TransformComponent>(entity);
     if(transform.cached_parent_to_world != parent_to_world) {
         registry.patch<TransformComponent>(
-            entity,
-            [&](TransformComponent& trans) {
-                trans.cached_parent_to_world = parent_to_world;
-            });
+                entity,
+                [&](TransformComponent& trans) {
+                    trans.cached_parent_to_world = parent_to_world;
+                });
     }
 
     const auto local_to_world = parent_to_world * transform.local_to_parent;

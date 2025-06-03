@@ -14,6 +14,7 @@
 #include "render/backend/render_backend.hpp"
 #include "core/box.hpp"
 #include "core/issue_breakpoint.hpp"
+#include "render/skeletal_mesh_component.hpp"
 #include "scene/camera_component.hpp"
 #include "scene/scene.hpp"
 #include "render/components/static_mesh_component.hpp"
@@ -57,14 +58,17 @@ namespace render {
         registry.on_construct<StaticMeshComponent>().connect<&RenderScene::on_construct_static_mesh>(this);
         registry.on_destroy<StaticMeshComponent>().connect<&RenderScene::on_destroy_static_mesh>(this);
 
-        registry.on_construct<render::PointLightComponent>().connect<&RenderScene::on_construct_light>(this);
-        registry.on_destroy<render::PointLightComponent>().connect<&RenderScene::on_destroy_light>(this);
+        registry.on_construct<SkeletalMeshComponent>().connect<&RenderScene::on_construct_skeletal_mesh>(this);
+        registry.on_destroy<SkeletalMeshComponent>().connect<&RenderScene::on_destroy_skeletal_mesh>(this);
 
-        registry.on_construct<render::SpotLightComponent>().connect<&RenderScene::on_construct_light>(this);
-        registry.on_destroy<render::SpotLightComponent>().connect<&RenderScene::on_destroy_light>(this);
+        registry.on_construct<PointLightComponent>().connect<&RenderScene::on_construct_light>(this);
+        registry.on_destroy<PointLightComponent>().connect<&RenderScene::on_destroy_light>(this);
 
-        registry.on_construct<render::DirectionalLightComponent>().connect<&RenderScene::on_construct_light>(this);
-        registry.on_destroy<render::DirectionalLightComponent>().connect<&RenderScene::on_destroy_light>(this);
+        registry.on_construct<SpotLightComponent>().connect<&RenderScene::on_construct_light>(this);
+        registry.on_destroy<SpotLightComponent>().connect<&RenderScene::on_destroy_light>(this);
+
+        registry.on_construct<DirectionalLightComponent>().connect<&RenderScene::on_construct_light>(this);
+        registry.on_destroy<DirectionalLightComponent>().connect<&RenderScene::on_destroy_light>(this);
 
         registry.on_update<TransformComponent>().connect<&RenderScene::on_transform_update>(this);
     }
@@ -244,8 +248,6 @@ namespace render {
             raytracing_scene->finalize(graph);
         }
 
-        generate_emissive_point_clouds(graph);
-
         graph.end_label();
 
         sky.update_sky_luts(graph, sun.get_direction());
@@ -323,20 +325,6 @@ namespace render {
         }
 
         return output;
-    }
-
-    void RenderScene::generate_emissive_point_clouds(RenderGraph& render_graph) {
-        if(new_emissive_objects.empty()) {
-            return;
-        }
-
-        render_graph.begin_label("Generate emissive mesh VPLs");
-        for(auto& primitive : new_emissive_objects) {
-            primitive->emissive_points_buffer = generate_vpls_for_primitive(render_graph, primitive);
-        }
-        render_graph.end_label();
-
-        new_emissive_objects.clear();
     }
 
     void RenderScene::draw_opaque(CommandBuffer& commands, const GraphicsPipelineHandle pso) const {
@@ -425,61 +413,6 @@ namespace render {
         return fog_strength;
     }
 
-    BufferHandle RenderScene::generate_vpls_for_primitive(
-        RenderGraph& graph, const PooledObject<MeshPrimitiveProxy>& primitive
-    ) const {
-        auto& backend = RenderBackend::get();
-        const auto vpl_buffer_handle = backend.get_global_allocator().create_buffer(
-            "Primitive emission buffer",
-            primitive->mesh->num_points * sizeof(glm::vec4),
-            BufferUsage::StorageBuffer
-        );
-
-        struct EmissivePointCloudConstants {
-            DeviceAddress primitive_data;
-            DeviceAddress point_cloud;
-            DeviceAddress vpl_buffer;
-            uint32_t primitive_index;
-            uint32_t num_points;
-        };
-
-        graph.add_compute_dispatch(
-            ComputeDispatch<EmissivePointCloudConstants>{
-                .name = "Build emissive points",
-                .descriptor_sets = {backend.get_texture_descriptor_pool().get_descriptor_set()},
-                .buffers = {
-                    {
-                        vpl_buffer_handle,
-                        VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
-                        VK_ACCESS_2_SHADER_STORAGE_WRITE_BIT
-                    },
-                    {
-                        primitive->mesh->point_cloud_buffer,
-                        VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
-                        VK_ACCESS_2_SHADER_READ_BIT
-                    },
-                    {
-                        primitive_data_buffer,
-                        VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
-                        VK_ACCESS_2_SHADER_READ_BIT
-                    },
-                },
-                .push_constants = {
-                    .primitive_data = primitive_data_buffer->address,
-                    .point_cloud = primitive->mesh->point_cloud_buffer->address,
-                    .vpl_buffer = vpl_buffer_handle->address,
-                    .primitive_index = primitive.index,
-                    .num_points = primitive->mesh->num_points,
-                },
-                .num_workgroups = {
-                    (primitive->mesh->num_points + 95) / 96, 1, 1
-                },
-                .compute_shader = emissive_point_cloud_shader
-            });
-
-        return vpl_buffer_handle;
-    }
-
     void RenderScene::draw_primitives(
         CommandBuffer& commands, const GraphicsPipelineHandle pso,
         const eastl::span<const MeshPrimitiveProxyHandle> primitives
@@ -536,6 +469,20 @@ namespace render {
         for(const auto& primitive : mesh.primitives) {
             destroy_primitive(primitive.proxy);
         }
+    }
+
+    void RenderScene::on_construct_skeletal_mesh(entt::registry& registry, entt::entity entity) {
+        auto [transform, mesh] = registry.get<TransformComponent, SkeletalMeshComponent>(entity);
+        for(auto& primitive : mesh.primitives) {
+            primitive.proxy = create_static_mesh_proxy(
+                transform.cached_parent_to_world * transform.local_to_parent,
+                primitive.mesh,
+                primitive.material,
+                primitive.visible_to_ray_tracing);
+        }
+    }
+
+    void RenderScene::on_destroy_skeletal_mesh(entt::registry& registry, entt::entity entity) {
     }
 
     void RenderScene::on_construct_light(entt::registry& registry, const entt::entity entity) {

@@ -16,6 +16,7 @@
 #include "ui/debug_menu.hpp"
 #include "ui/ui_controller.hpp"
 #include "physics/physics_scene.hpp"
+#include "resources/prefab_loader.hpp"
 #include "resources/resource_loader.hpp"
 #include "scene/game_object_component.hpp"
 #include "scene/scene.hpp"
@@ -97,6 +98,8 @@ private:
     eastl::unique_ptr<audio::Controller> audio_controller;
 
     Scene scene;
+
+    PrefabLoader prefab_loader;
 
     physics::PhysicsScene physics_scene;
 

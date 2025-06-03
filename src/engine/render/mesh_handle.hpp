@@ -5,4 +5,6 @@
 
 namespace render {
     using MeshHandle = PooledObject<Mesh>;
+
+    using SkeletalMeshHandle = PooledObject<SkeletalMesh>;
 }

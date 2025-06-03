@@ -10,3 +10,14 @@
 struct ImportedModelComponent {
     eastl::vector<entt::handle> node_to_entity;
 };
+
+/**
+ * A skin made out of nodes
+ */
+struct NodeSkin {
+
+};
+
+struct SkinnedModelComponent {
+
+};

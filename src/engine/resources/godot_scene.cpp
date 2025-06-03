@@ -212,9 +212,12 @@ namespace godot {
                 };
             }
 
-            const auto next_block_start = string.find('[', search_start);
+            auto body_block_end = string.find('[', search_start);
+            if(body_block_end == eastl::string_view::npos) {
+                body_block_end = string.size();
+            }
             const auto block_body = eastl::string_view{
-                string.begin() + search_start, next_block_start - search_start - 1
+                string.begin() + search_start, body_block_end - search_start - 1
             };
 
             // Does the node have a non-default transform?
@@ -245,7 +248,7 @@ namespace godot {
             }
 
             // Do we have any metadata keys?
-            auto metadata_start = block_body.find("metadata/");
+            auto metadata_start = block_body.find(eastl::string{"metadata/"});
             while (metadata_start != eastl::string_view::npos) {
                 const auto metadata_end = block_body.find('\n', metadata_start);
                 // Subtract 9 to account for `metadata/`
@@ -255,8 +258,7 @@ namespace godot {
                 const auto value_begin = metadata_line.find(' ', key_end + 1);
 
                 const auto key = eastl::string_view{metadata_line.begin(), key_end};
-                const auto value = eastl::string_view{metadata_line.begin() + value_begin + 1, metadata_line.size() - value_begin - 1};
-
+                const auto value = eastl::string_view{metadata_line.begin() + value_begin + 2, metadata_line.size() - value_begin - 3};
                 node.metadata.emplace(eastl::string{key}, eastl::string{value});
 
                 metadata_start = block_body.find("metadata/", metadata_end);
@@ -283,7 +285,7 @@ namespace godot {
         node_entities[node_index] = entity;
 
         if (auto itr = node.metadata.find("spawn_gameobject"); itr != node.metadata.end()) {
-            entity.emplace<SpawnGameObjectComponent>(itr->second);
+            entity.emplace<SpwanPrefabComponent>(itr->second);
         }
 
         if (node.instance) {

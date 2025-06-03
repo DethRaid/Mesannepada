@@ -11,6 +11,7 @@
 using unorm4 = uint32_t;
 
 using u16vec2 = glm::u16vec2;
+using u16vec4 = glm::u16vec4;
 
 using uint = uint32_t;
 using uint2 = glm::uvec2;

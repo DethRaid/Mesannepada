@@ -27,21 +27,17 @@ namespace render {
          */
         Box bounds = {};
 
-        float average_triangle_area = {};
-
-        /**
-         * \brief Buffer that stores the MeshPoints that make up the point cloud of this mesh's surface
-         */
-        BufferHandle point_cloud_buffer = {};
-
-        /**
-         * \brief Buffer that stores a point cloud of this mesh, with a position + spherical harmonic of its normal. We
-         * inject this into the LPV GV
-         */
-        BufferHandle sh_points_buffer = {};
-
-        uint32_t num_points = 0;
-
         AccelerationStructureHandle blas = {};
+    };
+
+    struct SkeletalMesh : Mesh {
+        /**
+         * Allocation for the weights and joints that affect each vertex - this data is stored in parallel arrays
+         */
+        VmaVirtualAllocation weights_allocation = {};
+
+        VkDeviceSize weights_offset = 0;
+
+        uint32_t num_weights = 0;
     };
 }

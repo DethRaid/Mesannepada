@@ -185,13 +185,6 @@ namespace render {
         auto needs_motion_vectors = false;
 
         switch (cvar_anti_aliasing.Get()) {
-        case AntiAliasingType::None:
-            vrsaa = nullptr;
-            upscaler = nullptr;
-            set_render_resolution(output_resolution);
-            player_view.set_mip_bias(0);
-            break;
-
         case AntiAliasingType::VRSAA:
             if (vrsaa == nullptr) {
                 vrsaa = eastl::make_unique<VRSAA>();
@@ -226,6 +219,15 @@ namespace render {
                 upscaler = eastl::make_unique<XeSSAdapter>();
             }
 #endif
+            break;
+
+        case AntiAliasingType::None:
+            [[fallthrough]];
+        default:
+            vrsaa = nullptr;
+            upscaler = nullptr;
+            set_render_resolution(output_resolution);
+            player_view.set_mip_bias(0);
             break;
         }
 

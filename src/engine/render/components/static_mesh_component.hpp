@@ -25,7 +25,7 @@ namespace render {
      */
     struct StaticMeshComponent {
         /**
-         * Many meshes will only have a handful of primitives, more than 8 is probably excessive - but may happen given my modelling workflow
+         * Many meshes will only have a handful of primitives, more than 8 is probably excessive - but may happen
          */
         eastl::fixed_vector<MeshPrimitive, 8> primitives;
     };

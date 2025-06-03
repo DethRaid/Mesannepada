@@ -163,7 +163,11 @@ entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<e
                 });
 
             if(node.meshIndex) {
-                add_static_mesh_component(entity, node, node_index);
+                if(node.skinIndex) {
+                    add_skeletal_mesh_component(entity, node, node_index);
+                } else {
+                    add_static_mesh_component(entity, node, node_index);
+                }
             }
 
             if(node.physicsRigidBody) {
@@ -184,6 +188,18 @@ entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<e
     const auto root_node_index = asset.scenes[*asset.defaultScene].nodeIndices[0];
     const auto root_entity = scene_entities[root_node_index];
     registry.emplace<ImportedModelComponent>(root_entity, scene_entities);
+
+    if(!asset.skins.empty()) {
+        for(const auto& skin : asset.skins) {
+            auto inverse_bind_matrices = eastl::vector<float4x4>{skin.joints.size(), float4x4{1.f}};
+            if(skin.inverseBindMatrices) {
+                const auto& bind_matrices_accessor = asset.accessors[*skin.inverseBindMatrices];
+                fastgltf::copyFromAccessor<float4x4>(asset, bind_matrices_accessor, inverse_bind_matrices.data());
+            }
+
+
+        }
+    }
 
     // Add our top-level entities to the scene
     if(!parent_node) {
@@ -216,7 +232,7 @@ void GltfModel::add_static_mesh_component(const entt::handle& entity, const fast
     primitives.reserve(mesh.primitives.size());
 
     auto cast_shadows = true;
-    if(auto itr = extras.visible_to_ray_tracing.find(node_index); itr != extras.visible_to_ray_tracing.end()) {
+    if(const auto itr = extras.visible_to_ray_tracing.find(node_index); itr != extras.visible_to_ray_tracing.end()) {
         cast_shadows = itr->second;
     }
 
@@ -239,12 +255,28 @@ void GltfModel::add_static_mesh_component(const entt::handle& entity, const fast
     entity.emplace<render::StaticMeshComponent>(primitives);
 }
 
+void GltfModel::add_skeletal_mesh_component(entt::handle entity, const fastgltf::Node& node, size_t node_index) const {
+    /*
+     * If a node has a skin index, that skin should be applied to the mesh on the node
+     * The skin contains an array of "joints" - aka nodes that make up the skeleton. It optionally contains a list of
+     * per-joint inverse bind matrices. For simplicity's sake, we should generate an array of identity matrices if the
+     * file doesn't supply one
+     *
+     * How to represent the nodes internally? Keeping them as real nodes matches our existing paradigms, and makes it
+     * easier to make sockets on meshes - which may end up being useful if we want the player and possibly NPCs to hold
+     * things. We'll have to watch performance, I'm not confident in my existing transform propagation scheme
+     *
+     * A skeletal mesh primitive is like a static mesh primitive, except that it contains more buffers. We need the
+     * joint weights and indices, along with per-primitive buffers for the output positions and normals. We also need a
+     * pointer back to the node that contains the joints itself
+     */
+}
+
 void GltfModel::add_collider_component(
-    const entt::handle& entity, const fastgltf::Node& node, const size_t node_index, const glm::float4x4& transform
+    const entt::handle& entity, const fastgltf::Node& node, const size_t node_index, const float4x4& transform
 ) const {
     ZoneScopedN("create physics body");
-    const auto& rigid_body = *node.physicsRigidBody;
-    if(rigid_body.collider) {
+    if(const auto& rigid_body = *node.physicsRigidBody; rigid_body.collider) {
         JPH::Ref<JPH::Shape> shape = get_collider_for_node(node_index, *rigid_body.collider);
 
         // Read collider material, if any
@@ -499,6 +531,8 @@ void GltfModel::import_resources_for_model(render::SarahRenderer& renderer) {
         renderer.get_texture_loader(),
         render::RenderBackend::get()
     );
+
+    import_skins(renderer.get_mesh_storage());
 
     import_animations();
 
