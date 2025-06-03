@@ -20,5 +20,5 @@ namespace render {
         size_t placed_blas_index = eastl::numeric_limits<size_t>::max();
     };
 
-    using MeshPrimitiveProxyHandle = PooledObject<MeshPrimitiveProxy>;
+    using StaticMeshPrimitiveProxyHandle = PooledObject<MeshPrimitiveProxy>;
 }

@@ -10,12 +10,12 @@ namespace render {
     /**
      * A mesh primitive is a mesh with a material
      */
-    struct MeshPrimitive {
+    struct StaticMeshPrimitive {
         MeshHandle mesh;
 
         PooledObject<BasicPbrMaterialProxy> material;
 
-        MeshPrimitiveProxyHandle proxy;
+        StaticMeshPrimitiveProxyHandle proxy;
 
         bool visible_to_ray_tracing = true;
     };
@@ -27,6 +27,6 @@ namespace render {
         /**
          * Many meshes will only have a handful of primitives, more than 8 is probably excessive - but may happen
          */
-        eastl::fixed_vector<MeshPrimitive, 8> primitives;
+        eastl::fixed_vector<StaticMeshPrimitive, 8> primitives;
     };
 }

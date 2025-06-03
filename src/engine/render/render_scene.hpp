@@ -39,14 +39,14 @@ namespace render {
 
         void tick(Scene& scene);
 
-        void update_mesh_proxy(MeshPrimitiveProxyHandle handle);
+        void update_mesh_proxy(StaticMeshPrimitiveProxyHandle handle);
 
-        MeshPrimitiveProxyHandle create_static_mesh_proxy(
+        StaticMeshPrimitiveProxyHandle create_static_mesh_proxy(
             const float4x4& transform, MeshHandle mesh, PooledObject<BasicPbrMaterialProxy> material,
             bool visible_to_ray_tracing
         );
 
-        void destroy_primitive(MeshPrimitiveProxyHandle primitive);
+        void destroy_primitive(StaticMeshPrimitiveProxyHandle primitive);
 
         PointLightProxyHandle create_light_proxy(const PointLightGPU& light);
 
@@ -62,11 +62,11 @@ namespace render {
 
         void begin_frame(RenderGraph& graph);
 
-        const eastl::vector<MeshPrimitiveProxyHandle>& get_solid_primitives() const;
+        const eastl::vector<StaticMeshPrimitiveProxyHandle>& get_solid_primitives() const;
 
-        const eastl::vector<MeshPrimitiveProxyHandle>& get_masked_primitives() const;
+        const eastl::vector<StaticMeshPrimitiveProxyHandle>& get_masked_primitives() const;
 
-        const eastl::vector<MeshPrimitiveProxyHandle>& get_transparent_primitives() const;
+        const eastl::vector<StaticMeshPrimitiveProxyHandle>& get_transparent_primitives() const;
 
         BufferHandle get_primitive_buffer() const;
 
@@ -89,7 +89,7 @@ namespace render {
         /**
          * Retrieves a list of all solid primitives that lie within the given bounds
          */
-        eastl::vector<MeshPrimitiveProxyHandle> get_primitives_in_bounds(
+        eastl::vector<StaticMeshPrimitiveProxyHandle> get_primitives_in_bounds(
             const glm::vec3& min_bounds, const glm::vec3& max_bounds
         ) const;
 
@@ -146,15 +146,15 @@ namespace render {
 
         // TODO: Group solid primitives by front face
 
-        eastl::vector<MeshPrimitiveProxyHandle> solid_primitives;
+        eastl::vector<StaticMeshPrimitiveProxyHandle> solid_primitives;
 
         // TODO: Group masked primitives by front face and cull mode
 
-        eastl::vector<MeshPrimitiveProxyHandle> masked_primitives;
+        eastl::vector<StaticMeshPrimitiveProxyHandle> masked_primitives;
 
-        eastl::vector<MeshPrimitiveProxyHandle> translucent_primitives;
+        eastl::vector<StaticMeshPrimitiveProxyHandle> translucent_primitives;
 
-        eastl::vector<MeshPrimitiveProxyHandle> new_emissive_objects;
+        eastl::vector<StaticMeshPrimitiveProxyHandle> new_emissive_objects;
 
         ComputePipelineHandle emissive_point_cloud_shader;
 
@@ -167,7 +167,7 @@ namespace render {
         BufferHandle spot_light_data_buffer;
 
         void draw_primitives(
-            CommandBuffer& commands, GraphicsPipelineHandle pso, eastl::span<const MeshPrimitiveProxyHandle> primitives
+            CommandBuffer& commands, GraphicsPipelineHandle pso, eastl::span<const StaticMeshPrimitiveProxyHandle> primitives
         ) const;
 
         // scene observers

@@ -30,7 +30,7 @@ namespace render {
                                              eastl::span<const uint32_t> indices, const Box& bounds
             );
 
-        eastl::optional<SkeletalMeshHandle> add_skeletal_mesh(eastl::span<const StandardVertex> vertices,
+        eastl::optional<MeshHandle> add_skeletal_mesh(eastl::span<const StandardVertex> vertices,
                                                               eastl::span<const uint32_t> indices, const Box& bounds,
                                                               eastl::span<const u16vec4> bone_ids,
                                                               eastl::span<const float4> weights
@@ -51,9 +51,7 @@ namespace render {
         void bind_to_commands(const CommandBuffer& commands) const;
 
     private:
-        ObjectPool<Mesh> static_meshes;
-
-        ObjectPool<SkeletalMesh> skeletal_meshes;
+        ObjectPool<Mesh> meshes;
 
         ScatterUploadBuffer<VkDrawIndexedIndirectCommand> mesh_draw_args_upload_buffer;
         BufferHandle mesh_draw_args_buffer = {};
@@ -73,7 +71,7 @@ namespace render {
 
         eastl::optional<Mesh> add_mesh_internal(
             eastl::span<const StandardVertex> vertices, eastl::span<const uint32_t> indices, const Box& bounds
-            );
+            ) const;
 
         AccelerationStructureHandle create_blas_for_mesh(
             uint32_t first_vertex, uint32_t num_vertices, uint32_t first_index, uint num_triangles

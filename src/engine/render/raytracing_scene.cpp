@@ -15,7 +15,7 @@ namespace render {
         placed_blases.reserve(4096);
     }
 
-    void RaytracingScene::add_primitive(const MeshPrimitiveProxyHandle primitive) {
+    void RaytracingScene::add_primitive(const StaticMeshPrimitiveProxyHandle primitive) {
         ZoneScoped;
 
         primitive->placed_blas_index = get_next_blas_index();
@@ -28,7 +28,7 @@ namespace render {
         update_primitive(primitive);
     }
 
-    void RaytracingScene::update_primitive(const MeshPrimitiveProxyHandle primitive) {
+    void RaytracingScene::update_primitive(const StaticMeshPrimitiveProxyHandle primitive) {
         ZoneScoped;
 
         const auto& model_matrix = primitive->data.model;
@@ -58,7 +58,7 @@ namespace render {
         set_dirty();
     }
 
-    void RaytracingScene::remove_primitive(const MeshPrimitiveProxyHandle primitive) {
+    void RaytracingScene::remove_primitive(const StaticMeshPrimitiveProxyHandle primitive) {
         if (primitive->placed_blas_index != eastl::numeric_limits<size_t>::max()) {
             inactive_blases.emplace_back(primitive->placed_blas_index);
             active_blases.erase_first_unsorted(primitive->placed_blas_index);

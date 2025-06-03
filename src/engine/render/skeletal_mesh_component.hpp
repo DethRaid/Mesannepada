@@ -1,11 +1,10 @@
 #pragma once
 
-#include <entt/entt.hpp>
 #include <EASTL/fixed_vector.h>
+#include <entt/entt.hpp>
 
 #include "render/material_proxy.hpp"
-#include "render/mesh_handle.hpp"
-#include "render/mesh_primitive_proxy.hpp"
+#include "render/skeletal_mesh_primitive_proxy.hpp"
 
 namespace render {
     /**
@@ -13,10 +12,6 @@ namespace render {
      */
     struct SkeletalMeshPrimitive {
         MeshHandle mesh;
-
-        BufferHandle joints;
-
-        BufferHandle weights;
 
         PooledObject<BasicPbrMaterialProxy> material;
 

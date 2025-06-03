@@ -28,9 +28,11 @@ namespace render {
         Box bounds = {};
 
         AccelerationStructureHandle blas = {};
-    };
 
-    struct SkeletalMesh : Mesh {
+        /**
+         * Optional skinning data for skeletal meshes. These are all 0 for meshes without skinning data
+         */
+#pragma region Weights
         /**
          * Allocation for the weights and joints that affect each vertex - this data is stored in parallel arrays
          */
@@ -39,5 +41,6 @@ namespace render {
         VkDeviceSize weights_offset = 0;
 
         uint32_t num_weights = 0;
+#pragma endregion
     };
 }

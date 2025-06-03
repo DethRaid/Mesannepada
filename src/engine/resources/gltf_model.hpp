@@ -93,7 +93,7 @@ private:
     eastl::vector<PooledObject<render::BasicPbrMaterialProxy>> gltf_material_to_material_handle;
 
     // Outer vector is the mesh, inner vector is the primitives within that mesh
-    eastl::vector<eastl::vector<render::MeshHandle>> gltf_primitive_to_mesh_primitive;
+    eastl::vector<eastl::vector<render::MeshHandle>> gltf_primitive_to_mesh;
 
     eastl::vector<JPH::PhysicsMaterialRefC> gltf_physics_material_to_jolt;
 
@@ -128,9 +128,8 @@ private:
 
     entt::handle add_nodes_to_scene(Scene& scene, const eastl::optional<entt::entity>& parent_node) const;
 
-    void add_static_mesh_component(const entt::handle& entity, const fastgltf::Node& node, size_t node_index) const;
-
-    void add_skeletal_mesh_component(entt::handle entity, const fastgltf::Node& node, size_t node_index) const;
+    template<typename PrimitiveType, typename ComponentType>
+    void add_mesh_component(const entt::handle& entity, const fastgltf::Node& node, size_t node_index) const;
 
     void add_collider_component(
         const entt::handle& entity, const fastgltf::Node& node, size_t node_index, const float4x4& transform
@@ -172,6 +171,33 @@ void GltfModel::traverse_nodes(TraversalFunction traversal_function, const float
     for(const auto& node : gltf_scene.nodeIndices) {
         visit_node(traversal_function, node, asset.nodes[node], parent_to_world);
     }
+}
+
+template<typename PrimitiveType, typename ComponentType>
+void GltfModel::add_mesh_component(const entt::handle& entity, const fastgltf::Node& node, size_t node_index) const {
+    ZoneScopedN("create_skeletal_mesh");
+    const auto mesh_index = *node.meshIndex;
+    const auto& mesh = asset.meshes[mesh_index];
+
+    eastl::fixed_vector<PrimitiveType, 8> primitives;
+    primitives.reserve(mesh.primitives.size());
+
+    auto cast_shadows = true;
+    if(const auto itr = extras.visible_to_ray_tracing.find(node_index); itr != extras.visible_to_ray_tracing.end()) {
+        cast_shadows = itr->second;
+    }
+
+    for(auto i = 0u; i < mesh.primitives.size(); i++) {
+        const auto& gltf_primitive = mesh.primitives.at(i);
+        const auto& imported_mesh = gltf_primitive_to_mesh.at(mesh_index).at(i);
+        const auto& imported_material = gltf_material_to_material_handle.at(
+            gltf_primitive.materialIndex.value_or(0)
+        );
+
+        primitives.emplace_back(PrimitiveType{.mesh = imported_mesh, .material = imported_material, .visible_to_ray_tracing = cast_shadows});
+    }
+
+    entity.emplace<ComponentType>(primitives);
 }
 
 template <typename TraversalFunction>

@@ -20,10 +20,6 @@ namespace render {
 
     static std::shared_ptr<spdlog::logger> logger;
 
-    static auto cvar_generate_mesh_point_clouds = AutoCVar_Int{
-        "r.MeshPointClouds.Enable", "Whether to generate point clouds for meshes", false
-    };
-
     MeshStorage::MeshStorage() {
         if(logger == nullptr) {
             logger = SystemInterface::get().get_logger("MeshStorage");
@@ -95,7 +91,7 @@ namespace render {
         ) {
         return add_mesh_internal(vertices, indices, bounds)
             .and_then([&](Mesh mesh) {
-                const auto handle = static_meshes.emplace(eastl::move(mesh));
+                const auto handle = meshes.emplace(eastl::move(mesh));
 
                 if(mesh_draw_args_upload_buffer.is_full()) {
                     auto& backend = RenderBackend::get();
@@ -120,7 +116,7 @@ namespace render {
             });
     }
 
-    eastl::optional<SkeletalMeshHandle> MeshStorage::add_skeletal_mesh(
+    eastl::optional<MeshHandle> MeshStorage::add_skeletal_mesh(
         const eastl::span<const StandardVertex> vertices, const eastl::span<const uint32_t> indices, const Box& bounds,
         const eastl::span<const u16vec4> bone_ids, const eastl::span<const float4> weights
         ) {
@@ -128,34 +124,32 @@ namespace render {
             return eastl::nullopt;
         }
         return add_mesh_internal(vertices, indices, bounds)
-            .and_then([&](Mesh mesh) -> eastl::optional<SkeletalMeshHandle> {
-                auto skeletal_mesh = SkeletalMesh{{mesh}};
-
+            .and_then([&](Mesh mesh) -> eastl::optional<MeshHandle> {
                 const auto vertex_allocate_info = VmaVirtualAllocationCreateInfo{
                     .size = vertices.size(),
                 };
-                auto result = vmaVirtualAllocate(weights_block,
-                                                 &vertex_allocate_info,
-                                                 &skeletal_mesh.weights_allocation,
-                                                 &skeletal_mesh.weights_offset);
+                const auto result = vmaVirtualAllocate(weights_block,
+                                                       &vertex_allocate_info,
+                                                       &mesh.weights_allocation,
+                                                       &mesh.weights_offset);
                 if(result != VK_SUCCESS) {
                     return eastl::nullopt;
                 }
 
-                skeletal_mesh.num_weights = static_cast<uint32_t>(weights.size());
+                mesh.num_weights = static_cast<uint32_t>(weights.size());
 
-                auto& backend = RenderBackend::get();
+                const auto& backend = RenderBackend::get();
                 auto& upload_queue = backend.get_upload_queue();
                 upload_queue.upload_to_buffer<u16vec4>(
                     joints_buffer,
                     bone_ids,
-                    static_cast<uint32_t>(skeletal_mesh.weights_offset * sizeof(u16vec4)));
+                    static_cast<uint32_t>(mesh.weights_offset * sizeof(u16vec4)));
                 upload_queue.upload_to_buffer<float4>(
                     weights_buffer,
                     weights,
-                    static_cast<uint32_t>(skeletal_mesh.weights_offset * sizeof(float4)));
+                    static_cast<uint32_t>(mesh.weights_offset * sizeof(float4)));
 
-                return skeletal_meshes.emplace(eastl::move(skeletal_mesh));
+                return meshes.emplace(eastl::move(mesh));
             });
     }
 
@@ -163,7 +157,7 @@ namespace render {
         vmaVirtualFree(vertex_block, mesh->vertex_allocation);
         vmaVirtualFree(index_block, mesh->index_allocation);
 
-        static_meshes.free_object(mesh);
+        meshes.free_object(mesh);
     }
 
     void MeshStorage::flush_mesh_draw_arg_uploads(RenderGraph& graph) {
@@ -196,7 +190,7 @@ namespace render {
 
     eastl::optional<Mesh> MeshStorage::add_mesh_internal(
         const eastl::span<const StandardVertex> vertices, const eastl::span<const uint32_t> indices, const Box& bounds
-        ) {
+        ) const {
         auto mesh = Mesh{};
 
         const auto vertex_allocate_info = VmaVirtualAllocationCreateInfo{
@@ -266,12 +260,13 @@ namespace render {
 
         return mesh;
     }
+
     AccelerationStructureHandle MeshStorage::create_blas_for_mesh(
         const uint32_t first_vertex, const uint32_t num_vertices, const uint32_t first_index, const uint num_triangles
         ) const {
         ZoneScoped;
 
-        auto& backend = RenderBackend::get();
+        const auto& backend = RenderBackend::get();
 
         const auto geometry = VkAccelerationStructureGeometryKHR{
             .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR,

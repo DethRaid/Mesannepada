@@ -85,7 +85,7 @@ namespace render {
             });
     }
 
-    void RenderScene::update_mesh_proxy(const MeshPrimitiveProxyHandle handle) {
+    void RenderScene::update_mesh_proxy(const StaticMeshPrimitiveProxyHandle handle) {
         if(primitive_upload_buffer.is_full()) {
             auto graph = RenderGraph{RenderBackend::get()};
 
@@ -99,7 +99,7 @@ namespace render {
         primitive_upload_buffer.add_data(handle.index, handle->data);
     }
 
-    MeshPrimitiveProxyHandle RenderScene::create_static_mesh_proxy(
+    StaticMeshPrimitiveProxyHandle RenderScene::create_static_mesh_proxy(
         const float4x4& transform, const MeshHandle mesh, const PooledObject<BasicPbrMaterialProxy> material, const bool visible_to_ray_tracing
     ) {
         auto primitive = MeshPrimitiveProxy{
@@ -167,7 +167,7 @@ namespace render {
         return handle;
     }
 
-    void RenderScene::destroy_primitive(const MeshPrimitiveProxyHandle primitive) {
+    void RenderScene::destroy_primitive(const StaticMeshPrimitiveProxyHandle primitive) {
         switch(primitive->material->first.transparency_mode) {
         case TransparencyMode::Solid:
             solid_primitives.erase_first_unsorted(primitive);
@@ -257,11 +257,11 @@ namespace render {
         return solid_primitives;
     }
 
-    const eastl::vector<MeshPrimitiveProxyHandle>& RenderScene::get_masked_primitives() const {
+    const eastl::vector<StaticMeshPrimitiveProxyHandle>& RenderScene::get_masked_primitives() const {
         return masked_primitives;
     }
 
-    const eastl::vector<MeshPrimitiveProxyHandle>& RenderScene::get_transparent_primitives() const {
+    const eastl::vector<StaticMeshPrimitiveProxyHandle>& RenderScene::get_transparent_primitives() const {
         return translucent_primitives;
     }
 
@@ -415,7 +415,7 @@ namespace render {
 
     void RenderScene::draw_primitives(
         CommandBuffer& commands, const GraphicsPipelineHandle pso,
-        const eastl::span<const MeshPrimitiveProxyHandle> primitives
+        const eastl::span<const StaticMeshPrimitiveProxyHandle> primitives
     ) const {
         meshes.bind_to_commands(commands);
 

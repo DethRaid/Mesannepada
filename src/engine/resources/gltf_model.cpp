@@ -30,6 +30,7 @@
 #include "render/sarah_renderer.hpp"
 #include "render/texture_loader.hpp"
 #include "physics/collider_component.hpp"
+#include "render/skeletal_mesh_component.hpp"
 #include "render/components/light_component.hpp"
 #include "scene/camera_component.hpp"
 #include "scene/scene.hpp"
@@ -37,18 +38,22 @@
 #include "render/components/light_component.hpp"
 #include "scene/transform_component.hpp"
 
-template <>
-struct fastgltf::ElementTraits<glm::quat> : fastgltf::ElementTraits<fastgltf::math::fquat> {};
+template<>
+struct fastgltf::ElementTraits<glm::quat> : fastgltf::ElementTraits<fastgltf::math::fquat> {
+};
 
 static std::shared_ptr<spdlog::logger> logger;
 
 static bool front_face_ccw = true;
 
-static eastl::vector<StandardVertex>
-read_vertex_data(const fastgltf::Primitive& primitive, const fastgltf::Asset& model);
+static eastl::vector<StandardVertex> read_vertex_data(const fastgltf::Primitive& primitive, const fastgltf::Asset& model
+    );
 
-static eastl::vector<uint32_t>
-read_index_data(const fastgltf::Primitive& primitive, const fastgltf::Asset& model);
+static eastl::vector<uint32_t> read_index_data(const fastgltf::Primitive& primitive, const fastgltf::Asset& model);
+
+static eastl::tuple<eastl::vector<u16vec4>, eastl::vector<float4> > read_skinning_data(
+    const fastgltf::Primitive& primitive, const fastgltf::Asset& asset
+    );
 
 static Box read_mesh_bounds(const fastgltf::Primitive& primitive, const fastgltf::Asset& model);
 
@@ -56,12 +61,12 @@ static void copy_vertex_data_to_vector(
     const fastgltf::Primitive& primitive,
     const fastgltf::Asset& model,
     StandardVertex* vertices
-);
+    );
 
-template <typename DataType>
+template<typename DataType>
 static AnimationTimeline<DataType> read_animation_sampler(
     size_t sampler_index, const fastgltf::Animation& animation, const fastgltf::Asset& asset
-);
+    );
 
 glm::mat4 get_node_to_parent_matrix(const fastgltf::Node& node) {
     auto matrix = glm::mat4{1.f};
@@ -80,7 +85,7 @@ glm::mat4 get_node_to_parent_matrix(const fastgltf::Node& node) {
             }
         },
         node.transform
-    );
+        );
 
     return matrix;
 }
@@ -90,9 +95,9 @@ GltfModel::GltfModel(
     fastgltf::Asset&& model,
     render::SarahRenderer& renderer,
     ExtrasData extras_in
-)
-    : filepath{std::move(filepath_in)}, cached_data_path{"cache" / filepath}, asset{std::move(model)},
-      extras{eastl::move(extras_in)} {
+    ) :
+    filepath{std::move(filepath_in)}, cached_data_path{"cache" / filepath}, asset{std::move(model)},
+    extras{eastl::move(extras_in)} {
     if(logger == nullptr) {
         logger = SystemInterface::get().get_logger("GltfModel");
     }
@@ -164,9 +169,15 @@ entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<e
 
             if(node.meshIndex) {
                 if(node.skinIndex) {
-                    add_skeletal_mesh_component(entity, node, node_index);
+                    add_mesh_component<render::SkeletalMeshPrimitive, render::SkeletalMeshComponent>(
+                        entity,
+                        node,
+                        node_index);
                 } else {
-                    add_static_mesh_component(entity, node, node_index);
+                    add_mesh_component<render::StaticMeshPrimitive, render::StaticMeshComponent>(
+                        entity,
+                        node,
+                        node_index);
                 }
             }
 
@@ -181,7 +192,7 @@ entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<e
             scene_entities[node_index] = entity;
         },
         parent_matrix
-    );
+        );
 
     // Add imported information to our root node
     assert(asset.scenes[*asset.defaultScene].nodeIndices.size() == 1);
@@ -196,7 +207,6 @@ entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<e
                 const auto& bind_matrices_accessor = asset.accessors[*skin.inverseBindMatrices];
                 fastgltf::copyFromAccessor<float4x4>(asset, bind_matrices_accessor, inverse_bind_matrices.data());
             }
-
 
         }
     }
@@ -223,58 +233,9 @@ entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<e
     return root_entity;
 }
 
-void GltfModel::add_static_mesh_component(const entt::handle& entity, const fastgltf::Node& node, const size_t node_index) const {
-    ZoneScopedN("create mesh");
-    const auto mesh_index = *node.meshIndex;
-    const auto& mesh = asset.meshes[mesh_index];
-
-    eastl::fixed_vector<render::MeshPrimitive, 8> primitives;
-    primitives.reserve(mesh.primitives.size());
-
-    auto cast_shadows = true;
-    if(const auto itr = extras.visible_to_ray_tracing.find(node_index); itr != extras.visible_to_ray_tracing.end()) {
-        cast_shadows = itr->second;
-    }
-
-    for(auto i = 0u; i < mesh.primitives.size(); i++) {
-        const auto& gltf_primitive = mesh.primitives.at(i);
-        const auto& imported_mesh = gltf_primitive_to_mesh_primitive.at(mesh_index).at(i);
-        const auto& imported_material = gltf_material_to_material_handle.at(
-            gltf_primitive.materialIndex.value_or(0)
-        );
-
-        logger->trace(
-            "Assigning backend material {} to primitive {} in node {}",
-            imported_material.index,
-            i,
-            node.name);
-
-        primitives.emplace_back(render::MeshPrimitive{.mesh = imported_mesh, .material = imported_material, .visible_to_ray_tracing = cast_shadows});
-    }
-
-    entity.emplace<render::StaticMeshComponent>(primitives);
-}
-
-void GltfModel::add_skeletal_mesh_component(entt::handle entity, const fastgltf::Node& node, size_t node_index) const {
-    /*
-     * If a node has a skin index, that skin should be applied to the mesh on the node
-     * The skin contains an array of "joints" - aka nodes that make up the skeleton. It optionally contains a list of
-     * per-joint inverse bind matrices. For simplicity's sake, we should generate an array of identity matrices if the
-     * file doesn't supply one
-     *
-     * How to represent the nodes internally? Keeping them as real nodes matches our existing paradigms, and makes it
-     * easier to make sockets on meshes - which may end up being useful if we want the player and possibly NPCs to hold
-     * things. We'll have to watch performance, I'm not confident in my existing transform propagation scheme
-     *
-     * A skeletal mesh primitive is like a static mesh primitive, except that it contains more buffers. We need the
-     * joint weights and indices, along with per-primitive buffers for the output positions and normals. We also need a
-     * pointer back to the node that contains the joints itself
-     */
-}
-
 void GltfModel::add_collider_component(
     const entt::handle& entity, const fastgltf::Node& node, const size_t node_index, const float4x4& transform
-) const {
+    ) const {
     ZoneScopedN("create physics body");
     if(const auto& rigid_body = *node.physicsRigidBody; rigid_body.collider) {
         JPH::Ref<JPH::Shape> shape = get_collider_for_node(node_index, *rigid_body.collider);
@@ -326,13 +287,11 @@ void GltfModel::add_collider_component(
             }
 
             if(rigid_body.motion->inertialDiagonal) {
-                // body_settings.mMassPropertiesOverride.mInertia = 
+                // body_settings.mMassPropertiesOverride.mInertia =
             }
 
             body_settings.mGravityFactor = rigid_body.motion->gravityFactor;
-        }
-
-        {
+        } {
             ZoneScopedN("create_body");
             auto& physics_scene = Engine::get().get_physics_scene();
             auto& body_interface = physics_scene.get_body_interface();
@@ -357,7 +316,7 @@ static float calculate_light_range(const fastgltf::num intensity) {
 
 void GltfModel::add_light_component(const entt::handle& entity, const fastgltf::Light& light) {
     const auto full_color = light.color * light.intensity;
-    const auto glm_color = float3{ full_color.x(), full_color.y(), full_color.z()};
+    const auto glm_color = float3{full_color.x(), full_color.y(), full_color.z()};
     switch(light.type) {
     case fastgltf::LightType::Directional:
         entity.emplace<render::DirectionalLightComponent>(glm_color);
@@ -381,7 +340,7 @@ void GltfModel::add_light_component(const entt::handle& entity, const fastgltf::
             glm_color,
             light_range,
             0.1f
-        );
+            );
     }
     break;
     }
@@ -389,14 +348,14 @@ void GltfModel::add_light_component(const entt::handle& entity, const fastgltf::
 
 JPH::Ref<JPH::Shape> GltfModel::get_collider_for_node(
     const size_t node_index, const fastgltf::Collider& collider
-) const {
+    ) const {
     JPH::Ref<JPH::Shape> shape = nullptr;
 
     // See if we've cached a collider for this node
     const auto cached_body_path = cached_data_path
-        / "bodies"
-        / std::to_string(JPH_VERSION_ID)
-        / std::to_string(node_index);
+                                  / "bodies"
+                                  / std::to_string(JPH_VERSION_ID)
+                                  / std::to_string(node_index);
     if(exists(cached_body_path) && last_write_time(cached_body_path) > last_write_time(filepath)) {
         shape = physics::load_shape(cached_body_path);
     }
@@ -436,7 +395,7 @@ JPH::Ref<JPH::Shape> GltfModel::create_jolt_shape(const fastgltf::Collider& coll
                 },
                 [&](const fastgltf::CapsuleShape& capsule) {
                     if(abs(capsule.radiusBottom - capsule.radiusTop) < eastl::numeric_limits<
-                        fastgltf::num>::epsilon()) {
+                           fastgltf::num>::epsilon()) {
                         shape_settings = new JPH::CapsuleShapeSettings{
                             capsule.height / 2.f, capsule.radiusTop
                         };
@@ -450,7 +409,7 @@ JPH::Ref<JPH::Shape> GltfModel::create_jolt_shape(const fastgltf::Collider& coll
                     const auto radius_top = eastl::max(cylinder.radiusTop, JPH::cDefaultConvexRadius);
                     const auto radius_bottom = eastl::max(cylinder.radiusBottom, JPH::cDefaultConvexRadius);
                     if(abs(radius_bottom - radius_top) < eastl::numeric_limits<
-                        fastgltf::num>::epsilon()) {
+                           fastgltf::num>::epsilon()) {
                         shape_settings = new JPH::CylinderShapeSettings{
                             cylinder.height / 2.f, radius_top
                         };
@@ -530,7 +489,7 @@ void GltfModel::import_resources_for_model(render::SarahRenderer& renderer) {
         renderer.get_material_storage(),
         renderer.get_texture_loader(),
         render::RenderBackend::get()
-    );
+        );
 
     import_skins(renderer.get_mesh_storage());
 
@@ -549,10 +508,9 @@ void GltfModel::import_resources_for_model(render::SarahRenderer& renderer) {
 
 static const fastgltf::Sampler default_sampler{};
 
-void
-GltfModel::import_materials(
+void GltfModel::import_materials(
     render::MaterialStorage& material_storage, render::TextureLoader& texture_loader, render::RenderBackend& backend
-) {
+    ) {
     ZoneScoped;
 
     gltf_material_to_material_handle.clear();
@@ -560,8 +518,8 @@ GltfModel::import_materials(
 
     for(const auto& gltf_material : asset.materials) {
         const auto material_name = !gltf_material.name.empty()
-            ? gltf_material.name
-            : "Unnamed material";
+                                       ? gltf_material.name
+                                       : "Unnamed material";
         logger->debug("Importing material {}", material_name);
 
         // Naive implementation creates a separate material for each glTF material
@@ -584,7 +542,7 @@ GltfModel::import_materials(
 
         material.gpu_data.base_color_tint = glm::vec4(
             glm::make_vec4(gltf_material.pbrData.baseColorFactor.data())
-        );
+            );
         material.gpu_data.metalness_factor = static_cast<float>(gltf_material.pbrData.metallicFactor);
         material.gpu_data.roughness_factor = static_cast<float>(gltf_material.pbrData.roughnessFactor);
         material.gpu_data.opacity_threshold = gltf_material.alphaCutoff;
@@ -600,7 +558,7 @@ GltfModel::import_materials(
                 gltf_material.pbrData.baseColorTexture->textureIndex,
                 render::TextureType::Color,
                 texture_loader
-            );
+                );
 
             const auto& texture = asset.textures[gltf_material.pbrData.baseColorTexture->textureIndex];
             const auto& sampler = texture.samplerIndex ? asset.samplers[*texture.samplerIndex] : default_sampler;
@@ -616,7 +574,7 @@ GltfModel::import_materials(
                 gltf_material.normalTexture->textureIndex,
                 render::TextureType::Data,
                 texture_loader
-            );
+                );
 
             const auto& texture = asset.textures[gltf_material.normalTexture->textureIndex];
             const auto& sampler = texture.samplerIndex ? asset.samplers[*texture.samplerIndex] : default_sampler;
@@ -632,7 +590,7 @@ GltfModel::import_materials(
                 gltf_material.pbrData.metallicRoughnessTexture->textureIndex,
                 render::TextureType::Data,
                 texture_loader
-            );
+                );
 
             const auto& texture = asset.textures[gltf_material.pbrData.metallicRoughnessTexture->textureIndex];
             const auto& sampler = texture.samplerIndex ? asset.samplers[*texture.samplerIndex] : default_sampler;
@@ -648,7 +606,7 @@ GltfModel::import_materials(
                 gltf_material.emissiveTexture->textureIndex,
                 render::TextureType::Data,
                 texture_loader
-            );
+                );
 
             const auto& texture = asset.textures[gltf_material.emissiveTexture->textureIndex];
             const auto& sampler = texture.samplerIndex ? asset.samplers[*texture.samplerIndex] : default_sampler;
@@ -680,7 +638,7 @@ void GltfModel::import_meshes(render::SarahRenderer& renderer) {
 
     auto& mesh_storage = renderer.get_mesh_storage();
 
-    gltf_primitive_to_mesh_primitive.reserve(512);
+    gltf_primitive_to_mesh.reserve(asset.meshes.size());
 
     for(const auto& mesh : asset.meshes) {
         // Copy the vertex and index data into the appropriate buffers
@@ -697,7 +655,14 @@ void GltfModel::import_meshes(render::SarahRenderer& renderer) {
 
             const auto mesh_bounds = read_mesh_bounds(primitive, asset);
 
-            const auto mesh_maybe = mesh_storage.add_mesh(vertices, indices, mesh_bounds);
+            auto mesh_maybe = eastl::optional<render::MeshHandle>{};
+
+            if(primitive.findAttribute("WEIGHTS_0") != nullptr) {
+                const auto& [bone_ids, weights] = read_skinning_data(primitive, asset);
+                mesh_maybe = mesh_storage.add_skeletal_mesh(vertices, indices, mesh_bounds, bone_ids, weights);
+            } else {
+                mesh_maybe = mesh_storage.add_mesh(vertices, indices, mesh_bounds);
+            }
 
             if(mesh_maybe) {
                 imported_primitives.emplace_back(*mesh_maybe);
@@ -706,13 +671,13 @@ void GltfModel::import_meshes(render::SarahRenderer& renderer) {
                     "Could not import mesh primitive {} in mesh {}",
                     primitive_idx,
                     mesh.name.empty() ? "Unnamed mesh" : mesh.name
-                );
+                    );
             }
 
             primitive_idx++;
         }
 
-        gltf_primitive_to_mesh_primitive.emplace_back(imported_primitives);
+        gltf_primitive_to_mesh.emplace_back(imported_primitives);
     }
 }
 
@@ -779,14 +744,14 @@ void GltfModel::calculate_bounding_sphere_and_footprint() {
             }
         },
         float4x4{1.f}
-    );
+        );
 
     // Bounding sphere center and radius
     const auto bounding_sphere_center = (min_extents + max_extents) / 2.f;
     const auto bounding_sphere_radius = glm::max(
         length(min_extents - bounding_sphere_center),
         length(max_extents - bounding_sphere_center)
-    );
+        );
 
     // Footprint radius (radius along xz plane)
     const auto footprint_radius = glm::max(
@@ -796,15 +761,15 @@ void GltfModel::calculate_bounding_sphere_and_footprint() {
                 bounding_sphere_center.x,
                 bounding_sphere_center.z
             }
-        ),
+            ),
         length(
             glm::vec2{max_extents.x, max_extents.z} -
             glm::vec2{
                 bounding_sphere_center.x,
                 bounding_sphere_center.z
             }
-        )
-    );
+            )
+        );
     bounding_sphere = glm::vec4{bounding_sphere_center, bounding_sphere_radius};
 
     logger->info(
@@ -813,14 +778,14 @@ void GltfModel::calculate_bounding_sphere_and_footprint() {
         bounding_sphere.y,
         bounding_sphere.z,
         bounding_sphere.w
-    );
+        );
     logger->info("Footprint radius: {}", footprint_radius);
 }
 
 render::TextureHandle GltfModel::get_texture(
     const size_t gltf_texture_index, const render::TextureType type,
     render::TextureLoader& texture_storage
-) {
+    ) {
     if(gltf_texture_to_texture_handle.find(gltf_texture_index) == gltf_texture_to_texture_handle.end()) {
         import_single_texture(gltf_texture_index, type, texture_storage);
     }
@@ -831,7 +796,7 @@ render::TextureHandle GltfModel::get_texture(
 void GltfModel::import_single_texture(
     const size_t gltf_texture_index, const render::TextureType type,
     render::TextureLoader& texture_storage
-) {
+    ) {
     ZoneScoped;
 
     const auto& gltf_texture = asset.textures[gltf_texture_index];
@@ -901,7 +866,7 @@ void GltfModel::import_single_texture(
             }
         },
         image.data
-    );
+        );
 
     auto handle = eastl::optional<render::TextureHandle>{};
     if(mime_type == fastgltf::MimeType::PNG || mime_type == fastgltf::MimeType::JPEG) {
@@ -1009,7 +974,7 @@ VkSampler GltfModel::to_vk_sampler(const fastgltf::Sampler& sampler, const rende
 
 eastl::pair<JPH::VertexList, JPH::IndexedTriangleList> GltfModel::read_collision_mesh_from_node(
     const size_t node_idx
-) const {
+    ) const {
     ZoneScoped;
     const auto& node = asset.nodes[node_idx];
     if(!node.meshIndex) {
@@ -1080,15 +1045,14 @@ eastl::vector<StandardVertex> read_vertex_data(const fastgltf::Primitive& primit
             .texcoord = {},
             .color = glm::packUnorm4x8(glm::vec4{1, 1, 1, 1}),
         }
-    );
+        );
 
     copy_vertex_data_to_vector(primitive, model, vertices.data());
 
     return vertices;
 }
 
-eastl::vector<uint32_t>
-read_index_data(const fastgltf::Primitive& primitive, const fastgltf::Asset& model) {
+eastl::vector<uint32_t> read_index_data(const fastgltf::Primitive& primitive, const fastgltf::Asset& model) {
     const auto& index_accessor = model.accessors[*primitive.indicesAccessor];
     const auto num_indices = index_accessor.count;
 
@@ -1101,7 +1065,7 @@ read_index_data(const fastgltf::Primitive& primitive, const fastgltf::Asset& mod
     const auto& index_buffer = model.buffers[index_buffer_view.bufferIndex];
     const auto* index_buffer_data = std::get_if<fastgltf::sources::Array>(&index_buffer.data);
     const auto* index_ptr_u8 = index_buffer_data->bytes.data() + index_buffer_view.byteOffset + index_accessor.
-        byteOffset;
+                               byteOffset;
 
     if(index_accessor.componentType == fastgltf::ComponentType::UnsignedShort) {
         const auto* index_read_ptr = reinterpret_cast<const uint16_t*>(index_ptr_u8);
@@ -1128,15 +1092,32 @@ Box read_mesh_bounds(const fastgltf::Primitive& primitive, const fastgltf::Asset
     return {.min = min, .max = max};
 }
 
+eastl::tuple<eastl::vector<u16vec4>, eastl::vector<float4> > read_skinning_data(
+    const fastgltf::Primitive& primitive, const fastgltf::Asset& asset
+    ) {
+    const auto weights_index = primitive.findAttribute("WEIGHTS_0")->accessorIndex;
+    const auto bone_ids_index = primitive.findAttribute("JOINTS_0")->accessorIndex;
+
+    const auto& weights_accessor = asset.accessors[weights_index];
+    const auto& bone_ids_accessor = asset.accessors[bone_ids_index];
+
+    auto bone_ids = eastl::vector<u16vec4>{weights_accessor.count};
+    auto weights = eastl::vector<float4>{weights_accessor.count};
+
+    fastgltf::copyComponentsFromAccessor<u16vec4>(asset, bone_ids_accessor, bone_ids.data());
+    fastgltf::copyComponentsFromAccessor<float4>(asset, weights_accessor, weights.data());
+
+    return {bone_ids, weights};
+}
+
 void copy_vertex_data_to_vector(
     const fastgltf::Primitive& primitive,
     const fastgltf::Asset& model,
     StandardVertex* vertices
-) {
+    ) {
     ZoneScoped;
 
-    const auto position_attribute = primitive.findAttribute("POSITION");
-    if(position_attribute != primitive.attributes.end()) {
+    if(const auto position_attribute = primitive.findAttribute("POSITION"); position_attribute != primitive.attributes.end()) {
         const auto& attribute_accessor = model.accessors[position_attribute->accessorIndex];
 
         fastgltf::iterateAccessorWithIndex<glm::vec3>(
@@ -1147,8 +1128,7 @@ void copy_vertex_data_to_vector(
             });
     }
 
-    const auto normal_attribute = primitive.findAttribute("NORMAL");
-    if(normal_attribute != primitive.attributes.end()) {
+    if(const auto normal_attribute = primitive.findAttribute("NORMAL"); normal_attribute != primitive.attributes.end()) {
         const auto& attribute_accessor = model.accessors[normal_attribute->accessorIndex];
 
         fastgltf::iterateAccessorWithIndex<glm::vec3>(
@@ -1159,8 +1139,7 @@ void copy_vertex_data_to_vector(
             });
     }
 
-    const auto tangent_attribute = primitive.findAttribute("TANGENT");
-    if(tangent_attribute != primitive.attributes.end()) {
+    if(const auto tangent_attribute = primitive.findAttribute("TANGENT"); tangent_attribute != primitive.attributes.end()) {
         const auto& attribute_accessor = model.accessors[tangent_attribute->accessorIndex];
 
         fastgltf::iterateAccessorWithIndex<glm::vec4>(
@@ -1174,8 +1153,7 @@ void copy_vertex_data_to_vector(
             });
     }
 
-    const auto texcoord_attribute = primitive.findAttribute("TEXCOORD_0");
-    if(texcoord_attribute != primitive.attributes.end()) {
+    if(const auto texcoord_attribute = primitive.findAttribute("TEXCOORD_0"); texcoord_attribute != primitive.attributes.end()) {
         const auto& attribute_accessor = model.accessors[texcoord_attribute->accessorIndex];
 
         fastgltf::iterateAccessorWithIndex<glm::vec2>(
@@ -1202,10 +1180,10 @@ void copy_vertex_data_to_vector(
     // TODO: Other texcoord channels
 }
 
-template <typename DataType>
+template<typename DataType>
 AnimationTimeline<DataType> read_animation_sampler(
     const size_t sampler_index, const fastgltf::Animation& animation, const fastgltf::Asset& asset
-) {
+    ) {
     AnimationTimeline<DataType> spline;
 
     const auto& sampler = animation.samplers.at(sampler_index);
