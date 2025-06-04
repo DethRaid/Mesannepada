@@ -110,16 +110,12 @@ struct RsmOutput {
 #if !SAH_RT
 [shader("vertex")]
 VertexOutput main_vs(
-    const float3 position_in,
-    const float3 normal_in,
-    const float4 tangent_in,
-    const float2 texcoord_in,
-    const half4 color_in,
+    const uint vertex_id : SV_VertexID
 #if SAH_MAIN_VIEW
-    const uint primitive_id_in
+    , const uint primitive_id_in
 #endif
 #if SAH_MULTIVIEW
-    const uint view_id : SV_ViewId
+    , const uint view_id : SV_ViewId
 #endif
 ) {
     VertexOutput output;
@@ -129,21 +125,24 @@ VertexOutput main_vs(
 
     PrimitiveDataGPU data = primitive_datas[primitive_id];
 
+    const float3 vertex_position = data.vertex_positions[vertex_id];
+    const StandardVertexData vertex_data = data.vertex_data[vertex_id];
+
 #if SAH_MAIN_VIEW
-    float4 viewspace_position = mul(view_data.view, mul(data.model, float4(position_in, 1.f)));
+    float4 viewspace_position = mul(view_data.view, mul(data.model, float4(vertex_position, 1.f)));
     output.position = mul(view_data.projection, viewspace_position);
     output.viewspace_position = viewspace_position.xyz;
 #elif SAH_MULTIVIEW
-    output.position = mul(world_to_ndc_matrices[view_id], mul(data.model, float4(position_in, 1.f)));
+    output.position = mul(world_to_ndc_matrices[view_id], mul(data.model, float4(vertex_position, 1.f)));
 #endif
 
-    output.texcoord = texcoord_in;
-    output.color = color_in;
+    output.texcoord = vertex_data.texcoord;
+    output.color = unpackUnorm4x8ToHalf(vertex_data.color);
 
 #if !SAH_DEPTH_ONLY
-    output.normal = (half3)normalize(mul((float3x3)data.model, normal_in));
-    output.tangent.xyz = (half3)normalize(mul((float3x3)data.model, tangent_in.xyz));
-    output.tangent.w = (half)tangent_in.w;
+    output.normal = (half3)normalize(mul((float3x3)data.model, vertex_data.normal));
+    output.tangent.xyz = (half3)normalize(mul((float3x3)data.model, vertex_data.tangent.xyz));
+    output.tangent.w = (half)vertex_data.tangent.w;
 #endif
 
     return output;

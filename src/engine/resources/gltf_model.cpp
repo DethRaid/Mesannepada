@@ -705,7 +705,7 @@ void GltfModel::import_meshes(render::SarahRenderer& renderer) {
 
             auto mesh_maybe = eastl::optional<render::MeshHandle>{};
 
-            if(primitive.findAttribute("WEIGHTS_0") != nullptr) {
+            if(primitive.findAttribute("WEIGHTS_0") != primitive.attributes.end()) {
                 const auto& [bone_ids, weights] = read_skinning_data(primitive, asset);
                 mesh_maybe = mesh_storage.add_skeletal_mesh(vertices, indices, mesh_bounds, bone_ids, weights);
             } else {
@@ -727,6 +727,10 @@ void GltfModel::import_meshes(render::SarahRenderer& renderer) {
 
         gltf_primitive_to_mesh.emplace_back(imported_primitives);
     }
+}
+
+void GltfModel::import_skins(render::MeshStorage& mesh_storage) {
+    // TODO
 }
 
 void GltfModel::import_animations() const {
@@ -1152,8 +1156,8 @@ eastl::tuple<eastl::vector<u16vec4>, eastl::vector<float4> > read_skinning_data(
     auto bone_ids = eastl::vector<u16vec4>{weights_accessor.count};
     auto weights = eastl::vector<float4>{weights_accessor.count};
 
-    fastgltf::copyComponentsFromAccessor<u16vec4>(asset, bone_ids_accessor, bone_ids.data());
-    fastgltf::copyComponentsFromAccessor<float4>(asset, weights_accessor, weights.data());
+    fastgltf::copyFromAccessor<u16vec4>(asset, bone_ids_accessor, bone_ids.data());
+    fastgltf::copyFromAccessor<float4>(asset, weights_accessor, weights.data());
 
     return {bone_ids, weights};
 }

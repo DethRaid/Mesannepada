@@ -7,8 +7,10 @@
 #include "shared/primitive_data.hpp"
 
 namespace render {
-    class SkeletalMeshPrimitiveProxy {
+    struct SkeletalMeshPrimitiveProxy {
         PrimitiveDataGPU data = {};
+
+        SkeletalPrimitiveDataGPU skeletal_data = {};
 
         MeshHandle mesh;
 

@@ -12,6 +12,7 @@
 #include "render/mesh_primitive_proxy.hpp"
 #include "render/backend/scatter_upload_buffer.hpp"
 #include "render/directional_light.hpp"
+#include "render/skeletal_mesh_primitive_proxy.hpp"
 #include "shared/lights.hpp"
 
 class Scene;
@@ -39,12 +40,19 @@ namespace render {
 
         void tick(Scene& scene);
 
-        void update_mesh_proxy(StaticMeshPrimitiveProxyHandle handle);
-
         StaticMeshPrimitiveProxyHandle create_static_mesh_proxy(
             const float4x4& transform, MeshHandle mesh, PooledObject<BasicPbrMaterialProxy> material,
             bool visible_to_ray_tracing
-        );
+            );
+
+        SkeletalMeshPrimitiveProxyHandle create_skeletal_mesh_proxy(
+            const float4x4& transform,
+            MeshHandle mesh,
+            PooledObject<BasicPbrMaterialProxy> material,
+            bool visible_to_ray_tracing
+            );
+
+        void update_mesh_proxy(StaticMeshPrimitiveProxyHandle handle);
 
         void destroy_primitive(StaticMeshPrimitiveProxyHandle primitive);
 
@@ -91,7 +99,7 @@ namespace render {
          */
         eastl::vector<StaticMeshPrimitiveProxyHandle> get_primitives_in_bounds(
             const glm::vec3& min_bounds, const glm::vec3& max_bounds
-        ) const;
+            ) const;
 
         void draw_opaque(CommandBuffer& commands, GraphicsPipelineHandle pso) const;
 
@@ -102,11 +110,11 @@ namespace render {
          */
         void draw_opaque(
             CommandBuffer& commands, const IndirectDrawingBuffers& drawbuffers, GraphicsPipelineHandle solid_pso
-        ) const;
+            ) const;
 
         void draw_masked(
             CommandBuffer& commands, const IndirectDrawingBuffers& draw_buffers, GraphicsPipelineHandle masked_pso
-        ) const;
+            ) const;
 
         void draw_transparent(CommandBuffer& commands, GraphicsPipelineHandle pso) const;
 
@@ -138,7 +146,9 @@ namespace render {
         // TODO: More fog parameters, maybe a volumetric thing
         float fog_strength = 0.01f;
 
-        ObjectPool<MeshPrimitiveProxy> mesh_primitives;
+        ObjectPool<StaticMeshPrimitiveProxy> static_mesh_primitives;
+
+        ObjectPool<SkeletalMeshPrimitiveProxy> skeletal_mesh_primitives;
 
         BufferHandle primitive_data_buffer;
 
@@ -167,8 +177,9 @@ namespace render {
         BufferHandle spot_light_data_buffer;
 
         void draw_primitives(
-            CommandBuffer& commands, GraphicsPipelineHandle pso, eastl::span<const StaticMeshPrimitiveProxyHandle> primitives
-        ) const;
+            CommandBuffer& commands, GraphicsPipelineHandle pso,
+            eastl::span<const StaticMeshPrimitiveProxyHandle> primitives
+            ) const;
 
         // scene observers
         void on_construct_static_mesh(entt::registry& registry, entt::entity entity);

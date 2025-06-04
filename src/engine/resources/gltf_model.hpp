@@ -6,10 +6,7 @@
 #include <EASTL/unordered_map.h>
 #include <EASTL/unordered_set.h>
 #include <entt/entt.hpp>
-#include <entt/resource/cache.hpp>
 #include <fastgltf/types.hpp>
-#include <fastgltf/glm_element_traits.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include "animation/animation_system.hpp"
 #include "physics/physics_scene.hpp"

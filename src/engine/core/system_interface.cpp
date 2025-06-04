@@ -2,16 +2,20 @@
 
 #include <fstream>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
-#include <spdlog/sinks/basic_file_sink.h>
-
 #include <GLFW/glfw3.h>
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 #include <vulkan/vk_enum_string_helper.h>
+#if __linux__
+#include <pwd.h>
+#include <unistd.h>
+#include <sys/types.h>
+#endif
 
 #include "input/player_input_manager.hpp"
-#include "ui/ui_controller.hpp"
 #include "render/backend/render_backend.hpp"
+#include "ui/ui_controller.hpp"
 
 static void on_glfw_key(GLFWwindow* window, const int key, const int scancode, const int action, const int mods) {
     auto* win32_system_interface = static_cast<SystemInterface*>(glfwGetWindowUserPointer(window));
@@ -167,8 +171,15 @@ void SystemInterface::flush_all_loggers() {
 #endif
 
 std::filesystem::path SystemInterface::get_write_folder() {
+    // TODO: https://specifications.freedesktop.org/basedir-spec/latest/
 #if defined(__linux__)
-    return "~/.mesannepada";
+    const char *homedir;
+
+    if ((homedir = getenv("HOME")) == nullptr) {
+        homedir = getpwuid(getuid())->pw_dir;
+    }
+
+    return std::filesystem::path{homedir} / ".mesannepada";
 #else
 
     PWSTR folder_path;

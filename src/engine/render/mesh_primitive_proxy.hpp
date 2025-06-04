@@ -6,7 +6,7 @@
 #include "shared/primitive_data.hpp"
 
 namespace render {
-    struct MeshPrimitiveProxy {
+    struct StaticMeshPrimitiveProxy {
         PrimitiveDataGPU data = {};
 
         MeshHandle mesh;
@@ -20,5 +20,5 @@ namespace render {
         size_t placed_blas_index = eastl::numeric_limits<size_t>::max();
     };
 
-    using StaticMeshPrimitiveProxyHandle = PooledObject<MeshPrimitiveProxy>;
+    using StaticMeshPrimitiveProxyHandle = PooledObject<StaticMeshPrimitiveProxy>;
 }

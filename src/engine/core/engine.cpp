@@ -257,7 +257,7 @@ void Engine::register_components() {
         json["skeletal_mesh"].get_string(model_path);
         const auto& model = resource_loader.get_model(model_path);
         const auto model_entity = model->add_to_scene(scene, entity.entity());
-        entity.emplace<render::SkeletalMeshComponent>(model_entity);
+        entity.emplace<render::SkeletalMeshComponent>();
     });
 }
 

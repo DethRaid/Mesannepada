@@ -13,11 +13,16 @@ using IndexPointer = uint64_t;
 using VertexPositionPointer = uint64_t;
 using VertexDataPointer = uint64_t;
 
+using BoneIdsPointer = uint64_t;
+using WeightsPointer = uint64_t;
+
 #elif defined(GL_core_profile)
 #define MaterialPointer uvec2
 #define IndexPointer uvec2
 #define VertexPositionPointer uvec2
 #define VertexDataPointer uvec2
+#define BoneIdsPointer uvec2
+#define WeightsPointer uvec2
 
 #else
 #include "shared/basic_pbr_material.hpp"
@@ -27,6 +32,9 @@ using VertexDataPointer = uint64_t;
 #define IndexPointer uint*
 #define VertexPositionPointer float3*
 #define VertexDataPointer StandardVertexData*
+
+#define BoneIdsPointer vector<uint16_t, 4>*
+#define WeightsPointer float4*
 #endif
 
 struct PrimitiveDataGPU {
@@ -45,6 +53,14 @@ struct PrimitiveDataGPU {
     IndexPointer indices;
     VertexPositionPointer vertex_positions;
     VertexDataPointer vertex_data;
+};
+
+struct SkeletalPrimitiveDataGPU {
+    VertexPositionPointer original_positions;
+    VertexDataPointer original_data;
+
+    BoneIdsPointer bone_ids;
+    WeightsPointer weights;
 };
 
 #endif

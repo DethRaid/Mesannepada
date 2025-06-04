@@ -24,15 +24,15 @@ namespace render {
     constexpr uint32_t MAX_NUM_PRIMITIVES = 65536;
     constexpr uint32_t MAX_NUM_POINT_LIGHTS = 8192;
 
-    RenderScene::RenderScene(MeshStorage& meshes_in, MaterialStorage& materials_in)
-        : meshes{meshes_in}, materials{materials_in} {
+    RenderScene::RenderScene(MeshStorage& meshes_in, MaterialStorage& materials_in) :
+        meshes{meshes_in}, materials{materials_in} {
         auto& backend = RenderBackend::get();
         auto& allocator = backend.get_global_allocator();
         primitive_data_buffer = allocator.create_buffer(
             "Primitive data",
             MAX_NUM_PRIMITIVES * sizeof(PrimitiveDataGPU),
             BufferUsage::StorageBuffer
-        );
+            );
 
         point_light_data_buffer = allocator.create_buffer(
             "Point lights",
@@ -100,9 +100,10 @@ namespace render {
     }
 
     StaticMeshPrimitiveProxyHandle RenderScene::create_static_mesh_proxy(
-        const float4x4& transform, const MeshHandle mesh, const PooledObject<BasicPbrMaterialProxy> material, const bool visible_to_ray_tracing
-    ) {
-        auto primitive = MeshPrimitiveProxy{
+        const float4x4& transform, const MeshHandle mesh, const PooledObject<BasicPbrMaterialProxy> material,
+        const bool visible_to_ray_tracing
+        ) {
+        auto primitive = StaticMeshPrimitiveProxy{
             .data = {
                 .model = transform,
                 .inverse_model = inverse(transform),
@@ -118,7 +119,7 @@ namespace render {
         const auto radius = glm::max(
             glm::max(bounds.max.x - bounds.min.x, bounds.max.y - bounds.min.y),
             bounds.max.z - bounds.min.z
-        );
+            );
 
         primitive.data.bounds_min_and_radius = float4{bounds.min, radius};
         primitive.data.bounds_max = float4{bounds.max, 0};
@@ -133,12 +134,12 @@ namespace render {
 
         const auto positions_buffer_address = meshes.get_vertex_position_buffer()->address;
         primitive.data.vertex_positions = positions_buffer_address + primitive.mesh->first_vertex * sizeof(
-            StandardVertexPosition);
+                                              StandardVertexPosition);
 
         const auto data_buffer_address = meshes.get_vertex_data_buffer()->address;
         primitive.data.vertex_data = data_buffer_address + primitive.mesh->first_vertex * sizeof(StandardVertexData);
 
-        auto handle = mesh_primitives.emplace(std::move(primitive));
+        auto handle = static_mesh_primitives.emplace(std::move(primitive));
 
         switch(handle->material->first.transparency_mode) {
         case TransparencyMode::Solid:
@@ -167,6 +168,94 @@ namespace render {
         return handle;
     }
 
+    SkeletalMeshPrimitiveProxyHandle RenderScene::create_skeletal_mesh_proxy(
+        const float4x4& transform, const MeshHandle mesh,
+        const PooledObject<BasicPbrMaterialProxy> material, const bool visible_to_ray_tracing
+        ) {
+        auto primitive = SkeletalMeshPrimitiveProxy{
+            .data = {
+                .model = transform,
+                .inverse_model = inverse(transform),
+                .material = material.index,
+                .mesh_id = mesh.index,
+            },
+            .mesh = mesh,
+            .material = material,
+            .visible_to_ray_tracing = visible_to_ray_tracing
+        };
+
+        const auto& bounds = mesh->bounds;
+        const auto radius = glm::max(
+            glm::max(bounds.max.x - bounds.min.x, bounds.max.y - bounds.min.y),
+            bounds.max.z - bounds.min.z
+            );
+
+        primitive.data.bounds_min_and_radius = float4{bounds.min, radius};
+        primitive.data.bounds_max = float4{bounds.max, 0};
+
+        const auto material_buffer_address = materials.get_material_instance_buffer()->address;
+        primitive.data.material = material_buffer_address + primitive.material.index * sizeof(BasicPbrMaterialGpu);
+        primitive.data.mesh_id = primitive.mesh.index;
+        primitive.data.type = static_cast<uint32_t>(primitive.material->first.transparency_mode);
+
+        const auto index_buffer_address = meshes.get_index_buffer()->address;
+        primitive.data.indices = index_buffer_address + primitive.mesh->first_index * sizeof(uint32_t);
+
+        // Allocate per-instance buffers for transformed vertex data. Set those as the data's vertex buffers to maintain
+        // a consistent interface, and set the original buffers in the skeletal data
+
+        const auto& backend = RenderBackend::get();
+        auto& allocator = backend.get_global_allocator();
+
+        primitive.transformed_vertices = allocator.create_buffer(
+            "transformed_vertex_positions",
+            mesh->num_vertices * sizeof(StandardVertexPosition),
+            BufferUsage::VertexBuffer);
+        primitive.data.vertex_positions = primitive.transformed_vertices->address;
+
+        primitive.transformed_data = allocator.create_buffer(
+            "transformed_vertex_data",
+            mesh->num_vertices * sizeof(StandardVertexData),
+            BufferUsage::VertexBuffer);
+        primitive.data.vertex_data = primitive.transformed_data->address;
+
+        const auto positions_buffer_address = meshes.get_vertex_position_buffer()->address;
+        primitive.skeletal_data.original_positions = positions_buffer_address + primitive.mesh->first_vertex * sizeof(
+                                                         StandardVertexPosition);
+
+        const auto data_buffer_address = meshes.get_vertex_data_buffer()->address;
+        primitive.skeletal_data.original_data = data_buffer_address + primitive.mesh->first_vertex * sizeof(
+                                                    StandardVertexData);
+
+        auto handle = skeletal_mesh_primitives.emplace(eastl::move(primitive));
+
+        switch(handle->material->first.transparency_mode) {
+        case TransparencyMode::Solid:
+            //solid_primitives.push_back(handle);
+            break;
+
+        case TransparencyMode::Cutout:
+           // masked_primitives.push_back(handle);
+            break;
+
+        case TransparencyMode::Translucent:
+            //translucent_primitives.push_back(handle);
+            break;
+        }
+
+        if(handle->material->first.emissive) {
+           // new_emissive_objects.push_back(handle);
+        }
+
+        if(raytracing_scene && handle->visible_to_ray_tracing) {
+            //raytracing_scene->add_primitive(handle);
+        }
+
+       // update_mesh_proxy(handle);
+
+        return handle;
+    }
+
     void RenderScene::destroy_primitive(const StaticMeshPrimitiveProxyHandle primitive) {
         switch(primitive->material->first.transparency_mode) {
         case TransparencyMode::Solid:
@@ -186,7 +275,7 @@ namespace render {
             raytracing_scene->remove_primitive(primitive);
         }
 
-        mesh_primitives.free_object(primitive);
+        static_mesh_primitives.free_object(primitive);
     }
 
     PointLightProxyHandle RenderScene::create_light_proxy(const PointLightGPU& light) {
@@ -253,7 +342,7 @@ namespace render {
         sky.update_sky_luts(graph, sun.get_direction());
     }
 
-    const eastl::vector<PooledObject<MeshPrimitiveProxy>>& RenderScene::get_solid_primitives() const {
+    const eastl::vector<PooledObject<StaticMeshPrimitiveProxy> >& RenderScene::get_solid_primitives() const {
         return solid_primitives;
     }
 
@@ -270,7 +359,7 @@ namespace render {
     }
 
     uint32_t RenderScene::get_total_num_primitives() const {
-        return mesh_primitives.size();
+        return static_mesh_primitives.size();
     }
 
     DirectionalLight& RenderScene::get_sun_light() {
@@ -301,10 +390,10 @@ namespace render {
         return player_view;
     }
 
-    eastl::vector<PooledObject<MeshPrimitiveProxy>> RenderScene::get_primitives_in_bounds(
+    eastl::vector<PooledObject<StaticMeshPrimitiveProxy> > RenderScene::get_primitives_in_bounds(
         const glm::vec3& min_bounds, const glm::vec3& max_bounds
-    ) const {
-        auto output = eastl::vector<PooledObject<MeshPrimitiveProxy>>{};
+        ) const {
+        auto output = eastl::vector<PooledObject<StaticMeshPrimitiveProxy> >{};
         output.reserve(solid_primitives.size());
 
         const auto test_box = Box{.min = min_bounds, .max = max_bounds};
@@ -337,9 +426,9 @@ namespace render {
 
     void RenderScene::draw_opaque(
         CommandBuffer& commands, const IndirectDrawingBuffers& drawbuffers, const GraphicsPipelineHandle solid_pso
-    ) const {
-        meshes.bind_to_commands(commands);
-        commands.bind_vertex_buffer(2, drawbuffers.primitive_ids);
+        ) const {
+        commands.bind_index_buffer(meshes.get_index_buffer());
+        commands.bind_vertex_buffer(0, drawbuffers.primitive_ids);
 
         if(solid_pso->descriptor_sets.size() > 1) {
             commands.bind_descriptor_set(1, commands.get_backend().get_texture_descriptor_pool().get_descriptor_set());
@@ -362,9 +451,9 @@ namespace render {
 
     void RenderScene::draw_masked(
         CommandBuffer& commands, const IndirectDrawingBuffers& draw_buffers, const GraphicsPipelineHandle masked_pso
-    ) const {
-        meshes.bind_to_commands(commands);
-        commands.bind_vertex_buffer(2, draw_buffers.primitive_ids);
+        ) const {
+        commands.bind_index_buffer(meshes.get_index_buffer());
+        commands.bind_vertex_buffer(0, draw_buffers.primitive_ids);
 
         if(masked_pso->descriptor_sets.size() > 1) {
             commands.bind_descriptor_set(1, commands.get_backend().get_texture_descriptor_pool().get_descriptor_set());
@@ -416,8 +505,8 @@ namespace render {
     void RenderScene::draw_primitives(
         CommandBuffer& commands, const GraphicsPipelineHandle pso,
         const eastl::span<const StaticMeshPrimitiveProxyHandle> primitives
-    ) const {
-        meshes.bind_to_commands(commands);
+        ) const {
+        commands.bind_index_buffer(meshes.get_index_buffer());
 
         if(pso->descriptor_sets.size() > 1) {
             commands.bind_descriptor_set(1, commands.get_backend().get_texture_descriptor_pool().get_descriptor_set());
@@ -474,7 +563,12 @@ namespace render {
     void RenderScene::on_construct_skeletal_mesh(entt::registry& registry, entt::entity entity) {
         auto [transform, mesh] = registry.get<TransformComponent, SkeletalMeshComponent>(entity);
         for(auto& primitive : mesh.primitives) {
-            // TODO
+            primitive.proxy = create_skeletal_mesh_proxy(
+                transform.cached_parent_to_world * transform.local_to_parent,
+                primitive.mesh,
+                primitive.material,
+                primitive.visible_to_ray_tracing
+                );
         }
     }
 

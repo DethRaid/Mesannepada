@@ -29,17 +29,6 @@ namespace render {
         .input_bindings = {
             {
                 .binding = 0,
-                .stride = sizeof(StandardVertexPosition),
-                .inputRate = VK_VERTEX_INPUT_RATE_VERTEX
-            },
-            {
-                .binding = 1,
-                .stride = sizeof(StandardVertexData),
-                .inputRate = VK_VERTEX_INPUT_RATE_VERTEX
-
-            },
-            {
-                .binding = 2,
                 .stride = sizeof(uint32_t),
                 .inputRate = VK_VERTEX_INPUT_RATE_INSTANCE
 
@@ -47,43 +36,8 @@ namespace render {
         },
         .attributes = {
             {
-                POSITION_VERTEX_ATTRIBUTE_NAME, {
-                    .binding = 0,
-                    .format = VK_FORMAT_R32G32B32_SFLOAT,
-                    .offset = 0,
-                }
-            },
-            {
-                NORMAL_VERTEX_ATTRIBUTE_NAME, {
-                    .binding = 1,
-                    .format = VK_FORMAT_R32G32B32_SFLOAT,
-                    .offset = offsetof(StandardVertexData, normal),
-                }
-            },
-            {
-                TANGENT_VERTEX_ATTRIBUTE_NAME, {
-                    .binding = 1,
-                    .format = VK_FORMAT_R32G32B32_SFLOAT,
-                    .offset = offsetof(StandardVertexData, tangent),
-                }
-            },
-            {
-                TEXCOORD_VERTEX_ATTRIBUTE_NAME, {
-                    .binding = 1,
-                    .format = VK_FORMAT_R32G32_SFLOAT,
-                    .offset = offsetof(StandardVertexData, texcoord),
-                }
-            },
-            {
-                COLOR_VERTEX_ATTRIBUTE_NAME, {
-                    .binding = 1,
-                    .format = VK_FORMAT_R8G8B8A8_UNORM,
-                    .offset = offsetof(StandardVertexData, color),
-                }
-            },
-            {
                 PRIMITIVE_ID_VERTEX_ATTRIBUTE_NAME, {
-                    .binding = 2,
+                    .binding = 0,
                     .format = VK_FORMAT_R32_UINT,
                     .offset = 0,
                 }
@@ -173,14 +127,14 @@ namespace render {
         const eastl::vector<SpvReflectDescriptorSet*>& sets,
         VkShaderStageFlags shader_stage,
         eastl::fixed_vector<DescriptorSetInfo, 8>& descriptor_sets
-    );
+        );
 
     static bool collect_push_constants(
         std::string_view shader_name,
         const eastl::vector<SpvReflectBlockVariable*>& spv_push_constants,
         VkShaderStageFlags shader_stage,
         eastl::fixed_vector<VkPushConstantRange, 4>& push_constants
-    );
+        );
 
     static void collect_vertex_attributes(
         const VertexLayout& vertex_layout,
@@ -189,15 +143,16 @@ namespace render {
         bool& needs_position_buffer,
         bool& needs_data_buffer,
         bool& needs_primitive_id_buffer
-    );
+        );
 
     static void init_logger() {
         logger = SystemInterface::get().get_logger("PipelineBuilder");
         logger->set_level(spdlog::level::debug);
     }
 
-    GraphicsPipelineBuilder::GraphicsPipelineBuilder(PipelineCache& cache_in) : cache{ cache_in } {
-        if (logger == nullptr) {
+    GraphicsPipelineBuilder::GraphicsPipelineBuilder(PipelineCache& cache_in) :
+        cache{cache_in} {
+        if(logger == nullptr) {
             init_logger();
         }
 
@@ -208,9 +163,9 @@ namespace render {
             0,
             {
                 .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
-                VK_COLOR_COMPONENT_A_BIT
+                                  VK_COLOR_COMPONENT_A_BIT
             }
-        );
+            );
     }
 
     GraphicsPipelineBuilder& GraphicsPipelineBuilder::set_name(const std::string_view name_in) {
@@ -244,13 +199,13 @@ namespace render {
     }
 
     GraphicsPipelineBuilder& GraphicsPipelineBuilder::set_vertex_shader(const std::filesystem::path& vertex_path) {
-        if (vertex_shader) {
-            throw std::runtime_error{ "Vertex shader already loaded set" };
+        if(vertex_shader) {
+            throw std::runtime_error{"Vertex shader already loaded set"};
         }
         const auto vertex_shader_maybe = SystemInterface::get().load_file(vertex_path);
 
-        if (!vertex_shader_maybe) {
-            throw std::runtime_error{ "Could not load vertex shader" };
+        if(!vertex_shader_maybe) {
+            throw std::runtime_error{"Could not load vertex shader"};
         }
 
         vertex_shader = *vertex_shader_maybe;
@@ -261,11 +216,9 @@ namespace render {
             vertex_shader->data(),
             SPV_REFLECT_MODULE_FLAG_NO_COPY
         };
-        if (shader_module.GetResult() != SPV_REFLECT_RESULT_SUCCESS) {
-            throw std::runtime_error{ "Could not perform reflection on vertex shader" };
+        if(shader_module.GetResult() != SPV_REFLECT_RESULT_SUCCESS) {
+            throw std::runtime_error{"Could not perform reflection on vertex shader"};
         }
-
-        bool has_error = false;
 
         logger->trace("Beginning reflection on vertex shader {}", vertex_shader_name);
 
@@ -280,7 +233,7 @@ namespace render {
         uint32_t input_count;
         auto result = shader_module.EnumerateInputVariables(&input_count, nullptr);
         assert(result == SPV_REFLECT_RESULT_SUCCESS);
-        auto spv_vertex_inputs = eastl::vector<SpvReflectInterfaceVariable*>{ input_count };
+        auto spv_vertex_inputs = eastl::vector<SpvReflectInterfaceVariable*>{input_count};
         result = shader_module.EnumerateInputVariables(&input_count, spv_vertex_inputs.data());
         assert(result == SPV_REFLECT_RESULT_SUCCESS);
 
@@ -291,23 +244,19 @@ namespace render {
             need_position_buffer,
             need_data_buffer,
             need_primitive_id_buffer
-        );
-
-        if (has_error) {
-            logger->warn("Errors encountered when parsing shader {}", vertex_path.string());
-        }
+            );
 
         return *this;
     }
 
     GraphicsPipelineBuilder& GraphicsPipelineBuilder::set_geometry_shader(const std::filesystem::path& geometry_path) {
-        if (geometry_shader) {
-            throw std::runtime_error{ "Geometry shader already set!" };
+        if(geometry_shader) {
+            throw std::runtime_error{"Geometry shader already set!"};
         }
 
         const auto geometry_shader_maybe = SystemInterface::get().load_file(geometry_path);
-        if (!geometry_shader_maybe) {
-            throw std::runtime_error{ "Could not load geometry shader" };
+        if(!geometry_shader_maybe) {
+            throw std::runtime_error{"Could not load geometry shader"};
         }
 
         geometry_shader = *geometry_shader_maybe;
@@ -318,8 +267,8 @@ namespace render {
             geometry_shader->data(),
             SPV_REFLECT_MODULE_FLAG_NO_COPY
         };
-        if (shader_module.GetResult() != SpvReflectResult::SPV_REFLECT_RESULT_SUCCESS) {
-            throw std::runtime_error{ "Could not perform reflection on geometry shader" };
+        if(shader_module.GetResult() != SpvReflectResult::SPV_REFLECT_RESULT_SUCCESS) {
+            throw std::runtime_error{"Could not perform reflection on geometry shader"};
         }
 
         logger->trace("Beginning reflection on geometry shader {}", geometry_shader_name);
@@ -335,14 +284,14 @@ namespace render {
     }
 
     GraphicsPipelineBuilder& GraphicsPipelineBuilder::set_fragment_shader(const std::filesystem::path& fragment_path) {
-        if (fragment_shader) {
-            throw std::runtime_error{ "Fragment shader already set" };
+        if(fragment_shader) {
+            throw std::runtime_error{"Fragment shader already set"};
         }
 
         const auto fragment_shader_maybe = SystemInterface::get().load_file(fragment_path);
 
-        if (!fragment_shader_maybe) {
-            throw std::runtime_error{ "Could not load fragment shader" };
+        if(!fragment_shader_maybe) {
+            throw std::runtime_error{"Could not load fragment shader"};
         }
 
         fragment_shader = *fragment_shader_maybe;
@@ -356,7 +305,7 @@ namespace render {
             VK_SHADER_STAGE_FRAGMENT_BIT,
             descriptor_sets,
             push_constants
-        );
+            );
 
         return *this;
     }
@@ -398,13 +347,13 @@ namespace render {
     }
 
     GraphicsPipelineBuilder& GraphicsPipelineBuilder::set_blend_mode(const BlendMode mode) {
-        for (auto& blend_state : blends) {
-            switch (mode) {
+        for(auto& blend_state : blends) {
+            switch(mode) {
             case BlendMode::NoBlending:
                 blend_state = {
                     .blendEnable = VK_FALSE,
                     .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
-                    VK_COLOR_COMPONENT_A_BIT,
+                                      VK_COLOR_COMPONENT_A_BIT,
                 };
                 break;
 
@@ -418,7 +367,7 @@ namespace render {
                     .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
                     .alphaBlendOp = VK_BLEND_OP_ADD,
                     .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
-                    VK_COLOR_COMPONENT_A_BIT,
+                                      VK_COLOR_COMPONENT_A_BIT,
                 };
                 break;
 
@@ -432,12 +381,12 @@ namespace render {
                     .dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
                     .alphaBlendOp = VK_BLEND_OP_ADD,
                     .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
-                    VK_COLOR_COMPONENT_A_BIT,
+                                      VK_COLOR_COMPONENT_A_BIT,
                 };
                 break;
 
             defualt:
-                throw std::runtime_error{ "Unsupported blend mode!" };
+                throw std::runtime_error{"Unsupported blend mode!"};
 
             }
         }
@@ -447,8 +396,8 @@ namespace render {
 
     GraphicsPipelineBuilder& GraphicsPipelineBuilder::set_blend_state(
         const uint32_t color_target_index, const VkPipelineColorBlendAttachmentState& blend
-    ) {
-        if (blends.size() <= color_target_index) {
+        ) {
+        if(blends.size() <= color_target_index) {
             blends.resize(color_target_index + 1);
         }
 
@@ -464,14 +413,14 @@ namespace render {
     }
 
     GraphicsPipelineBuilder& GraphicsPipelineBuilder::set_num_attachments(const uint32_t num_attachments) {
-        for (auto attachment = 0u; attachment < num_attachments; attachment++) {
+        for(auto attachment = 0u; attachment < num_attachments; attachment++) {
             set_blend_state(
                 attachment,
                 {
                     .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
-                    VK_COLOR_COMPONENT_A_BIT
+                                      VK_COLOR_COMPONENT_A_BIT
                 }
-            );
+                );
         }
 
         return *this;
@@ -487,27 +436,14 @@ namespace render {
         vertex_inputs.clear();
         vertex_inputs.reserve(2);
 
-        if (vertex_layout == nullptr) {
-            throw std::runtime_error{ "Vertex layout is required!" };
+        if(vertex_layout == nullptr) {
+            throw std::runtime_error{"Vertex layout is required!"};
         }
 
         // If we have one vertex input, all attributes pull from it
-        // If we have two vertex buffers, position is input 0 and data is input 1
-        // If we have more than two index buffers, we give up and cry in a corner
-        if (vertex_layout->input_bindings.size() == 1 && (need_position_buffer || need_data_buffer)) {
-            vertex_inputs.push_back(vertex_layout->input_bindings.at(0));
-        }
-        else {
-            if (need_position_buffer) {
-                vertex_inputs.push_back(vertex_layout->input_bindings.at(0));
-            }
-            if (need_data_buffer) {
-                vertex_inputs.push_back(vertex_layout->input_bindings.at(1));
-            }
-            if (need_primitive_id_buffer) {
-                vertex_inputs.push_back(vertex_layout->input_bindings.at(2));
-            }
-        }
+        vertex_inputs.insert(vertex_inputs.begin(),
+                             vertex_layout->input_bindings.begin(),
+                             vertex_layout->input_bindings.end());
 
         return cache.create_pipeline(*this);
     }
@@ -516,22 +452,23 @@ namespace render {
         const eastl::vector<SpvReflectDescriptorSet*>& sets,
         const VkShaderStageFlags shader_stage,
         eastl::fixed_vector<DescriptorSetInfo, 8>& descriptor_sets
-    ) {
-        if (logger == nullptr) {
+        ) {
+        if(logger == nullptr) {
             init_logger();
         }
 
-        const auto texture_array_size = static_cast<uint32_t>(*CVarSystem::Get()->GetIntCVar("r.RHI.SampledImageCount"));
+        const auto texture_array_size = static_cast<uint32_t>(*CVarSystem::Get()->
+            GetIntCVar("r.RHI.SampledImageCount"));
 
         bool has_error = false;
-        for (const auto* set : sets) {
+        for(const auto* set : sets) {
             auto num_bindings = 0u;
-            if (descriptor_sets.size() <= set->set) {
+            if(descriptor_sets.size() <= set->set) {
                 descriptor_sets.resize(set->set + 1);
             }
             auto& set_info = descriptor_sets[set->set];
 
-            for (auto* binding : eastl::span{ set->bindings, set->bindings + set->binding_count }) {
+            for(auto* binding : eastl::span{set->bindings, set->bindings + set->binding_count}) {
                 logger->trace(
                     "Adding new descriptor {}.{} of type {} with count {} for shader stage {}",
                     set->set,
@@ -539,8 +476,8 @@ namespace render {
                     string_VkDescriptorType(to_vk_type(binding->descriptor_type)),
                     binding->count,
                     string_VkShaderStageFlags(shader_stage)
-                );
-                if (set_info.bindings.size() <= binding->binding) {
+                    );
+                if(set_info.bindings.size() <= binding->binding) {
                     set_info.bindings.resize(binding->binding + 1);
                 }
                 const auto old_stage_flags = set_info.bindings[binding->binding].stageFlags;
@@ -554,16 +491,16 @@ namespace render {
                             .pImmutableSamplers = nullptr
                         },
                         (binding->decoration_flags & SPV_REFLECT_DECORATION_NON_WRITABLE) != 0
-                };
+                    };
                 num_bindings = std::max(num_bindings, binding->binding + 1);
 
-                if (binding->count == 0) {
+                if(binding->count == 0) {
                     set_info.has_variable_count_binding = true;
                 }
             }
 
             auto binding_index = 0;
-            for (auto& binding : set_info.bindings) {
+            for(auto& binding : set_info.bindings) {
                 binding.binding = binding_index;
                 binding_index++;
             }
@@ -577,26 +514,26 @@ namespace render {
         const eastl::vector<SpvReflectBlockVariable*>& spv_push_constants,
         const VkShaderStageFlags shader_stage,
         eastl::fixed_vector<VkPushConstantRange, 4>& push_constants
-    ) {
+        ) {
         bool has_error = false;
 
-        for (const auto& constant_range : spv_push_constants) {
+        for(const auto& constant_range : spv_push_constants) {
             auto existing_constant = std::find_if(
                 push_constants.begin(),
                 push_constants.end(),
                 [&](const VkPushConstantRange& existing_range) {
                     return existing_range.offset == constant_range->offset;
                 }
-            );
-            if (existing_constant != push_constants.end()) {
-                if (existing_constant->size != constant_range->size) {
+                );
+            if(existing_constant != push_constants.end()) {
+                if(existing_constant->size != constant_range->size) {
                     logger->error(
                         "Push constant range at offset {} has size {} in shader {}, but it had size {} earlier",
                         constant_range->offset,
                         constant_range->size,
-                        std::string_view{ shader_name.data(), shader_name.size() },
+                        std::string_view{shader_name.data(), shader_name.size()},
                         existing_constant->size
-                    );
+                        );
                     has_error = true;
 
                     // Expand the size - is this correct?
@@ -605,8 +542,7 @@ namespace render {
 
                 // Make the range visible to this stage
                 existing_constant->stageFlags |= shader_stage;
-            }
-            else {
+            } else {
                 // New range!
                 push_constants.emplace_back(
                     VkPushConstantRange{
@@ -614,7 +550,7 @@ namespace render {
                         .offset = constant_range->offset,
                         .size = constant_range->size
                     }
-                );
+                    );
             }
         }
 
@@ -626,8 +562,8 @@ namespace render {
         const VkShaderStageFlags shader_stage,
         eastl::fixed_vector<DescriptorSetInfo, 8>& descriptor_sets,
         eastl::fixed_vector<VkPushConstantRange, 4>& push_constants
-    ) {
-        if (logger == nullptr) {
+        ) {
+        if(logger == nullptr) {
             init_logger();
         }
 
@@ -636,8 +572,8 @@ namespace render {
             shader_instructions.data(),
             SPV_REFLECT_MODULE_FLAG_NO_COPY
         };
-        if (shader_module.GetResult() != SpvReflectResult::SPV_REFLECT_RESULT_SUCCESS) {
-            throw std::runtime_error{ "Could not perform reflection on shader" };
+        if(shader_module.GetResult() != SpvReflectResult::SPV_REFLECT_RESULT_SUCCESS) {
+            throw std::runtime_error{"Could not perform reflection on shader"};
         }
 
         bool has_error = false;
@@ -646,7 +582,7 @@ namespace render {
         uint32_t set_count;
         auto result = shader_module.EnumerateDescriptorSets(&set_count, nullptr);
         assert(result == SPV_REFLECT_RESULT_SUCCESS);
-        auto sets = eastl::vector<SpvReflectDescriptorSet*>{ set_count };
+        auto sets = eastl::vector<SpvReflectDescriptorSet*>{set_count};
         result = shader_module.EnumerateDescriptorSets(&set_count, sets.data());
         assert(result == SPV_REFLECT_RESULT_SUCCESS);
 
@@ -656,7 +592,7 @@ namespace render {
         uint32_t constant_count;
         result = shader_module.EnumeratePushConstantBlocks(&constant_count, nullptr);
         assert(result == SPV_REFLECT_RESULT_SUCCESS);
-        auto spv_push_constants = eastl::vector<SpvReflectBlockVariable*>{ constant_count };
+        auto spv_push_constants = eastl::vector<SpvReflectBlockVariable*>{constant_count};
         result = shader_module.EnumeratePushConstantBlocks(&constant_count, spv_push_constants.data());
         assert(result == SPV_REFLECT_RESULT_SUCCESS);
 
@@ -665,7 +601,7 @@ namespace render {
             spv_push_constants,
             shader_stage,
             push_constants
-        );
+            );
 
         return has_error;
     }
@@ -677,39 +613,33 @@ namespace render {
         bool& needs_position_buffer,
         bool& needs_data_buffer,
         bool& needs_primitive_id_buffer
-    ) {
+        ) {
         needs_position_buffer = false;
         needs_data_buffer = false;
-        for (const auto* input : inputs) {
-            if (input->name == nullptr) {
+        for(const auto* input : inputs) {
+            if(input->name == nullptr) {
                 continue; // UGH
             }
-            if (auto itr = vertex_layout.attributes.find(input->name); itr != vertex_layout.attributes.end()) {
+            if(auto itr = vertex_layout.attributes.find(input->name); itr != vertex_layout.attributes.end()) {
                 auto& attribute = vertex_attributes.emplace_back(itr->second);
                 attribute.location = input->location;
             }
 
-            const auto string_name = std::string{ input->name };
+            const auto string_name = std::string{input->name};
 
-            if (string_name.find(POSITION_VERTEX_ATTRIBUTE_NAME.c_str()) != std::string::npos) {
+            if(string_name.find(POSITION_VERTEX_ATTRIBUTE_NAME.c_str()) != std::string::npos) {
                 needs_position_buffer = true;
-            }
-            else if (string_name.find(NORMAL_VERTEX_ATTRIBUTE_NAME.c_str()) != std::string::npos) {
+            } else if(string_name.find(NORMAL_VERTEX_ATTRIBUTE_NAME.c_str()) != std::string::npos) {
                 needs_data_buffer = true;
-            }
-            else if (string_name.find(TANGENT_VERTEX_ATTRIBUTE_NAME.c_str()) != std::string::npos) {
+            } else if(string_name.find(TANGENT_VERTEX_ATTRIBUTE_NAME.c_str()) != std::string::npos) {
                 needs_data_buffer = true;
-            }
-            else if (string_name.find(TEXCOORD_VERTEX_ATTRIBUTE_NAME.c_str()) != std::string::npos) {
+            } else if(string_name.find(TEXCOORD_VERTEX_ATTRIBUTE_NAME.c_str()) != std::string::npos) {
                 needs_data_buffer = true;
-            }
-            else if (string_name.find(COLOR_VERTEX_ATTRIBUTE_NAME.c_str()) != std::string::npos) {
+            } else if(string_name.find(COLOR_VERTEX_ATTRIBUTE_NAME.c_str()) != std::string::npos) {
                 needs_data_buffer = true;
-            }
-            else if (string_name.find(PRIMITIVE_ID_VERTEX_ATTRIBUTE_NAME.c_str()) != std::string::npos) {
+            } else if(string_name.find(PRIMITIVE_ID_VERTEX_ATTRIBUTE_NAME.c_str()) != std::string::npos) {
                 needs_primitive_id_buffer = true;
-            }
-            else if (input->location != 0xFFFFFFFF) {
+            } else if(input->location != 0xFFFFFFFF) {
                 // -1 is used for some builtin things i guess
                 // I can't
                 logger->error("Vertex input {} unrecognized", input->location);
@@ -718,7 +648,7 @@ namespace render {
     }
 
     VkDescriptorType to_vk_type(SpvReflectDescriptorType type) {
-        switch (type) {
+        switch(type) {
         case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLER:
             return VK_DESCRIPTOR_TYPE_SAMPLER;
 
