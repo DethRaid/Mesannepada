@@ -107,7 +107,7 @@ namespace render {
                         .indexCount = handle->num_indices,
                         .instanceCount = 1,
                         .firstIndex = static_cast<uint32_t>(handle->first_index),
-                        .vertexOffset = static_cast<int32_t>(handle->first_vertex),
+                        .vertexOffset = 0,  // We use BDA for vetices, the pointers point to the start of the vertex allocation
                         .firstInstance = 0
                     }
                     );

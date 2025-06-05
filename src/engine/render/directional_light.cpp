@@ -313,7 +313,19 @@ namespace render {
 
     void DirectionalLight::render_shadows(
         RenderGraph& graph, const GBuffer& gbuffer, const RenderScene& scene, TextureHandle noise
-    ) {
+        ) {
+        if (shadow_mask_texture == nullptr) {
+            shadow_mask_texture = RenderBackend::get().get_global_allocator().create_texture(
+                "sun_shadow_mask",
+                {
+                    .format = VK_FORMAT_R8_UNORM,
+                    .resolution = gbuffer.depth->get_resolution(),
+                    .usage = TextureUsage::RenderTarget,
+                    .usage_flags = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT
+                }
+            );
+        }
+
         switch (cvar_sun_shadow_mode.Get()) {
         case SunShadowMode::CascadedShadowMaps:
             render_shadowmaps(graph, gbuffer, scene);
@@ -384,17 +396,6 @@ namespace render {
                     }
                 });
 
-            if (shadow_mask_texture == nullptr) {
-                shadow_mask_texture = backend.get_global_allocator().create_texture(
-                    "sun_shadow_mask",
-                    {
-                        .format = VK_FORMAT_R8_UNORM,
-                        .resolution = gbuffer.depth->get_resolution(),
-                        .usage = TextureUsage::RenderTarget
-                    }
-                );
-            }
-
             if (shadow_mask_shadowmap_pso == nullptr) {
                 shadow_mask_shadowmap_pso = backend.begin_building_pipeline("shadow_mask_shadowmap")
                     .set_vertex_shader("shaders/common/fullscreen.vert.spv")
@@ -445,18 +446,6 @@ namespace render {
                 .create_ray_tracing_pipeline(
                     "shaders/lighting/directional_light_shadow.rt.spv",
                     true);
-        }
-
-        if (shadow_mask_texture == nullptr) {
-            shadow_mask_texture = backend.get_global_allocator().create_texture(
-                "sun_shadow_mask",
-                {
-                    .format = VK_FORMAT_R8_UNORM,
-                    .resolution = gbuffer.depth->get_resolution(),
-                    .usage = TextureUsage::RenderTarget,
-                    .usage_flags = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT
-                }
-            );
         }
 
         graph.add_pass(

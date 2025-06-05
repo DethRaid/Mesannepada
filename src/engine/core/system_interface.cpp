@@ -181,7 +181,6 @@ std::filesystem::path SystemInterface::get_write_folder() {
 
     return std::filesystem::path{homedir} / ".mesannepada";
 #else
-
     PWSTR folder_path;
     const auto result = SHGetKnownFolderPath(FOLDERID_SavedGames, 0, nullptr, &folder_path);
     if (result != S_OK) {
