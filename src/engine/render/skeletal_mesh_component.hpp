@@ -22,5 +22,7 @@ namespace render {
 
     struct SkeletalMeshComponent {
         eastl::fixed_vector<SkeletalMeshPrimitive, 8> primitives;
+
+        SkeletonHandle skeleton;
     };
 } // render

@@ -48,7 +48,7 @@ namespace render {
             "weights_buffer",
             max_num_vertices * sizeof(u16vec4),
             BufferUsage::StorageBuffer);
-        joints_buffer = allocator.create_buffer(
+        bone_ids_buffer = allocator.create_buffer(
             "joints_buffer",
             max_num_vertices * sizeof(float4),
             BufferUsage::StorageBuffer);
@@ -125,11 +125,11 @@ namespace render {
         }
         return add_mesh_internal(vertices, indices, bounds)
             .and_then([&](Mesh mesh) -> eastl::optional<MeshHandle> {
-                const auto vertex_allocate_info = VmaVirtualAllocationCreateInfo{
-                    .size = vertices.size(),
+                const auto allocate_info = VmaVirtualAllocationCreateInfo{
+                    .size = weights.size(),
                 };
                 const auto result = vmaVirtualAllocate(weights_block,
-                                                       &vertex_allocate_info,
+                                                       &allocate_info,
                                                        &mesh.weights_allocation,
                                                        &mesh.weights_offset);
                 if(result != VK_SUCCESS) {
@@ -141,7 +141,7 @@ namespace render {
                 const auto& backend = RenderBackend::get();
                 auto& upload_queue = backend.get_upload_queue();
                 upload_queue.upload_to_buffer<u16vec4>(
-                    joints_buffer,
+                    bone_ids_buffer,
                     bone_ids,
                     static_cast<uint32_t>(mesh.weights_offset * sizeof(u16vec4)));
                 upload_queue.upload_to_buffer<float4>(

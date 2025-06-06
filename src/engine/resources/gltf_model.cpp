@@ -278,7 +278,13 @@ void GltfModel::add_skeletal_mesh_component(const entt::handle& entity, const fa
         primitives.emplace_back(render::SkeletalMeshPrimitive{.mesh = imported_mesh, .material = imported_material, .visible_to_ray_tracing = cast_shadows});
     }
 
-    entity.emplace<render::SkeletalMeshComponent>(primitives);
+    // Skeletal mesh component should have a copy of the skin. The proxy will have buffers for the inverse bind matrices
+    // and bone transforms. We'll add animator components to this entity with pointers to the animations from this model
+    // The animation system can evaluate those, then update the proxy. THe render proxy will upload the bone matrices, then
+    // the renderer will evaluate skinning and write out the new vertex buffers. We can update the RTAS
+
+    const auto& skin = gltf_skin_to_skin.at(*node.skinIndex);
+    entity.emplace<render::SkeletalMeshComponent>(primitives, skin);
 }
 
 void GltfModel::add_collider_component(
@@ -531,6 +537,8 @@ void GltfModel::import_resources_for_model(render::SarahRenderer& renderer) {
     // transformation matrix already calculated
     // Create a mapping from glTF scene to the `PlacesMeshPrimitive` objects it owns, so we can unload the scene
 
+    import_skins(Engine::get().get_animation_system());
+
     import_meshes(renderer);
 
     import_materials(
@@ -538,8 +546,6 @@ void GltfModel::import_resources_for_model(render::SarahRenderer& renderer) {
         renderer.get_texture_loader(),
         render::RenderBackend::get()
         );
-
-    import_skins(renderer.get_mesh_storage());
 
     import_animations();
 
@@ -729,8 +735,38 @@ void GltfModel::import_meshes(render::SarahRenderer& renderer) {
     }
 }
 
-void GltfModel::import_skins(render::MeshStorage& mesh_storage) {
-    // TODO
+void GltfModel::import_skins(AnimationSystem& animation_system) {
+    ZoneScoped;
+
+    /*
+     * We want to import the skins simply. Let's make a list of transforms, with simple parent/child relationships.
+     * We'll also keep a map from original node ID to bone ID
+     */
+
+    // I don't want to deal with multiple skins per file. Do not
+    assert(asset.skins.size() < 2);
+
+    gltf_skin_to_skin.reserve(asset.skins.size());
+    for(const auto& original_skin : asset.skins) {
+        auto skin = Skeleton{};
+        original_skin.inverseBindMatrices.and_then([&](const auto accessor_id) {
+            const auto& accessor = asset.accessors.at(accessor_id);
+            skin.inverse_bind_matrices.resize(accessor.count);
+
+            fastgltf::copyFromAccessor<float4x4>(asset, accessor, skin.inverse_bind_matrices.data());
+        });
+
+        skin.bones.reserve(original_skin.joints.size());
+        for(const auto& node_id : original_skin.joints) {
+            const auto& node = asset.nodes.at(node_id);
+            const auto& node_transform = fastgltf::getTransformMatrix(node);
+            auto& bone = skin.bones.emplace_back();
+            bone.local_transform = glm::make_mat4(node_transform.data());
+            bone.children.insert(bone.children.begin(), node.children.begin(), node.children.end());
+        }
+
+        gltf_skin_to_skin.emplace_back(animation_system.add_skeleton(eastl::move(skin)));
+    }
 }
 
 void GltfModel::import_animations() const {

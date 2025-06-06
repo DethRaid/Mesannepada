@@ -8,7 +8,8 @@
 
 static std::shared_ptr<spdlog::logger> logger;
 
-AnimationSystem::AnimationSystem(Scene& scene_in) : scene{scene_in} {
+AnimationSystem::AnimationSystem(Scene& scene_in) :
+    scene{scene_in} {
     if(logger == nullptr) {
         logger = SystemInterface::get().get_logger("AnimationSystem");
     }
@@ -93,4 +94,8 @@ void AnimationSystem::play_animation_on_entity(const entt::entity entity, const 
 
 void AnimationSystem::remove_animation(const eastl::string& animation_name) {
     animations.erase(animation_name);
+}
+
+SkeletonHandle AnimationSystem::add_skeleton(Skeleton&& skeleton) {
+    return &*skeletons.emplace(eastl::forward<Skeleton&&>(skeleton));
 }

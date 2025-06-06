@@ -4,6 +4,8 @@
 #include <entt/entity/entity.hpp>
 #include <EASTL/unique_ptr.h>
 
+#include "plf_colony.h"
+#include "animation/skeleton.hpp"
 #include "resources/gltf_animations.hpp"
 
 class Scene;
@@ -22,10 +24,14 @@ public:
 
     void remove_animation(const eastl::string& animation_name);
 
+    SkeletonHandle add_skeleton(Skeleton&& skeleton);
+
 private:
     Scene& scene;
 
     eastl::unordered_map<eastl::string, eastl::unique_ptr<Animation>> animations;
 
     eastl::vector<AnimationEventSampler> active_event_timelines;
+
+    plf::colony<Skeleton> skeletons;
 };

@@ -67,7 +67,7 @@ namespace render {
 
         VmaVirtualBlock weights_block = {};
         BufferHandle weights_buffer = {};
-        BufferHandle joints_buffer = {};
+        BufferHandle bone_ids_buffer = {};
 
         eastl::optional<Mesh> add_mesh_internal(
             eastl::span<const StandardVertex> vertices, eastl::span<const uint32_t> indices, const Box& bounds

@@ -20,6 +20,8 @@ namespace render {
 
         size_t placed_blas_index = eastl::numeric_limits<size_t>::max();
 
+        SkeletonHandle skeleton = nullptr;
+
         BufferHandle transformed_vertices = nullptr;
 
         BufferHandle transformed_data = nullptr;

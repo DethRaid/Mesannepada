@@ -9,6 +9,7 @@
 #include <fastgltf/types.hpp>
 
 #include "animation/animation_system.hpp"
+#include "animation/bone.hpp"
 #include "physics/physics_scene.hpp"
 #include "physics/physics_shape_loader.hpp"
 #include "render/material_storage.hpp"
@@ -92,6 +93,8 @@ private:
 
     eastl::vector<JPH::PhysicsMaterialRefC> gltf_physics_material_to_jolt;
 
+    eastl::vector<SkeletonHandle> gltf_skin_to_skin;
+
     /**
      * Nodes which may be animated. Static nodes have their transforms fully collapsed, dynamic nodes have a parent and a local model matrix
      */
@@ -101,7 +104,6 @@ private:
 
     ExtrasData extras;
 
-#pragma region init
     void import_resources_for_model(render::SarahRenderer& renderer);
 
     void import_materials(
@@ -110,7 +112,7 @@ private:
 
     void import_meshes(render::SarahRenderer& renderer);
 
-    void import_skins(render::MeshStorage& mesh_storage);
+    void import_skins(AnimationSystem& animation_system);
 
     /**
      * Adds all of this model's animations to the global animation system
@@ -118,8 +120,6 @@ private:
     void import_animations() const;
 
     void calculate_bounding_sphere_and_footprint();
-
-#pragma endregion
 
     entt::handle add_nodes_to_scene(Scene& scene, const eastl::optional<entt::entity>& parent_node) const;
 
