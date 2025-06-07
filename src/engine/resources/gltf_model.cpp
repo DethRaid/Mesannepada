@@ -154,7 +154,7 @@ entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<e
 
     traverse_nodes(
         [&](const size_t node_index, const fastgltf::Node& node, const float4x4& parent_to_world) {
-            const auto entity = scene_entities[node_index];
+            const auto entity = scene_entities.at(node_index);
 
             for(const auto child_index : node.children) {
                 scene.parent_entity_to_entity(scene_entities.at(child_index), entity);
@@ -182,8 +182,6 @@ entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<e
             if(node.lightIndex) {
                 add_light_component(entity, asset.lights.at(*node.lightIndex));
             }
-
-            scene_entities[node_index] = entity;
         },
         parent_matrix
         );
@@ -224,6 +222,7 @@ entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<e
         }
     }
 
+    scene_entities.clear();
     return root_entity;
 }
 
@@ -762,7 +761,7 @@ void GltfModel::import_skins(AnimationSystem& animation_system) {
             const auto& node_transform = fastgltf::getTransformMatrix(node);
             auto& bone = skin.bones.emplace_back();
             bone.local_transform = glm::make_mat4(node_transform.data());
-            bone.children.insert(bone.children.begin(), node.children.begin(), node.children.end());
+            bone.children.insert(bone.children.begin(), node.children.data(), node.children.data() + node.children.size());
         }
 
         gltf_skin_to_skin.emplace_back(animation_system.add_skeleton(eastl::move(skin)));

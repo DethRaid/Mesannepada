@@ -2,6 +2,7 @@
 
 #include <EASTL/numeric_limits.h>
 
+#include "animation/skeleton.hpp"
 #include "render/material_proxy.hpp"
 #include "render/mesh_handle.hpp"
 #include "shared/primitive_data.hpp"

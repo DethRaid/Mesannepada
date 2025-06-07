@@ -11,7 +11,7 @@ struct Skeleton {
     /**
      * The inverse bind matrices for the skeleton
      */
-    eastl::vector<float4> inverse_bind_matrices;
+    eastl::vector<float4x4> inverse_bind_matrices;
 
     /**
      * The bones in the skeleton

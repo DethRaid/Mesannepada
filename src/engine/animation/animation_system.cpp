@@ -45,19 +45,32 @@ void AnimationSystem::tick(float delta_time) {
 }
 
 void AnimationSystem::add_animation(const eastl::string& name, Animation&& animation) {
-    if(animations.find(name) != animations.end()) {
+    if(node_animations.find(name) != node_animations.end()) {
         throw std::runtime_error{"Duplicate animation names are not allowed!"};
     }
-    animations.emplace(name, eastl::make_unique<Animation>(eastl::move(animation)));
+    node_animations.emplace(name, eastl::make_unique<Animation>(eastl::forward<Animation>(animation)));
+}
+
+void AnimationSystem::add_animation(SkeletonHandle skeleton, const eastl::string& name, Animation&& animation) {
+    if(skeletal_animations.find(skeleton) == skeletal_animations.end()) {
+        skeletal_animations.emplace(skeleton, AnimationMap{});
+    }
+
+    auto& animation_map = skeletal_animations.at(skeleton);
+    if(animation_map.find(name) != animation_map.end()) {
+        throw std::runtime_error{"Duplicate animation names are not allowed!"};        
+    }
+
+    animation_map.emplace(name, eastl::make_unique<Animation>(eastl::forward<Animation>(animation)));
 }
 
 Animation& AnimationSystem::get_animation(const eastl::string& animation_name) {
-    return *animations.at(animation_name);
+    return *node_animations.at(animation_name);
 }
 
 void AnimationSystem::play_animation_on_entity(const entt::entity entity, const eastl::string& animation_name) {
-    const auto itr = animations.find(animation_name);
-    if(itr == animations.end()) {
+    const auto itr = node_animations.find(animation_name);
+    if(itr == node_animations.end()) {
         logger->error("Could not find an animation named {}, unable to play!", animation_name.c_str());
     }
 
@@ -93,7 +106,7 @@ void AnimationSystem::play_animation_on_entity(const entt::entity entity, const 
 }
 
 void AnimationSystem::remove_animation(const eastl::string& animation_name) {
-    animations.erase(animation_name);
+    node_animations.erase(animation_name);
 }
 
 SkeletonHandle AnimationSystem::add_skeleton(Skeleton&& skeleton) {

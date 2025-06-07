@@ -15,10 +15,10 @@ entt::handle PrefabLoader::load_prefab(const std::filesystem::path& prefab_file,
     }
 
     simdjson::ondemand::parser parser;
-    auto json = simdjson::padded_string::load(prefab_file.c_str());
+    auto json = simdjson::padded_string::load(prefab_file.string());
     auto prefab = parser.iterate(json);
     if(prefab.error() != simdjson::error_code::SUCCESS) {
-        logger->error("Could not load file {}: {}", prefab_file.c_str(), simdjson::error_message(prefab.error()));
+        logger->error("Could not load file {}: {}", prefab_file.string(), simdjson::error_message(prefab.error()));
     }
 
     auto entity = scene.create_entity();
@@ -29,13 +29,13 @@ entt::handle PrefabLoader::load_prefab(const std::filesystem::path& prefab_file,
         std::string_view type_name_view;
         type.get_string(type_name_view);
 
-        const auto type_name = eastl::string{type_name_view.begin(), type_name_view.size()};
+        const auto type_name = eastl::string{type_name_view.data(), type_name_view.size()};
 
         if(auto itr = component_creators.find(type_name); itr != component_creators.end()) {
             itr->second(entity, component_definition);
         } else {
             logger->warn(
-                    "Prefab {} wants a {} component, but no factory was registered for that compoent type! Skippping unknown component",
+                    "Prefab {} wants a {} component, but no factory was registered for that component type! Skipping unknown component",
                     prefab_file.string(), type_name.c_str());
         }
     }

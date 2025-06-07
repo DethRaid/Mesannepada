@@ -1,8 +1,9 @@
 // from https://bruop.github.io/exposure/
 
-#define GROUP_SIZE 256
 #define THREADS_X 16
 #define THREADS_Y 16
+
+#define GROUP_SIZE THREADS_X * THREADS_Y
 
 #define EPSILON 0.005
 // Taken from RTR vol 4 pg. 278
