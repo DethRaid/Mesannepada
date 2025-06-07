@@ -26,7 +26,7 @@ UrEnvironmentGameObject::UrEnvironmentGameObject(const entt::handle entity) : Ga
 
     // Add our animation event track. We KNOW that this will only be instantiated once, right?????
     auto& animations = engine.get_animation_system();
-    auto& animation = animations.get_animation("FlyIn_Level1");
+    auto& animation = animations.get_animation(nullptr, "FlyIn_Level1");
     animation.add_event(
         4.0,
         [] {

@@ -1,7 +1,7 @@
 #include "animation_system.hpp"
 
-#include "core/engine.hpp"
 #include "animation/animator_component.hpp"
+#include "core/engine.hpp"
 #include "resources/gltf_model_component.hpp"
 #include "scene/scene.hpp"
 #include "scene/transform_component.hpp"
@@ -44,19 +44,12 @@ void AnimationSystem::tick(float delta_time) {
     }
 }
 
-void AnimationSystem::add_animation(const eastl::string& name, Animation&& animation) {
-    if(node_animations.find(name) != node_animations.end()) {
-        throw std::runtime_error{"Duplicate animation names are not allowed!"};
-    }
-    node_animations.emplace(name, eastl::make_unique<Animation>(eastl::forward<Animation>(animation)));
-}
-
 void AnimationSystem::add_animation(SkeletonHandle skeleton, const eastl::string& name, Animation&& animation) {
-    if(skeletal_animations.find(skeleton) == skeletal_animations.end()) {
-        skeletal_animations.emplace(skeleton, AnimationMap{});
+    if(animations.find(skeleton) == animations.end()) {
+        animations.emplace(skeleton, AnimationMap{});
     }
 
-    auto& animation_map = skeletal_animations.at(skeleton);
+    auto& animation_map = animations.at(skeleton);
     if(animation_map.find(name) != animation_map.end()) {
         throw std::runtime_error{"Duplicate animation names are not allowed!"};        
     }
@@ -64,13 +57,19 @@ void AnimationSystem::add_animation(SkeletonHandle skeleton, const eastl::string
     animation_map.emplace(name, eastl::make_unique<Animation>(eastl::forward<Animation>(animation)));
 }
 
-Animation& AnimationSystem::get_animation(const eastl::string& animation_name) {
-    return *node_animations.at(animation_name);
+Animation& AnimationSystem::get_animation(SkeletonHandle skeleton, const eastl::string& animation_name) {
+    return *animations.at(skeleton).at(animation_name);
 }
 
-void AnimationSystem::play_animation_on_entity(const entt::entity entity, const eastl::string& animation_name) {
-    const auto itr = node_animations.find(animation_name);
-    if(itr == node_animations.end()) {
+void AnimationSystem::play_animation_on_entity(const entt::handle entity, const eastl::string& animation_name) {
+    SkeletonHandle skeleton = nullptr;
+    const auto* skinned_component = entity.try_get<SkinnedModelComponent>();
+    if(skinned_component) {
+        skeleton = skinned_component->skeleton;
+    }
+    const auto& skeleton_animations = animations.at(skeleton);
+    const auto itr = skeleton_animations.find(animation_name);
+    if(itr == skeleton_animations.end()) {
         logger->error("Could not find an animation named {}, unable to play!", animation_name.c_str());
     }
 
@@ -105,10 +104,18 @@ void AnimationSystem::play_animation_on_entity(const entt::entity entity, const 
     }
 }
 
-void AnimationSystem::remove_animation(const eastl::string& animation_name) {
-    node_animations.erase(animation_name);
+void AnimationSystem::remove_animation(const SkeletonHandle skeleton, const eastl::string& animation_name) {
+    animations.at(skeleton).erase(animation_name);
 }
 
 SkeletonHandle AnimationSystem::add_skeleton(Skeleton&& skeleton) {
+
     return &*skeletons.emplace(eastl::forward<Skeleton&&>(skeleton));
+}
+
+void AnimationSystem::destroy_skeleton(SkeletonHandle skeleton) {
+    if(skeleton != nullptr) {
+        animations.erase(skeleton);
+        skeletons.erase(skeletons.get_iterator(skeleton));
+    }
 }

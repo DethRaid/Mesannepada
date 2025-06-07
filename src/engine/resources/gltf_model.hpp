@@ -93,7 +93,7 @@ private:
 
     eastl::vector<JPH::PhysicsMaterialRefC> gltf_physics_material_to_jolt;
 
-    eastl::vector<SkeletonHandle> gltf_skin_to_skin;
+    SkeletonHandle skeleton_handle = nullptr;
 
     /**
      * Nodes which may be animated. Static nodes have their transforms fully collapsed, dynamic nodes have a parent and a local model matrix

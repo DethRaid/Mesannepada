@@ -16,8 +16,6 @@ public:
 
     void tick(float delta_time);
 
-    void add_animation(const eastl::string& name, Animation&& animation);
-
     /**
      * Adds an animation to a specific skeleton
      *
@@ -25,13 +23,15 @@ public:
      */
     void add_animation(SkeletonHandle skeleton, const eastl::string& name, Animation&& animation);
 
-    Animation& get_animation(const eastl::string& animation_name);
+    Animation& get_animation(SkeletonHandle skeleton, const eastl::string& animation_name);
 
-    void play_animation_on_entity(entt::entity entity, const eastl::string& animation_name);
+    void play_animation_on_entity(entt::handle entity, const eastl::string& animation_name);
 
-    void remove_animation(const eastl::string& animation_name);
+    void remove_animation(SkeletonHandle skeleton, const eastl::string& animation_name);
 
     SkeletonHandle add_skeleton(Skeleton&& skeleton);
+
+    void destroy_skeleton(SkeletonHandle skeleton);
 
 private:
     Scene& scene;
@@ -41,7 +41,7 @@ private:
     /**
      * Animations on skeletons. If the skeleton is nullptr, the animations only applies to nodes
      */
-    eastl::unordered_map<SkeletonHandle, AnimationMap> skeletal_animations;
+    eastl::unordered_map<SkeletonHandle, AnimationMap> animations;
 
     eastl::vector<AnimationEventSampler> active_event_timelines;
 

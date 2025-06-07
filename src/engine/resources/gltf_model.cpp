@@ -121,8 +121,10 @@ GltfModel::GltfModel(
 GltfModel::~GltfModel() {
     auto& animations = Engine::get().get_animation_system();
     for(const auto& gltf_animation : asset.animations) {
-        animations.remove_animation(gltf_animation.name.c_str());
+        animations.remove_animation(skeleton_handle, gltf_animation.name.c_str());
     }
+
+    animations.destroy_skeleton(skeleton_handle);
 }
 
 glm::vec4 GltfModel::get_bounding_sphere() const {
@@ -190,17 +192,10 @@ entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<e
     assert(asset.scenes[*asset.defaultScene].nodeIndices.size() == 1);
     const auto root_node_index = asset.scenes[*asset.defaultScene].nodeIndices[0];
     const auto root_entity = scene_entities[root_node_index];
-    registry.emplace<ImportedModelComponent>(root_entity, scene_entities);
+    root_entity.emplace<ImportedModelComponent>(scene_entities);
 
-    if(!asset.skins.empty()) {
-        for(const auto& skin : asset.skins) {
-            auto inverse_bind_matrices = eastl::vector<float4x4>{skin.joints.size(), float4x4{1.f}};
-            if(skin.inverseBindMatrices) {
-                const auto& bind_matrices_accessor = asset.accessors[*skin.inverseBindMatrices];
-                fastgltf::copyFromAccessor<float4x4>(asset, bind_matrices_accessor, inverse_bind_matrices.data());
-            }
-
-        }
+    if(skeleton_handle) {
+        root_entity.emplace<SkinnedModelComponent>(skeleton_handle, skeleton_handle->bones);
     }
 
     // Add our top-level entities to the scene
@@ -282,8 +277,7 @@ void GltfModel::add_skeletal_mesh_component(const entt::handle& entity, const fa
     // The animation system can evaluate those, then update the proxy. THe render proxy will upload the bone matrices, then
     // the renderer will evaluate skinning and write out the new vertex buffers. We can update the RTAS
 
-    const auto& skin = gltf_skin_to_skin.at(*node.skinIndex);
-    entity.emplace<render::SkeletalMeshComponent>(primitives, skin);
+    entity.emplace<render::SkeletalMeshComponent>(primitives, skeleton_handle);
 }
 
 void GltfModel::add_collider_component(
@@ -532,9 +526,6 @@ void GltfModel::import_resources_for_model(render::SarahRenderer& renderer) {
     ZoneScoped;
 
     // Upload all buffers and textures to the GPU, maintaining a mapping from glTF resource identifier to resource
-    // Traverse the glTF scene. For each node with a mesh, create a `PlacesMeshPrimitive` with the mesh -> world
-    // transformation matrix already calculated
-    // Create a mapping from glTF scene to the `PlacesMeshPrimitive` objects it owns, so we can unload the scene
 
     import_skins(Engine::get().get_animation_system());
 
@@ -739,32 +730,31 @@ void GltfModel::import_skins(AnimationSystem& animation_system) {
 
     /*
      * We want to import the skins simply. Let's make a list of transforms, with simple parent/child relationships.
-     * We'll also keep a map from original node ID to bone ID
+     * Blender exports skeletons as the first nodes in a glTF file, let's rely on that and crash horribly in five years
      */
 
     // I don't want to deal with multiple skins per file. Do not
     assert(asset.skins.size() < 2);
 
-    gltf_skin_to_skin.reserve(asset.skins.size());
     for(const auto& original_skin : asset.skins) {
-        auto skin = Skeleton{};
+        auto skeleton = Skeleton{};
         original_skin.inverseBindMatrices.and_then([&](const auto accessor_id) {
             const auto& accessor = asset.accessors.at(accessor_id);
-            skin.inverse_bind_matrices.resize(accessor.count);
+            skeleton.inverse_bind_matrices.resize(accessor.count);
 
-            fastgltf::copyFromAccessor<float4x4>(asset, accessor, skin.inverse_bind_matrices.data());
+            fastgltf::copyFromAccessor<float4x4>(asset, accessor, skeleton.inverse_bind_matrices.data());
         });
 
-        skin.bones.reserve(original_skin.joints.size());
+        skeleton.bones.reserve(original_skin.joints.size());
         for(const auto& node_id : original_skin.joints) {
             const auto& node = asset.nodes.at(node_id);
             const auto& node_transform = fastgltf::getTransformMatrix(node);
-            auto& bone = skin.bones.emplace_back();
+            auto& bone = skeleton.bones.emplace_back();
             bone.local_transform = glm::make_mat4(node_transform.data());
             bone.children.insert(bone.children.begin(), node.children.data(), node.children.data() + node.children.size());
         }
 
-        gltf_skin_to_skin.emplace_back(animation_system.add_skeleton(eastl::move(skin)));
+        skeleton_handle = animation_system.add_skeleton(eastl::move(skeleton));
     }
 }
 
@@ -807,7 +797,7 @@ void GltfModel::import_animations() const {
             }
         }
 
-        animations.add_animation(eastl::string{gltf_animation.name.c_str()}, std::move(animation));
+        animations.add_animation(skeleton_handle, eastl::string{gltf_animation.name.c_str()}, std::move(animation));
     }
 }
 
