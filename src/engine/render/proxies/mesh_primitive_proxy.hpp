@@ -2,7 +2,7 @@
 
 #include "render/mesh_handle.hpp"
 #include "core/object_pool.hpp"
-#include "render/material_proxy.hpp"
+#include "material_proxy.hpp"
 #include "shared/primitive_data.hpp"
 
 namespace render {

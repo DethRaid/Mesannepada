@@ -1,6 +1,6 @@
 #pragma once
 
-#include "render/mesh_primitive_proxy.hpp"
+#include "proxies/mesh_primitive_proxy.hpp"
 
 namespace render {
     class RenderGraph;

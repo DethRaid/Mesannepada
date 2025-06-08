@@ -13,7 +13,7 @@
 #include "physics/physics_scene.hpp"
 #include "physics/physics_shape_loader.hpp"
 #include "render/material_storage.hpp"
-#include "render/mesh_primitive_proxy.hpp"
+#include "../render/proxies/mesh_primitive_proxy.hpp"
 #include "render/mesh_storage.hpp"
 #include "render/texture_type.hpp"
 #include "resources/gltf_animations.hpp"

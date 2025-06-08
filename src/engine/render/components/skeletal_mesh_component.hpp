@@ -3,8 +3,8 @@
 #include <EASTL/fixed_vector.h>
 #include <entt/entt.hpp>
 
-#include "render/material_proxy.hpp"
-#include "render/skeletal_mesh_primitive_proxy.hpp"
+#include "../proxies/material_proxy.hpp"
+#include "../proxies/skeletal_mesh_primitive_proxy.hpp"
 
 namespace render {
     /**

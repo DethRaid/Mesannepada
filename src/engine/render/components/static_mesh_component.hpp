@@ -2,9 +2,9 @@
 
 #include <EASTL/fixed_vector.h>
 
-#include "render/material_proxy.hpp"
 #include "render/mesh_handle.hpp"
-#include "render/mesh_primitive_proxy.hpp"
+#include "render/proxies/material_proxy.hpp"
+#include "render/proxies/mesh_primitive_proxy.hpp"
 
 namespace render {
     /**

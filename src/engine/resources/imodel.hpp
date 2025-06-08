@@ -3,6 +3,10 @@
 #include <EASTL/optional.h>
 #include <entt/entity/entity.hpp>
 
+#include "animation/animation_system.hpp"
+#include "animation/animation_system.hpp"
+#include "animation/animation_system.hpp"
+
 class Scene;
 
 /**

@@ -14,7 +14,7 @@
 #include "render/backend/render_backend.hpp"
 #include "core/box.hpp"
 #include "core/issue_breakpoint.hpp"
-#include "render/skeletal_mesh_component.hpp"
+#include "components/skeletal_mesh_component.hpp"
 #include "scene/camera_component.hpp"
 #include "scene/scene.hpp"
 #include "render/components/static_mesh_component.hpp"

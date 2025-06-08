@@ -3,6 +3,8 @@
 #include "core/engine.hpp"
 #include "scene/transform_component.hpp"
 
+void GameObject::begin_play() {}
+
 void GameObject::tick(const float delta_time, Scene& scene) {}
 
 GameObject::GameObject(const entt::handle root_entity_in) : root_entity{ root_entity_in } {

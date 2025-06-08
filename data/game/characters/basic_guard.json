@@ -1,12 +1,6 @@
 {
+    "root_entity": "data/game/characters/SK_BaseSumerian.glb",
     "components": [
-        {
-            "type": "TransformComponent"
-        },
-        {
-            "type": "render::SkeletalMeshComponent",
-            "skeletal_mesh": "data/game/characters/SK_BaseSumerian.glb"
-        },
         {
             "type": "ai::BehaviorTreeComponent"
         }

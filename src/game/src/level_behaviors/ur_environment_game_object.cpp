@@ -42,8 +42,7 @@ void UrEnvironmentGameObject::tick(const float delta_time, Scene& scene) {
     auto& registry = scene.get_registry();
 
     // process events
-    const auto* animation_event = registry.try_get<AnimationEventComponent>(root_entity);
-    if(animation_event) {
+    if(const auto* animation_event = registry.try_get<AnimationEventComponent>(root_entity)) {
         auto& application = Engine::get();
         auto& animation_system = application.get_animation_system();
         animation_system.play_animation_on_entity(ur_gltf_entity, animation_event->animation_to_play);

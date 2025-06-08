@@ -2,7 +2,9 @@
 
 #include <simdjson.h>
 
+#include "core/engine.hpp"
 #include "core/system_interface.hpp"
+#include "resources/imodel.hpp"
 #include "scene/scene.hpp"
 #include "scene/transform_component.hpp"
 
@@ -15,13 +17,22 @@ entt::handle PrefabLoader::load_prefab(const std::filesystem::path& prefab_file,
     }
 
     simdjson::ondemand::parser parser;
-    auto json = simdjson::padded_string::load(prefab_file.string());
+    const auto json = simdjson::padded_string::load(prefab_file.string());
     auto prefab = parser.iterate(json);
     if(prefab.error() != simdjson::error_code::SUCCESS) {
         logger->error("Could not load file {}: {}", prefab_file.string(), simdjson::error_message(prefab.error()));
     }
 
-    auto entity = scene.create_entity();
+    auto& resource_loader = Engine::get().get_resource_loader();
+
+    entt::handle entity;
+    std::string_view root_entity_name;
+    if(prefab["root_entity"].get_string(root_entity_name) == simdjson::SUCCESS) {
+        const auto& model = resource_loader.get_model(root_entity_name);
+        entity = model->add_to_scene(scene, eastl::nullopt);
+    } else {
+        entity = scene.create_entity();
+    }
 
     auto components = prefab["components"];
     for(auto component_definition : components) {

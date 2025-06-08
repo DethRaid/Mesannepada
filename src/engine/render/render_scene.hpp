@@ -9,10 +9,10 @@
 #include "render/raytracing_scene.hpp"
 #include "core/object_pool.hpp"
 #include "render/backend/handles.hpp"
-#include "render/mesh_primitive_proxy.hpp"
+#include "proxies/mesh_primitive_proxy.hpp"
 #include "render/backend/scatter_upload_buffer.hpp"
 #include "render/directional_light.hpp"
-#include "render/skeletal_mesh_primitive_proxy.hpp"
+#include "proxies/skeletal_mesh_primitive_proxy.hpp"
 #include "shared/lights.hpp"
 
 class Scene;

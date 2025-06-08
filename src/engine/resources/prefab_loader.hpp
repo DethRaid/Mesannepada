@@ -17,6 +17,9 @@ class Scene;
  * Loads prefabs from disk. ez
  *
  * This class mostly exists so I don't put all my loading code in Scene
+ *
+ * Prefabs have a root entity. This may be a glTF or Godot model, or it may just be an empty entity. Either way, the
+ * prefab file describes which components to add to that root entity
  */
 class PrefabLoader {
 public:

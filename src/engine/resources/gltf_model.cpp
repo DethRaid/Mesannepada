@@ -30,7 +30,7 @@
 #include "render/sarah_renderer.hpp"
 #include "render/texture_loader.hpp"
 #include "physics/collider_component.hpp"
-#include "render/skeletal_mesh_component.hpp"
+#include "../render/components/skeletal_mesh_component.hpp"
 #include "render/components/light_component.hpp"
 #include "scene/camera_component.hpp"
 #include "scene/scene.hpp"

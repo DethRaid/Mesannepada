@@ -4,7 +4,7 @@
 #include "render/backend/scatter_upload_buffer.hpp"
 #include "render/basic_pbr_material.hpp"
 #include "core/object_pool.hpp"
-#include "render/material_proxy.hpp"
+#include "proxies/material_proxy.hpp"
 
 namespace render {
     class RenderGraph;

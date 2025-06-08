@@ -11,7 +11,7 @@
 #include "resources/gltf_model.hpp"
 #include "resources/gltf_model_component.hpp"
 #include "player/first_person_player.hpp"
-#include "render/skeletal_mesh_component.hpp"
+#include "../render/components/skeletal_mesh_component.hpp"
 #include "render/components/static_mesh_component.hpp"
 #include "scene/camera_component.hpp"
 #include "scene/game_object_component.hpp"
@@ -58,9 +58,9 @@ Engine::Engine() :
     SystemInterface::get().set_ui_controller(ui_controller.get());
 
     render_scene = eastl::make_unique<render::RenderScene>(
-            renderer->get_mesh_storage(),
-            renderer->get_material_storage()
-            );
+        renderer->get_mesh_storage(),
+        renderer->get_material_storage()
+        );
 
     render_scene->setup_observers(scene);
 
@@ -88,8 +88,8 @@ Engine::~Engine() {
 }
 
 entt::handle Engine::add_model_to_scene(
-        const std::filesystem::path& scene_path, const eastl::optional<entt::handle>& parent_node
-        ) {
+    const std::filesystem::path& scene_path, const eastl::optional<entt::handle>& parent_node
+    ) {
     ZoneScoped;
 
     logger->info("Beginning import of scene {}", scene_path.string());
@@ -121,11 +121,11 @@ void Engine::tick() {
 
     auto& registry = scene.get_registry();
     registry.view<GameObjectComponent>().each(
-            [&](const GameObjectComponent& go) {
-                if(go->enabled) {
-                    go->tick(delta_time, scene);
-                }
-            });
+        [&](const GameObjectComponent& go) {
+            if(go->enabled) {
+                go->tick(delta_time, scene);
+            }
+        });
 
     physics_scene.tick(delta_time, scene);
 
@@ -176,43 +176,43 @@ void Engine::give_player_full_control() {
     auto& registry = scene.get_registry();
     eastl::optional<entt::entity> parent_entity = eastl::nullopt;
     registry.patch<TransformComponent>(
-            player,
-            [&](TransformComponent& transform) {
-                if(transform.parent != entt::null) {
-                    parent_entity = transform.parent;
-                    transform.parent = entt::null;
-                }
+        player,
+        [&](TransformComponent& transform) {
+            if(transform.parent != entt::null) {
+                parent_entity = transform.parent;
+                transform.parent = entt::null;
+            }
 
-                const auto local_to_world = transform.cached_parent_to_world * transform.local_to_parent;
-                transform.cached_parent_to_world = float4x4{1.f};
-                transform.local_to_parent = local_to_world;
-            });
+            const auto local_to_world = transform.cached_parent_to_world * transform.local_to_parent;
+            transform.cached_parent_to_world = float4x4{1.f};
+            transform.local_to_parent = local_to_world;
+        });
     registry.patch<GameObjectComponent>(
-            player,
-            [&](const GameObjectComponent& comp) {
-                auto& fp_player = static_cast<FirstPersonPlayer&>(*comp.game_object);
-                const auto& transform = registry.get<TransformComponent>(player);
+        player,
+        [&](const GameObjectComponent& comp) {
+            auto& fp_player = static_cast<FirstPersonPlayer&>(*comp.game_object);
+            const auto& transform = registry.get<TransformComponent>(player);
 
-                float3 scale;
-                glm::quat orientation;
-                float3 translation;
-                float3 skew;
-                float4 perspective;
-                glm::decompose(transform.local_to_parent, scale, orientation, translation, skew, perspective);
+            float3 scale;
+            glm::quat orientation;
+            float3 translation;
+            float3 skew;
+            float4 perspective;
+            glm::decompose(transform.local_to_parent, scale, orientation, translation, skew, perspective);
 
-                fp_player.set_worldspace_location(float3{translation});
+            fp_player.set_worldspace_location(float3{translation});
 
-                fp_player.set_pitch_and_yaw(pitch(orientation), PI - yaw(orientation));
+            fp_player.set_pitch_and_yaw(pitch(orientation), PI - yaw(orientation));
 
-                fp_player.enabled = true;
-            });
+            fp_player.enabled = true;
+        });
 
     if(parent_entity) {
         registry.patch<TransformComponent>(
-                *parent_entity,
-                [&](TransformComponent& transform) {
-                    transform.children.erase_first_unsorted(player);
-                });
+            *parent_entity,
+            [&](TransformComponent& transform) {
+                transform.children.erase_first_unsorted(player);
+            });
     }
 
     scene.add_top_level_entities(eastl::array{player.entity()});
@@ -245,20 +245,19 @@ entt::handle Engine::get_player() const {
 }
 
 void Engine::register_components() {
-    prefab_loader.register_component_creator("TransformComponent",
-                                             [](entt::handle entity,
-                                                simdjson::simdjson_result<simdjson::ondemand::value> json) {
-                                                 entity.emplace<TransformComponent>();
-                                             });
+    prefab_loader.register_component_creator(
+        "TransformComponent",
+        [](const entt::handle entity, simdjson::simdjson_result<simdjson::ondemand::value> json) {
+            entity.emplace<TransformComponent>();
+        });
 
-    prefab_loader.register_component_creator("render::SkeletalMeshComponent", [&](entt::handle entity,
-                                                simdjson::simdjson_result<simdjson::ondemand::value> json) {
-        std::string_view model_path;
-        json["skeletal_mesh"].get_string(model_path);
-        const auto& model = resource_loader.get_model(model_path);
-        const auto model_entity = model->add_to_scene(scene, entity.entity());
-        entity.emplace<render::SkeletalMeshComponent>();
-    });
+    prefab_loader.register_component_creator(
+        "GameObjectComponent",
+        [&](const entt::handle entity, simdjson::simdjson_result<simdjson::ondemand::value> json) {
+            std::string_view game_object_name;
+            json["game_object"].get_string(game_object_name);
+
+        });
 }
 
 void Engine::update_time() {
@@ -280,12 +279,14 @@ void Engine::update_time() {
 void Engine::spawn_new_game_objects() {
     auto& registry = scene.get_registry();
     registry.view<TransformComponent, SpwanPrefabComponent>().each(
-            [&](const entt::entity entity, const TransformComponent& transform,
-                const SpwanPrefabComponent& spawn_prefab_comp) {
-                prefab_loader.load_prefab(spawn_prefab_comp.prefab_path.c_str(), scene,
-                                          transform.cached_parent_to_world * transform.local_to_parent);
-                registry.remove<SpwanPrefabComponent>(entity);
-            });
+        [&](const entt::entity entity, const TransformComponent& transform,
+            const SpwanPrefabComponent& spawn_prefab_comp
+        ) {
+            prefab_loader.load_prefab(spawn_prefab_comp.prefab_path.c_str(),
+                                      scene,
+                                      transform.cached_parent_to_world * transform.local_to_parent);
+            registry.remove<SpwanPrefabComponent>(entity);
+        });
 }
 
 void Engine::exit() {
