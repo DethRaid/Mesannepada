@@ -1,11 +1,13 @@
 #pragma once
 
+#include <EASTL/optional.h>
+#include <EASTL/span.h>
+#include <EASTL/unordered_map.h>
 #include <EASTL/vector.h>
 #include <glm/gtx/compatibility.hpp>
-#include <EASTL/optional.h>
-#include <EASTL/unordered_map.h>
+#include <glm/gtx/norm.hpp>
 
-#include "glm/gtx/norm.hpp"
+#include "animation/bone.hpp"
 #include "shared/prelude.h"
 
 /*
@@ -101,6 +103,16 @@ struct NodeAnimator {
      * Samples the value of this transform at the given time. The time is absolute
      */
     float4x4 sample(float time);
+};
+
+struct SkeletonAnimator {
+    eastl::vector<NodeAnimator> joint_animators;
+
+    float start_time;
+
+    bool has_animation_ended(float time) const;
+
+    void update_bones(eastl::span<Bone> bones, float time);
 };
 
 template <typename FuncType>

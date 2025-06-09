@@ -68,3 +68,19 @@ float4x4 NodeAnimator::sample(const float time) {
 
     return transform;
 }
+
+bool SkeletonAnimator::has_animation_ended(const float time) const {
+    auto ended = true;
+    for(const auto& animator : joint_animators) {
+        ended &= animator.has_animation_ended(time);
+    }
+    return ended;
+}
+
+void SkeletonAnimator::update_bones(const eastl::span<Bone> bones, const float time) {
+    assert(joint_animators.size() == bones.size());
+
+    for(auto bone_idx = 0; bone_idx < bones.size(); bone_idx++) {
+        bones[bone_idx].local_transform = joint_animators[bone_idx].sample(time);
+    }
+}

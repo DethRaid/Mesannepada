@@ -5,3 +5,7 @@
 struct NodeAnimationComponent {
     NodeAnimator animator;
 };
+
+struct SkeletalAnimatorComponent {
+    SkeletonAnimator animator;
+};

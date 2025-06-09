@@ -18,6 +18,7 @@
 #include "scene/camera_component.hpp"
 #include "scene/scene.hpp"
 #include "render/components/static_mesh_component.hpp"
+#include "resources/gltf_model_component.hpp"
 #include "scene/transform_component.hpp"
 
 namespace render {
@@ -83,6 +84,11 @@ namespace render {
                 const auto inverse_view_matrix = transform.cached_parent_to_world * transform.local_to_parent;
                 player_view.set_view_matrix(glm::inverse(inverse_view_matrix));
             });
+
+        // Pull bone matrices from skeletal animators
+        registry.view<SkinnedModelComponent>().each([&](const SkinnedModelComponent& skinny) {
+            eastl::vector<float4x4> 
+        });
     }
 
     void RenderScene::update_mesh_proxy(const MeshPrimitiveProxyHandle handle) {

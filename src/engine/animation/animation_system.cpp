@@ -1,7 +1,9 @@
 #include "animation_system.hpp"
 
+#include "EASTL/numeric.h"
 #include "animation/animator_component.hpp"
 #include "core/engine.hpp"
+#include "render/components/skeletal_mesh_component.hpp"
 #include "resources/gltf_model_component.hpp"
 #include "scene/scene.hpp"
 #include "scene/transform_component.hpp"
@@ -20,6 +22,8 @@ void AnimationSystem::tick(float delta_time) {
 
     const auto current_time = Engine::get().get_current_time();
 
+    // Tick node animators
+
     registry.view<TransformComponent, NodeAnimationComponent>().each(
         [&](const entt::entity entity, const TransformComponent& transform, NodeAnimationComponent& animator) {
             if(animator.animator.has_animation_ended(current_time)) {
@@ -32,6 +36,19 @@ void AnimationSystem::tick(float delta_time) {
                     });
             }
         });
+
+    // Tick skeletal animators
+
+    registry.view<SkinnedModelComponent, SkeletalAnimatorComponent>().each(
+        [&](const entt::entity entity, SkinnedModelComponent& skelly, SkeletalAnimatorComponent& animator) {
+            if(animator.animator.has_animation_ended(current_time)) {
+                registry.remove<SkeletalAnimatorComponent>(entity);
+            } else {
+                animator.animator.update_bones(skelly.bones, current_time);
+            }
+        });
+
+    // Clean up
 
     auto itr = active_event_timelines.begin();
     while(itr != active_event_timelines.end()) {
@@ -63,8 +80,7 @@ Animation& AnimationSystem::get_animation(SkeletonHandle skeleton, const eastl::
 
 void AnimationSystem::play_animation_on_entity(const entt::handle entity, const eastl::string& animation_name) {
     SkeletonHandle skeleton = nullptr;
-    const auto* skinned_component = entity.try_get<SkinnedModelComponent>();
-    if(skinned_component) {
+    if(const auto* skinned_component = entity.try_get<SkinnedModelComponent>()) {
         skeleton = skinned_component->skeleton;
     }
     const auto& skeleton_animations = animations.at(skeleton);
@@ -109,8 +125,21 @@ void AnimationSystem::remove_animation(const SkeletonHandle skeleton, const east
 }
 
 SkeletonHandle AnimationSystem::add_skeleton(Skeleton&& skeleton) {
+    const auto handle = &*skeletons.emplace(eastl::forward<Skeleton&&>(skeleton));
 
-    return &*skeletons.emplace(eastl::forward<Skeleton&&>(skeleton));
+    // Find the root bone
+    auto root_bones = eastl::vector<size_t>(handle->bones.size());
+    eastl::iota(root_bones.begin(), root_bones.end(), 0);
+
+    for(const auto& bone : handle->bones) {
+        for(const auto& child : bone.children) {
+            root_bones.erase_first_unsorted(child);
+        }
+    }
+
+    handle->root_bones = root_bones;
+
+    return handle;
 }
 
 void AnimationSystem::destroy_skeleton(SkeletonHandle skeleton) {

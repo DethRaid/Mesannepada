@@ -21,6 +21,8 @@ struct Skeleton {
      * non-skeleton nodes come after. Blender is my main DCC tool, but... this WILL cause problems
      */
     eastl::vector<Bone> bones;
+
+    eastl::vector<size_t> root_bones;
 };
 
 using SkeletonHandle = Skeleton*;

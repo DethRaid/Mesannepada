@@ -231,3 +231,5 @@ RenderCore/extern/aftermath
 
 docs/AMD
 docs/Nvidia
+
+tools/tracy-profiler
