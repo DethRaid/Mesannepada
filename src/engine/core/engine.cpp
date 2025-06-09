@@ -256,7 +256,6 @@ void Engine::register_components() {
         [&](const entt::handle entity, simdjson::simdjson_result<simdjson::ondemand::value> json) {
             std::string_view game_object_name;
             json["game_object"].get_string(game_object_name);
-
         });
 }
 
@@ -278,14 +277,19 @@ void Engine::update_time() {
 
 void Engine::spawn_new_game_objects() {
     auto& registry = scene.get_registry();
-    registry.view<TransformComponent, SpwanPrefabComponent>().each(
-        [&](const entt::entity entity, const TransformComponent& transform,
-            const SpwanPrefabComponent& spawn_prefab_comp
+    registry.view<SpwanPrefabComponent>().each(
+        [&](const entt::entity entity, const SpwanPrefabComponent& spawn_prefab_comp
         ) {
-            prefab_loader.load_prefab(spawn_prefab_comp.prefab_path.c_str(),
+            const auto transform = registry.get<TransformComponent>(entity);
+            const auto game_object = registry.get<GameObjectComponent>(entity);
+            // Replace this node with the prefab
+            const auto instance = prefab_loader.load_prefab(spawn_prefab_comp.prefab_path.c_str(),
                                       scene,
                                       transform.cached_parent_to_world * transform.local_to_parent);
-            registry.remove<SpwanPrefabComponent>(entity);
+
+            instance.get<GameObjectComponent>()->name = game_object->name;
+
+            scene.destroy_entity(entity);
         });
 }
 

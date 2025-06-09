@@ -1,10 +1,11 @@
 #pragma once
 
-#include <entt/entt.hpp>
-#include <EASTL/span.h>
-#include <EASTL/vector.h>
-#include <EASTL/string_view.h>
 #include <EASTL/optional.h>
+#include <EASTL/unordered_set.h>
+#include <EASTL/span.h>
+#include <EASTL/string_view.h>
+#include <EASTL/vector.h>
+#include <entt/entt.hpp>
 
 #include "behavior/game_object.hpp"
 #include "scene/game_object_component.hpp"
@@ -51,7 +52,7 @@ public:
 
     void propagate_transforms(float delta_time);
 
-    const eastl::vector<entt::entity>& get_top_level_entities() const;
+    const eastl::unordered_set<entt::entity>& get_top_level_entities() const;
 
 private:
     entt::registry registry;
@@ -60,7 +61,7 @@ private:
      * List of all the top-level entities from each model we load. The transform update logic starts at these and
      * propagates transforms down the child chain
      */
-    eastl::vector<entt::entity> top_level_entities;
+    eastl::unordered_set<entt::entity> top_level_entities;
 
     void propagate_transform(entt::entity entity, const float4x4& parent_to_world);
 };
@@ -70,7 +71,7 @@ entt::handle Scene::create_game_object(
     const eastl::string_view name, const eastl::optional<entt::handle>& parent_node
 ) {
     const auto entity = create_entity();
-    auto& game_object = add_component(
+    const auto& game_object = add_component(
         entity,
         GameObjectComponent{
             .game_object = eastl::make_shared<GameObjectType>(entity)

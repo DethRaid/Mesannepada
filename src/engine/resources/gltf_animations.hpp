@@ -28,7 +28,7 @@ struct Animation {
     /**
      * Animations of each node. Uses the glTF node ID as the key, and the node's animations are the values
      */
-    eastl::unordered_map<size_t, TransformAnimation> nodes;
+    eastl::unordered_map<size_t, TransformAnimation> channels;
 
     /**
      * Events for the animation. These fire when the animation evaluator reaches the keyframes they're attached to

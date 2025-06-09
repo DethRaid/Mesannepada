@@ -23,8 +23,7 @@ entt::handle Scene::create_entity() {
 }
 
 void Scene::destroy_entity(const entt::entity entity) {
-    auto* transform = registry.try_get<TransformComponent>(entity);
-    if(transform) {
+    if(auto* transform = registry.try_get<TransformComponent>(entity)) {
         for(const auto child_entity : transform->children) {
             destroy_entity(child_entity);
         }
@@ -52,22 +51,26 @@ void Scene::parent_entity_to_entity(const entt::entity child, const entt::entity
         return;
     }
 
-    registry.patch<TransformComponent>(
-            parent,
-            [&](TransformComponent& transform) {
-                transform.children.emplace_back(child);
-            });
-    registry.patch<TransformComponent>(
-            child,
-            [&](TransformComponent& transform) {
-                transform.parent = parent;
-            });
+    if(registry.try_get<TransformComponent>(child) == nullptr) {
+        throw std::runtime_error{"Child does not have a transform!"};
+    }
 
-    top_level_entities.erase_first_unsorted(child);
+    registry.patch<TransformComponent>(
+        parent,
+        [&](TransformComponent& transform) {
+            transform.children.emplace_back(child);
+        });
+    registry.patch<TransformComponent>(
+        child,
+        [&](TransformComponent& transform) {
+            transform.parent = parent;
+        });
+
+    top_level_entities.erase(child);
 }
 
 void Scene::add_top_level_entities(const eastl::span<const entt::entity> entities) {
-    top_level_entities.insert(top_level_entities.end(), entities.begin(), entities.end());
+    top_level_entities.insert(entities.begin(), entities.end());
 }
 
 void Scene::propagate_transforms(float delta_time) {
@@ -76,13 +79,28 @@ void Scene::propagate_transforms(float delta_time) {
     for(const auto root_entity : top_level_entities) {
         const auto& transform = registry.get<TransformComponent>(root_entity);
 
+        eastl::fixed_vector<entt::entity, 4> invalid_entities;
         for(const auto child : transform.children) {
-            propagate_transform(child, transform.local_to_parent);
+            if(registry.valid(child)) {
+                propagate_transform(child, transform.local_to_parent);
+            } else {
+                invalid_entities.emplace_back(child);
+            }
+        }
+
+        if(!invalid_entities.empty()) {
+            registry.patch<TransformComponent>(
+                root_entity,
+                [&](TransformComponent& transform_to_modify) {
+                    for(auto entity : invalid_entities) {
+                        transform_to_modify.children.erase_first(entity);
+                    }
+                });
         }
     }
 }
 
-const eastl::vector<entt::entity>& Scene::get_top_level_entities() const {
+const eastl::unordered_set<entt::entity>& Scene::get_top_level_entities() const {
     return top_level_entities;
 }
 
@@ -90,14 +108,30 @@ void Scene::propagate_transform(const entt::entity entity, const float4x4& paren
     const auto& transform = registry.get<TransformComponent>(entity);
     if(transform.cached_parent_to_world != parent_to_world) {
         registry.patch<TransformComponent>(
-                entity,
-                [&](TransformComponent& trans) {
-                    trans.cached_parent_to_world = parent_to_world;
-                });
+            entity,
+            [&](TransformComponent& trans) {
+                trans.cached_parent_to_world = parent_to_world;
+            });
     }
 
     const auto local_to_world = parent_to_world * transform.local_to_parent;
+
+    eastl::fixed_vector<entt::entity, 4> invalid_entities;
     for(const auto child : transform.children) {
-        propagate_transform(child, local_to_world);
+        if(registry.valid(child)) {
+            propagate_transform(child, local_to_world);
+        } else {
+            invalid_entities.emplace_back(child);
+        }
+    }
+
+    if(!invalid_entities.empty()) {
+        registry.patch<TransformComponent>(
+            entity,
+            [&](TransformComponent& transform_to_modify) {
+                for(auto invalid_child : invalid_entities) {
+                    transform_to_modify.children.erase_first(invalid_child);
+                }
+            });
     }
 }

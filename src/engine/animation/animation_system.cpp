@@ -79,7 +79,7 @@ void AnimationSystem::play_animation_on_entity(const entt::handle entity, const 
     const auto start_time = Engine::get().get_current_time();
 
     // Add animator components to all the nodes referenced by the animation
-    for(const auto& [node, node_animation] : itr->second->nodes) {
+    for(const auto& [node, node_animation] : itr->second->channels) {
         auto animator = NodeAnimator{
             .start_time = start_time
         };

@@ -738,6 +738,7 @@ void GltfModel::import_skins(AnimationSystem& animation_system) {
 
     for(const auto& original_skin : asset.skins) {
         auto skeleton = Skeleton{};
+        auto inverse_bind_matrices = eastl::vector<float4x4>{};
         original_skin.inverseBindMatrices.and_then([&](const auto accessor_id) {
             const auto& accessor = asset.accessors.at(accessor_id);
             skeleton.inverse_bind_matrices.resize(accessor.count);
@@ -746,7 +747,10 @@ void GltfModel::import_skins(AnimationSystem& animation_system) {
         });
 
         skeleton.bones.reserve(original_skin.joints.size());
+        node_id_to_bone_id.resize(original_skin.joints.size());
         for(const auto& node_id : original_skin.joints) {
+            node_id_to_bone_id[node_id] = skeleton.bones.size();
+
             const auto& node = asset.nodes.at(node_id);
             const auto& node_transform = fastgltf::getTransformMatrix(node);
             auto& bone = skeleton.bones.emplace_back();
@@ -762,10 +766,15 @@ void GltfModel::import_animations() const {
     auto& animations = Engine::get().get_animation_system();
     for(const auto& gltf_animation : asset.animations) {
         auto animation = Animation{};
+        animation.channels.reserve(gltf_animation.channels.size());
         for(const auto& gltf_channel : gltf_animation.channels) {
-            // Assume that every animation is for a node. This is true at present, but will not be true when we add skeletal animation (probably?)
+            // If we're importing a skinned mesh, remap from node ID to bone ID
+            auto channel_id = *gltf_channel.nodeIndex;
+            if(!node_id_to_bone_id.empty()) {
+                channel_id = node_id_to_bone_id.at(*gltf_channel.nodeIndex);
+            }
 
-            auto& transform_animation = animation.nodes[*gltf_channel.nodeIndex];
+            auto& transform_animation = animation.channels[channel_id];
 
             // Read in the data for this channel's sampler. In theory this can lead to a bunch of data duplication - in practice I currently do not care
             switch(gltf_channel.path) {

@@ -278,6 +278,10 @@ namespace render {
         static_mesh_primitives.free_object(primitive);
     }
 
+    void RenderScene::destroy_primitive(const SkeletalMeshPrimitiveProxyHandle proxy) {
+        skeletal_mesh_primitives.free_object(proxy);
+    }
+
     PointLightProxyHandle RenderScene::create_light_proxy(const PointLightGPU& light) {
         const auto handle = point_lights.emplace(PointLightProxy{.gpu_data = light});
         update_light_proxy(handle);
@@ -573,6 +577,10 @@ namespace render {
     }
 
     void RenderScene::on_destroy_skeletal_mesh(entt::registry& registry, entt::entity entity) {
+        const auto& mesh = registry.get<SkeletalMeshComponent>(entity);
+        for(auto& primitive : mesh.primitives) {
+            destroy_primitive(primitive.proxy);
+        }
     }
 
     void RenderScene::on_construct_light(entt::registry& registry, const entt::entity entity) {
@@ -582,8 +590,7 @@ namespace render {
 
         // Create a proxy based on what kind of light we have
 
-        auto* point_light_component = registry.try_get<PointLightComponent>(entity);
-        if(point_light_component) {
+        if(auto* point_light_component = registry.try_get<PointLightComponent>(entity)) {
             point_light_component->proxy = create_light_proxy(
                 PointLightGPU{
                     .location = location,
@@ -593,8 +600,7 @@ namespace render {
                 });
         }
 
-        auto* spot_light_component = registry.try_get<SpotLightComponent>(entity);
-        if(spot_light_component) {
+        if(auto* spot_light_component = registry.try_get<SpotLightComponent>(entity)) {
             spot_light_component->proxy = create_light_proxy(
                 SpotLightGPU{
                     .location = location,

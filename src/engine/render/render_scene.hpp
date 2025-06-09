@@ -56,6 +56,8 @@ namespace render {
 
         void destroy_primitive(StaticMeshPrimitiveProxyHandle primitive);
 
+        void destroy_primitive(SkeletalMeshPrimitiveProxyHandle proxy);
+
         PointLightProxyHandle create_light_proxy(const PointLightGPU& light);
 
         SpotLightProxyHandle create_light_proxy(const SpotLightGPU& light);

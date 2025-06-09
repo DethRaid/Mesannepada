@@ -32,6 +32,7 @@ entt::handle PrefabLoader::load_prefab(const std::filesystem::path& prefab_file,
         entity = model->add_to_scene(scene, eastl::nullopt);
     } else {
         entity = scene.create_entity();
+        entity.emplace<TransformComponent>();
     }
 
     auto components = prefab["components"];

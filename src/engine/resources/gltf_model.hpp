@@ -96,6 +96,12 @@ private:
     SkeletonHandle skeleton_handle = nullptr;
 
     /**
+     * Map from glTF node ID to glTF joint ID. We build then when importing a skeleton, then use it to edit animations
+     * so that they refer to bones, and not nodes
+     */
+    eastl::vector<size_t> node_id_to_bone_id;
+
+    /**
      * Nodes which may be animated. Static nodes have their transforms fully collapsed, dynamic nodes have a parent and a local model matrix
      */
     eastl::unordered_set<size_t> dynamic_nodes;
