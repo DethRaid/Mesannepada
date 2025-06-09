@@ -226,6 +226,7 @@ namespace render {
 
     void RenderScene::destroy_primitive(const SkeletalMeshPrimitiveProxyHandle proxy) {
         destroy_primitive(proxy->mesh_proxy);
+
         skeletal_mesh_primitives.free_object(proxy);
     }
 
@@ -511,7 +512,8 @@ namespace render {
         }
     }
 
-    void RenderScene::on_construct_skeletal_mesh(entt::registry& registry, entt::entity entity) {
+    void RenderScene::on_construct_skeletal_mesh(entt::registry& registry, const entt::entity entity) {
+        // TODO: We need to make per-primitive BLASes for skeletal meshes, since they can all be deformed individually
         auto [transform, mesh] = registry.get<TransformComponent, SkeletalMeshComponent>(entity);
         for(auto& primitive : mesh.primitives) {
             primitive.proxy = create_skeletal_mesh_proxy(
@@ -523,7 +525,7 @@ namespace render {
         }
     }
 
-    void RenderScene::on_destroy_skeletal_mesh(entt::registry& registry, entt::entity entity) {
+    void RenderScene::on_destroy_skeletal_mesh(entt::registry& registry, const entt::entity entity) {
         const auto& mesh = registry.get<SkeletalMeshComponent>(entity);
         for(auto& primitive : mesh.primitives) {
             destroy_primitive(primitive.proxy);
@@ -577,7 +579,7 @@ namespace render {
         }
 
         const auto& transform = registry.get<TransformComponent>(entity);
-        const auto matrix = transform.cached_parent_to_world * transform.local_to_parent;
+        const auto matrix = transform.get_local_to_world();
 
         if(const auto* mesh = registry.try_get<StaticMeshComponent>(entity)) {
             ZoneScopedN("update_static_mesh_location");
@@ -588,6 +590,19 @@ namespace render {
 
                 if(raytracing_scene && primitive.visible_to_ray_tracing) {
                     raytracing_scene->update_primitive(primitive.proxy);
+                }
+            }
+        }
+
+        if(const auto* mesh = registry.try_get<SkeletalMeshComponent>(entity)) {
+            ZoneScopedN("update_skeletal_mesh_location");
+
+            for(const auto& primitive : mesh->primitives) {
+                primitive.proxy->mesh_proxy->data.model = matrix;
+                update_mesh_proxy(primitive.proxy->mesh_proxy);
+
+                if(raytracing_scene && primitive.visible_to_ray_tracing) {
+                    raytracing_scene->update_primitive(primitive.proxy->mesh_proxy);
                 }
             }
         }

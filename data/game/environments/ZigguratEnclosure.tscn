@@ -249,7 +249,7 @@ transform = Transform3D(1, 1.19209e-07, -4.93601e-08, 3.91155e-08, -0.0189706, 0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.28434, 0, 0)
 
 [node name="Guard1" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.0177, 0.178309, -7.19268)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.46848, 0.178309, 0.242704)
 metadata/spawn_gameobject = "data/game/characters/basic_guard.json"
 
 [editable path="SM_Ur_ZigguratTerrace"]

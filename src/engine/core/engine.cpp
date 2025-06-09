@@ -183,7 +183,7 @@ void Engine::give_player_full_control() {
                 transform.parent = entt::null;
             }
 
-            const auto local_to_world = transform.cached_parent_to_world * transform.local_to_parent;
+            const auto local_to_world = transform.get_local_to_world();
             transform.cached_parent_to_world = float4x4{1.f};
             transform.local_to_parent = local_to_world;
         });
@@ -285,7 +285,7 @@ void Engine::spawn_new_game_objects() {
             // Replace this node with the prefab
             const auto instance = prefab_loader.load_prefab(spawn_prefab_comp.prefab_path.c_str(),
                                       scene,
-                                      transform.cached_parent_to_world * transform.local_to_parent);
+                                      transform.get_local_to_world());
 
             instance.get<GameObjectComponent>()->name = game_object->name;
 

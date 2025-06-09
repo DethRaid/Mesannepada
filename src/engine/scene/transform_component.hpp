@@ -21,6 +21,8 @@ struct TransformComponent {
 
     eastl::fixed_vector<entt::entity, 16> children;
 
+    float4x4 get_local_to_world() const;
+
     static TransformComponent from_json(const simdjson::simdjson_result<simdjson::ondemand::value>& component_definition);
 };
 

@@ -19,12 +19,12 @@ namespace render {
     };
 
     CommandBuffer::CommandBuffer(const VkCommandBuffer vk_cmds, RenderBackend& backend_in) :
-        commands{ vk_cmds }, backend{ &backend_in } {
-        if (logger == nullptr) {
+        commands{vk_cmds}, backend{&backend_in} {
+        if(logger == nullptr) {
             logger = SystemInterface::get().get_logger("CommandBuffer");
             logger->set_level(spdlog::level::debug);
         }
-        for (auto& set : descriptor_sets) {
+        for(auto& set : descriptor_sets) {
             set = VK_NULL_HANDLE;
         }
     }
@@ -38,14 +38,13 @@ namespace render {
     }
 
     void CommandBuffer::set_marker(const std::string& marker_name) const {
-        if (vkCmdSetCheckpointNV != nullptr) {
+        if(vkCmdSetCheckpointNV != nullptr) {
             vkCmdSetCheckpointNV(commands, marker_name.c_str());
         }
     }
 
-    void
-        CommandBuffer::update_buffer_immediate(
-            const BufferHandle buffer, const void* data, const uint32_t data_size, const uint32_t offset
+    void CommandBuffer::update_buffer_immediate(
+        const BufferHandle buffer, const void* data, const uint32_t data_size, const uint32_t offset
         ) const {
         auto* write_ptr = static_cast<uint8_t*>(buffer->allocation_info.pMappedData) + offset;
 
@@ -65,7 +64,7 @@ namespace render {
         const VkAccessFlags source_access,
         const VkPipelineStageFlags destination_pipeline_stage,
         const VkAccessFlags destination_access
-    ) const {
+        ) const {
         const auto barrier = VkBufferMemoryBarrier{
             .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
             .srcAccessMask = source_access,
@@ -87,7 +86,7 @@ namespace render {
             &barrier,
             0,
             nullptr
-        );
+            );
 
         // V1: Batch the barriers
     }
@@ -96,7 +95,7 @@ namespace render {
         const eastl::fixed_vector<VkMemoryBarrier2, 32>& memory_barriers,
         const eastl::fixed_vector<VkBufferMemoryBarrier2, 32>& buffer_barriers,
         const eastl::fixed_vector<VkImageMemoryBarrier2, 32>& image_barriers
-    ) const {
+        ) const {
         const auto dependency_info = VkDependencyInfo{
             .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
             .memoryBarrierCount = static_cast<uint32_t>(memory_barriers.size()),
@@ -111,13 +110,13 @@ namespace render {
 
     void CommandBuffer::fill_buffer(
         const BufferHandle buffer, const uint32_t fill_value, const uint32_t dest_offset
-    ) const {
+        ) const {
         fill_buffer(buffer, fill_value, dest_offset, buffer->create_info.size - dest_offset);
     }
 
     void CommandBuffer::fill_buffer(
         const BufferHandle buffer, const uint32_t fill_value, const uint32_t dest_offset, const uint32_t amount_to_write
-    ) const {
+        ) const {
         vkCmdFillBuffer(commands, buffer->buffer, dest_offset, amount_to_write, fill_value);
     }
 
@@ -131,8 +130,8 @@ namespace render {
             .layerCount = texture->create_info.arrayLayers
         };
 
-        if (is_depth) {
-            constexpr auto clear = VkClearDepthStencilValue{ .depth = 0, .stencil = 0 };
+        if(is_depth) {
+            constexpr auto clear = VkClearDepthStencilValue{.depth = 0, .stencil = 0};
             subresources.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
             vkCmdClearDepthStencilImage(
                 commands,
@@ -142,18 +141,22 @@ namespace render {
                 1,
                 &subresources);
 
-        }
-        else {
-            constexpr auto clear = VkClearColorValue{ .float32 = {0, 0, 0, 0} };
+        } else {
+            constexpr auto clear = VkClearColorValue{.float32 = {0, 0, 0, 0}};
             subresources.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            vkCmdClearColorImage(commands, texture->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &clear, 1, &subresources);
+            vkCmdClearColorImage(commands,
+                                 texture->image,
+                                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                 &clear,
+                                 1,
+                                 &subresources);
         }
     }
 
     void CommandBuffer::build_acceleration_structures(
         const eastl::span<const VkAccelerationStructureBuildGeometryInfoKHR> build_geometry_infos,
         const eastl::span<VkAccelerationStructureBuildRangeInfoKHR* const> build_range_info_ptrs
-    ) const {
+        ) const {
         vkCmdBuildAccelerationStructuresKHR(
             commands,
             static_cast<uint32_t>(build_geometry_infos.size()),
@@ -166,11 +169,11 @@ namespace render {
         attachment_infos.reserve(
             info.color_attachments.size() +
             (info.depth_attachment.has_value() ? 1 : 0)
-        );
+            );
 
         bound_color_attachment_formats.reserve(info.color_attachments.size());
 
-        for (const auto& color_attachment : info.color_attachments) {
+        for(const auto& color_attachment : info.color_attachments) {
             attachment_infos.emplace_back(
                 VkRenderingAttachmentInfo{
                     .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
@@ -186,7 +189,7 @@ namespace render {
         }
 
         VkRenderingAttachmentInfo* depth_attachment_ptr = nullptr;
-        if (info.depth_attachment) {
+        if(info.depth_attachment) {
             attachment_infos.emplace_back(
                 VkRenderingAttachmentInfo{
                     .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
@@ -217,11 +220,11 @@ namespace render {
         auto shading_rate_info = VkRenderingFragmentShadingRateAttachmentInfoKHR{
             .sType = VK_STRUCTURE_TYPE_RENDERING_FRAGMENT_SHADING_RATE_ATTACHMENT_INFO_KHR,
         };
-        if (info.shading_rate_image) {
+        if(info.shading_rate_image) {
             shading_rate_info.imageView = info.shading_rate_image.value()->image_view;
             shading_rate_info.imageLayout = VK_IMAGE_LAYOUT_FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR;
 
-            const auto texel_size = glm::uvec2{ RenderBackend::get().get_max_shading_rate_texel_size() };
+            const auto texel_size = glm::uvec2{RenderBackend::get().get_max_shading_rate_texel_size()};
             shading_rate_info.shadingRateAttachmentTexelSize.width = texel_size.x;
             shading_rate_info.shadingRateAttachmentTexelSize.height = texel_size.y;
 
@@ -272,7 +275,7 @@ namespace render {
     }
 
     void CommandBuffer::bind_vertex_buffer(const uint32_t binding_index, const BufferHandle buffer) const {
-        constexpr auto offset = VkDeviceSize{ 0 };
+        constexpr auto offset = VkDeviceSize{0};
 
         vkCmdBindVertexBuffers(commands, binding_index, 1, &buffer->buffer, &offset);
     }
@@ -296,7 +299,7 @@ namespace render {
     void CommandBuffer::draw(
         const uint32_t num_vertices, const uint32_t num_instances, const uint32_t first_vertex,
         const uint32_t first_instance
-    ) {
+        ) {
         commit_bindings();
 
         vkCmdDraw(commands, num_vertices, num_instances, first_vertex, first_instance);
@@ -306,7 +309,7 @@ namespace render {
         const uint32_t num_indices, const uint32_t num_instances,
         const uint32_t first_index,
         const uint32_t first_vertex, const uint32_t first_instance
-    ) {
+        ) {
         commit_bindings();
 
         vkCmdDrawIndexed(
@@ -316,7 +319,7 @@ namespace render {
             first_index,
             static_cast<int32_t>(first_vertex),
             first_instance
-        );
+            );
     }
 
     void CommandBuffer::draw_indirect(const BufferHandle indirect_buffer) {
@@ -333,7 +336,7 @@ namespace render {
 
     void CommandBuffer::draw_indexed_indirect(
         const BufferHandle indirect_buffer, const BufferHandle count_buffer, const uint32_t max_count
-    ) {
+        ) {
         commit_bindings();
 
         vkCmdDrawIndexedIndirectCount(
@@ -344,7 +347,7 @@ namespace render {
             0,
             max_count,
             sizeof(VkDrawIndexedIndirectCommand)
-        );
+            );
     }
 
     void CommandBuffer::draw_triangle() {
@@ -356,7 +359,7 @@ namespace render {
     }
 
     void CommandBuffer::dispatch_rays(const glm::uvec2 dispatch_size) {
-        dispatch_rays(glm::uvec3{ dispatch_size, 1u });
+        dispatch_rays(glm::uvec3{dispatch_size, 1u});
     }
 
     void CommandBuffer::dispatch_rays(const glm::uvec3 dispatch_size) {
@@ -390,7 +393,7 @@ namespace render {
         //     .sequencesCountBuffer = ,
         //     .sequencesCountOffset = ,
         //     .sequencesIndexBuffer = ,
-        //     .sequencesIndexOffset = 
+        //     .sequencesIndexOffset =
         // };
         // vkCmdExecuteGeneratedCommandsNV(commands, VK_FALSE, &info);
     }
@@ -448,8 +451,8 @@ namespace render {
     }
 
     void CommandBuffer::bind_buffer_reference(const uint32_t index, const BufferHandle buffer_handle) {
-        if (buffer_handle->address == 0) {
-            throw std::runtime_error{ "Buffer was not created with a device address! Is it a uniform buffer?" };
+        if(buffer_handle->address == 0) {
+            throw std::runtime_error{"Buffer was not created with a device address! Is it a uniform buffer?"};
         }
 
         set_push_constant(index, buffer_handle->address.low_bits());
@@ -486,7 +489,7 @@ namespace render {
 
     void CommandBuffer::copy_buffer_to_buffer(
         const BufferHandle dst, const uint32_t dst_offset, const BufferHandle src, const uint32_t src_offset
-    ) const {
+        ) const {
         const auto region = VkBufferCopy2{
             .sType = VK_STRUCTURE_TYPE_BUFFER_COPY_2,
             .srcOffset = src_offset,
@@ -510,8 +513,8 @@ namespace render {
             .sType = VK_STRUCTURE_TYPE_IMAGE_COPY_2,
             .srcSubresource = {
                 .aspectMask = static_cast<VkImageAspectFlags>(is_depth_format(src->create_info.format)
-                    ? VK_IMAGE_ASPECT_DEPTH_BIT
-                    : VK_IMAGE_ASPECT_COLOR_BIT),
+                                                                  ? VK_IMAGE_ASPECT_DEPTH_BIT
+                                                                  : VK_IMAGE_ASPECT_COLOR_BIT),
                 .mipLevel = 0,
                 .baseArrayLayer = 0,
                 .layerCount = 1,
@@ -519,8 +522,8 @@ namespace render {
             .srcOffset = {},
             .dstSubresource = {
                 .aspectMask = static_cast<VkImageAspectFlags>(is_depth_format(dst->create_info.format)
-                    ? VK_IMAGE_ASPECT_DEPTH_BIT
-                    : VK_IMAGE_ASPECT_COLOR_BIT),
+                                                                  ? VK_IMAGE_ASPECT_DEPTH_BIT
+                                                                  : VK_IMAGE_ASPECT_COLOR_BIT),
                 .mipLevel = 0,
                 .baseArrayLayer = 0,
                 .layerCount = 1,
@@ -548,7 +551,7 @@ namespace render {
     void CommandBuffer::set_event(const VkEvent event, const eastl::vector<BufferBarrier>& buffers) {
         auto buffer_barriers = eastl::vector<VkBufferMemoryBarrier2>{};
         buffer_barriers.reserve(buffers.size());
-        for (const auto& buffer_barrier : buffers) {
+        for(const auto& buffer_barrier : buffers) {
             const auto barrier = VkBufferMemoryBarrier2{
                 .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2,
                 .srcStageMask = buffer_barrier.src.stage,
@@ -604,7 +607,7 @@ namespace render {
         tracy_stack.push(std::move(labelled_zone));
 #endif
 
-        if (vkCmdBeginDebugUtilsLabelEXT == nullptr) {
+        if(vkCmdBeginDebugUtilsLabelEXT == nullptr) {
             return;
         }
 
@@ -623,7 +626,7 @@ namespace render {
         tracy_stack.pop();
 #endif
 
-        if (vkCmdEndDebugUtilsLabelEXT == nullptr) {
+        if(vkCmdEndDebugUtilsLabelEXT == nullptr) {
             return;
         }
 
@@ -644,20 +647,19 @@ namespace render {
     }
 
     void CommandBuffer::bind_index_buffer(const BufferHandle buffer, const VkIndexType index_type) const {
-        if (buffer == nullptr) {
+        if(buffer == nullptr) {
             vkCmdBindIndexBuffer(commands, VK_NULL_HANDLE, 0, index_type);
-        }
-        else {
+        } else {
             vkCmdBindIndexBuffer(commands, buffer->buffer, 0, index_type);
         }
     }
 
     void CommandBuffer::commit_bindings() {
-        if (!are_bindings_dirty) {
+        if(!are_bindings_dirty) {
             return;
         }
 
-        if (num_push_constants_in_current_pipeline > 0) {
+        if(num_push_constants_in_current_pipeline > 0) {
             vkCmdPushConstants(
                 commands,
                 current_pipeline_layout,
@@ -665,11 +667,11 @@ namespace render {
                 0,
                 static_cast<uint32_t>(num_push_constants_in_current_pipeline * sizeof(uint32_t)),
                 push_constants.data()
-            );
+                );
         }
 
-        for (uint32_t i = 0; i < descriptor_sets.size(); i++) {
-            if (descriptor_sets[i] != VK_NULL_HANDLE && num_descriptor_sets_in_current_pipeline > i) {
+        for(uint32_t i = 0; i < descriptor_sets.size(); i++) {
+            if(descriptor_sets[i] != VK_NULL_HANDLE && num_descriptor_sets_in_current_pipeline > i) {
                 vkCmdBindDescriptorSets(
                     commands,
                     current_bind_point,
@@ -679,7 +681,7 @@ namespace render {
                     &descriptor_sets[i],
                     0,
                     nullptr
-                );
+                    );
             }
         }
 

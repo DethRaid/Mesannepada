@@ -56,14 +56,16 @@ void Scene::parent_entity_to_entity(const entt::entity child, const entt::entity
     }
 
     registry.patch<TransformComponent>(
-        parent,
-        [&](TransformComponent& transform) {
-            transform.children.emplace_back(child);
-        });
-    registry.patch<TransformComponent>(
         child,
         [&](TransformComponent& transform) {
             transform.parent = parent;
+        });
+
+    registry.patch<TransformComponent>(
+        parent,
+        [&](TransformComponent& transform) {
+            transform.children.emplace_back(child);
+            propagate_transform(child, transform.get_local_to_world());
         });
 
     top_level_entities.erase(child);
@@ -114,7 +116,7 @@ void Scene::propagate_transform(const entt::entity entity, const float4x4& paren
             });
     }
 
-    const auto local_to_world = parent_to_world * transform.local_to_parent;
+    const auto local_to_world = transform.get_local_to_world();
 
     eastl::fixed_vector<entt::entity, 4> invalid_entities;
     for(const auto child : transform.children) {
