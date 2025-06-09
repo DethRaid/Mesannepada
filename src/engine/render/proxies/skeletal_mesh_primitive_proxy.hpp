@@ -5,21 +5,14 @@
 #include "animation/skeleton.hpp"
 #include "material_proxy.hpp"
 #include "render/mesh_handle.hpp"
+#include "render/proxies/mesh_primitive_proxy.hpp"
 #include "shared/primitive_data.hpp"
 
 namespace render {
     struct SkeletalMeshPrimitiveProxy {
-        PrimitiveDataGPU data = {};
+        MeshPrimitiveProxyHandle mesh_proxy;
 
         SkeletalPrimitiveDataGPU skeletal_data = {};
-
-        MeshHandle mesh;
-
-        PooledObject<BasicPbrMaterialProxy> material;
-
-        bool visible_to_ray_tracing = true;
-
-        size_t placed_blas_index = eastl::numeric_limits<size_t>::max();
 
         SkeletonHandle skeleton = nullptr;
 

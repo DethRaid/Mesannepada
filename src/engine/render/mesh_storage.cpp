@@ -89,28 +89,11 @@ namespace render {
     eastl::optional<MeshHandle> MeshStorage::add_mesh(
         const eastl::span<const StandardVertex> vertices, const eastl::span<const uint32_t> indices, const Box& bounds
         ) {
-        return add_mesh_internal(vertices, indices, bounds)
+        return add_mesh_internal(vertices, indices, bounds, false)
             .and_then([&](Mesh mesh) {
                 const auto handle = meshes.emplace(eastl::move(mesh));
 
-                if(mesh_draw_args_upload_buffer.is_full()) {
-                    auto& backend = RenderBackend::get();
-                    auto graph = RenderGraph{backend};
-                    flush_mesh_draw_arg_uploads(graph);
-                    graph.finish();
-                    backend.execute_graph(graph);
-                }
-
-                mesh_draw_args_upload_buffer.add_data(
-                    handle.index,
-                    {
-                        .indexCount = handle->num_indices,
-                        .instanceCount = 1,
-                        .firstIndex = static_cast<uint32_t>(handle->first_index),
-                        .vertexOffset = 0,  // We use BDA for vetices, the pointers point to the start of the vertex allocation
-                        .firstInstance = 0
-                    }
-                    );
+                upload_mesh_draw_args(handle);
 
                 return eastl::make_optional(handle);
             });
@@ -123,7 +106,7 @@ namespace render {
         if(vertices.size() != bone_ids.size() || vertices.size() != weights.size()) {
             return eastl::nullopt;
         }
-        return add_mesh_internal(vertices, indices, bounds)
+        return add_mesh_internal(vertices, indices, bounds, true)
             .and_then([&](Mesh mesh) -> eastl::optional<MeshHandle> {
                 const auto allocate_info = VmaVirtualAllocationCreateInfo{
                     .size = weights.size(),
@@ -149,7 +132,11 @@ namespace render {
                     weights,
                     static_cast<uint32_t>(mesh.weights_offset * sizeof(float4)));
 
-                return meshes.emplace(eastl::move(mesh));
+                const auto handle = meshes.emplace(eastl::move(mesh));
+
+                upload_mesh_draw_args(handle);
+
+                return handle;
             });
     }
 
@@ -189,7 +176,8 @@ namespace render {
     }
 
     eastl::optional<Mesh> MeshStorage::add_mesh_internal(
-        const eastl::span<const StandardVertex> vertices, const eastl::span<const uint32_t> indices, const Box& bounds
+        const eastl::span<const StandardVertex> vertices, const eastl::span<const uint32_t> indices, const Box& bounds,
+        const bool is_dynamic
         ) const {
         auto mesh = Mesh{};
 
@@ -254,15 +242,38 @@ namespace render {
                 static_cast<uint32_t>(mesh.first_vertex),
                 mesh.num_vertices,
                 static_cast<uint32_t>(mesh.first_index),
-                mesh.num_indices / 3
+                mesh.num_indices / 3,
+                is_dynamic
                 );
         }
 
         return mesh;
     }
 
+    void MeshStorage::upload_mesh_draw_args(const MeshHandle handle) {
+        if(mesh_draw_args_upload_buffer.is_full()) {
+            auto& backend = RenderBackend::get();
+            auto graph = RenderGraph{backend};
+            flush_mesh_draw_arg_uploads(graph);
+            graph.finish();
+            backend.execute_graph(graph);
+        }
+
+        mesh_draw_args_upload_buffer.add_data(
+            handle.index,
+            {
+                .indexCount = handle->num_indices,
+                .instanceCount = 1,
+                .firstIndex = static_cast<uint32_t>(handle->first_index),
+                .vertexOffset = 0,
+                // We use BDA for vetices, the pointers point to the start of the vertex allocation
+                .firstInstance = 0
+            });
+    }
+
     AccelerationStructureHandle MeshStorage::create_blas_for_mesh(
-        const uint32_t first_vertex, const uint32_t num_vertices, const uint32_t first_index, const uint num_triangles
+        const uint32_t first_vertex, const uint32_t num_vertices, const uint32_t first_index, const uint num_triangles,
+        const bool is_dynamic
         ) const {
         ZoneScoped;
 
@@ -284,10 +295,15 @@ namespace render {
             },
         };
 
+        VkBuildAccelerationStructureFlagsKHR flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
+        if(is_dynamic) {
+            flags |= VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR;
+        }
+
         const auto build_info = VkAccelerationStructureBuildGeometryInfoKHR{
             .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
             .type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
-            .flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR,
+            .flags = flags,
             .mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR,
             .geometryCount = 1,
             .pGeometries = &geometry,
@@ -310,7 +326,7 @@ namespace render {
         as->scratch_buffer_size = size_info.buildScratchSize;
         as->num_triangles = num_triangles;
 
-        backend.get_blas_build_queue().enqueue(as, geometry);
+        backend.get_blas_build_queue().enqueue(as, geometry, build_info);
 
         return as;
     }

@@ -31,9 +31,9 @@ namespace render {
             );
 
         eastl::optional<MeshHandle> add_skeletal_mesh(eastl::span<const StandardVertex> vertices,
-                                                              eastl::span<const uint32_t> indices, const Box& bounds,
-                                                              eastl::span<const u16vec4> bone_ids,
-                                                              eastl::span<const float4> weights
+                                                      eastl::span<const uint32_t> indices, const Box& bounds,
+                                                      eastl::span<const u16vec4> bone_ids,
+                                                      eastl::span<const float4> weights
             );
 
         void free_mesh(MeshHandle mesh);
@@ -70,11 +70,14 @@ namespace render {
         BufferHandle bone_ids_buffer = {};
 
         eastl::optional<Mesh> add_mesh_internal(
-            eastl::span<const StandardVertex> vertices, eastl::span<const uint32_t> indices, const Box& bounds
+            eastl::span<const StandardVertex> vertices, eastl::span<const uint32_t> indices, const Box& bounds,
+            bool is_dynamic
             ) const;
 
+        void upload_mesh_draw_args(MeshHandle handle);
+
         AccelerationStructureHandle create_blas_for_mesh(
-            uint32_t first_vertex, uint32_t num_vertices, uint32_t first_index, uint num_triangles
+            uint32_t first_vertex, uint32_t num_vertices, uint32_t first_index, uint num_triangles, bool is_dynamic
             ) const;
     };
 }

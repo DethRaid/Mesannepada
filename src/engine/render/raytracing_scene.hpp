@@ -10,11 +10,11 @@ namespace render {
     public:
         explicit RaytracingScene(RenderScene& scene_in);
 
-        void add_primitive(StaticMeshPrimitiveProxyHandle primitive);
+        void add_primitive(MeshPrimitiveProxyHandle primitive);
 
-        void update_primitive(StaticMeshPrimitiveProxyHandle primitive);
+        void update_primitive(MeshPrimitiveProxyHandle primitive);
 
-        void remove_primitive(StaticMeshPrimitiveProxyHandle primitive);
+        void remove_primitive(MeshPrimitiveProxyHandle primitive);
 
         /**
          * \brief Make the raytracing scene ready for raytracing by making sure that all raytraing acceleration structure

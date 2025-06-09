@@ -10,13 +10,15 @@ namespace render {
     struct BlasBuildJob {
         AccelerationStructureHandle handle;
         VkAccelerationStructureGeometryKHR create_info;
+        VkAccelerationStructureBuildGeometryInfoKHR build_info;
     };
 
     class BlasBuildQueue {
     public:
         explicit BlasBuildQueue();
 
-        void enqueue(AccelerationStructureHandle blas, const VkAccelerationStructureGeometryKHR& create_info);
+        void enqueue(AccelerationStructureHandle blas, const VkAccelerationStructureGeometryKHR& create_info,
+            const VkAccelerationStructureBuildGeometryInfoKHR& build_info);
 
         void flush_pending_builds(RenderGraph& graph);
 

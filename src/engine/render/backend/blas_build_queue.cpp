@@ -17,8 +17,9 @@ namespace render {
         pending_jobs.reserve(128);
     }
 
-    void BlasBuildQueue::enqueue(AccelerationStructureHandle blas, const VkAccelerationStructureGeometryKHR& create_info) {
-        pending_jobs.emplace_back(blas, create_info);
+    void BlasBuildQueue::enqueue(AccelerationStructureHandle blas, const VkAccelerationStructureGeometryKHR& create_info,
+                                 const VkAccelerationStructureBuildGeometryInfoKHR& build_info) {
+        pending_jobs.emplace_back(blas, create_info, build_info);
     }
 
     void BlasBuildQueue::flush_pending_builds(RenderGraph& graph) {
@@ -71,7 +72,7 @@ namespace render {
                     break;
                 }
 
-                const auto& job = pending_jobs[job_idx];
+                auto& job = pending_jobs[job_idx];
 
                 barriers.emplace_back(
                     BufferUsageToken{
@@ -80,17 +81,11 @@ namespace render {
                         .access = VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_KHR
                     });
 
-                build_geometry_infos.emplace_back(
-                    VkAccelerationStructureBuildGeometryInfoKHR{
-                        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
-                        .type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
-                        .flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR,
-                        .mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR,
-                        .dstAccelerationStructure = job.handle->acceleration_structure,
-                        .geometryCount = 1,
-                        .pGeometries = &job.create_info,
-                        .scratchData = {.deviceAddress = scratch_buffer_address},
-                    });
+                auto& info = job.build_info;
+                info.dstAccelerationStructure = job.handle->acceleration_structure;
+                info.pGeometries = &job.create_info;
+                info.scratchData = {.deviceAddress = scratch_buffer_address};
+                build_geometry_infos.emplace_back(info);
 
                 scratch_buffer_address += job.handle->scratch_buffer_size;
 
