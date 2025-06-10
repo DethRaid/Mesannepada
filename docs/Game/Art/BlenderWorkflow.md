@@ -8,4 +8,4 @@ In each file, put the meshes we care about reusing in a separate collecction. Na
 
 I use Godot to assemble models into larger assets. I save assembled assets as Godot scenes, and load them as-is directly. This lets us avoid using the incomplete glTF Reference format
 
-Animated meshes should be modeled with their animatable parts at their maximum extents. This means the T-pose for animated characters. There should be at most one skin in a file, and animations should use _either_ nodes or skins - I don't want an animation that touches both. Additionally, gltf files that contain skinned meshes _should_ only contain one skin, and one skinned mesh. This makes the engine code simpler
+Animated meshes should be modeled with their animatable parts at their maximum extents. This means the T-pose for animated characters. There should be at most one skin in a file, and animations should use _either_ nodes or skins - I don't want an animation that touches both. Additionally, gltf files that contain skinned meshes _must_ only contain one skin, and one skinned mesh. This makes the engine code simpler

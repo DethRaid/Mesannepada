@@ -4,6 +4,7 @@
 #include <EASTL/vector.h>
 
 #include "animation/skeleton.hpp"
+#include "render/backend/handles.hpp"
 
 /**
  * Marks the root node of an imported model. Contains a map from node ID to entity, letting tools that work with the
@@ -11,11 +12,4 @@
  */
 struct ImportedModelComponent {
     eastl::vector<entt::handle> node_to_entity;
-};
-
-struct SkinnedModelComponent {
-    SkeletonHandle skeleton = nullptr;
-
-    // A copy of the skeleton's bones, able to be transformed by animations
-    eastl::vector<Bone> bones = {};
 };

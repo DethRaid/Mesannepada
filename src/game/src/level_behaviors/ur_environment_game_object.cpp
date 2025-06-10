@@ -2,9 +2,9 @@
 
 #include "animation/animation_event_component.hpp"
 #include "core/engine.hpp"
-#include "resources/gltf_model_component.hpp"
 #include "resources/godot_scene.hpp"
 #include "resources/imodel.hpp"
+#include "resources/model_components.hpp"
 #include "scene/transform_component.hpp"
 
 UrEnvironmentGameObject::UrEnvironmentGameObject(const entt::handle entity) : GameObject{entity} {

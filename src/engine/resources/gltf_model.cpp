@@ -1,16 +1,7 @@
 #include "gltf_model.hpp"
 
 #include <numbers>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/quaternion.hpp>
-#include <spdlog/logger.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
-#include <spdlog/sinks/android_sink.h>
-#include <tracy/Tracy.hpp>
-#include <fastgltf/glm_element_traits.hpp>
-#include <fastgltf/core.hpp>
-#include <fastgltf/tools.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
+
 #include <Jolt/Jolt.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
@@ -20,22 +11,30 @@
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Collision/Shape/TaperedCapsuleShape.h>
 #include <Jolt/Physics/Collision/Shape/TaperedCylinderShape.h>
+#include <fastgltf/core.hpp>
+#include <fastgltf/glm_element_traits.hpp>
+#include <fastgltf/tools.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <spdlog/logger.h>
+#include <spdlog/sinks/android_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <tracy/Tracy.hpp>
 
-#include "gltf_animations.hpp"
-#include "gltf_model_component.hpp"
-#include "core/engine.hpp"
 #include "core/box.hpp"
+#include "core/engine.hpp"
 #include "core/visitor.hpp"
+#include "physics/collider_component.hpp"
 #include "render/basic_pbr_material.hpp"
 #include "render/sarah_renderer.hpp"
 #include "render/texture_loader.hpp"
-#include "physics/collider_component.hpp"
-#include "../render/components/skeletal_mesh_component.hpp"
 #include "render/components/light_component.hpp"
-#include "scene/camera_component.hpp"
-#include "scene/scene.hpp"
+#include "render/components/skeletal_mesh_component.hpp"
 #include "render/components/static_mesh_component.hpp"
-#include "render/components/light_component.hpp"
+#include "resources/gltf_animations.hpp"
+#include "resources/model_components.hpp"
+#include "scene/scene.hpp"
 #include "scene/transform_component.hpp"
 
 template<>
@@ -110,6 +109,8 @@ GltfModel::GltfModel(
     }
 
     logger->info("Beginning load of model {}", filepath.string());
+
+    validate_model();
 
     import_resources_for_model(renderer);
 
@@ -193,10 +194,6 @@ entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<e
     const auto root_node_index = asset.scenes[*asset.defaultScene].nodeIndices[0];
     const auto root_entity = scene_entities[root_node_index];
     root_entity.emplace<ImportedModelComponent>(scene_entities);
-
-    if(skeleton_handle) {
-        root_entity.emplace<SkinnedModelComponent>(skeleton_handle, skeleton_handle->bones);
-    }
 
     // Add our top-level entities to the scene
     if(!parent_node) {
@@ -520,6 +517,20 @@ size_t GltfModel::find_node(const eastl::string_view name) const {
     } else {
         return eastl::numeric_limits<size_t>::max();
     }
+}
+
+void GltfModel::validate_model() {
+    // This ain't no summer came. We got rules!
+    assert(asset.skins.size() < 2);
+
+    auto num_skinned_nodes = 0;
+    for(const auto& node : asset.nodes) {
+        if(node.skinIndex) {
+            num_skinned_nodes++;
+        }
+    }
+
+    assert(num_skinned_nodes < 2);
 }
 
 void GltfModel::import_resources_for_model(render::SarahRenderer& renderer) {

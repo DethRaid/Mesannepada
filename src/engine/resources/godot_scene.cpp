@@ -3,12 +3,12 @@
 #include <entt/meta/factory.hpp>
 #include <entt/core/hashed_string.hpp>
 
-#include "gltf_model_component.hpp"
 #include "core/engine.hpp"
 #include "core/issue_breakpoint.hpp"
 #include "core/spawn_gameobject_component.hpp"
 #include "core/string_utils.hpp"
 #include "core/system_interface.hpp"
+#include "resources/model_components.hpp"
 #include "scene/game_object_component.hpp"
 #include "scene/scene.hpp"
 #include "scene/transform_component.hpp"
@@ -62,7 +62,7 @@ namespace godot {
         // Save a map from node index to node entity for future use. Load external models
         eastl::vector<entt::handle> node_entities;
         node_entities.reserve(nodes.size());
-        auto root_entity = add_node_to_scene(scene_in, 0, node_entities);
+        const auto root_entity = add_node_to_scene(scene_in, 0, node_entities);
 
         root_entity.emplace<ImportedModelComponent>(node_entities);
 

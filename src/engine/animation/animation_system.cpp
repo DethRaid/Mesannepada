@@ -1,10 +1,11 @@
 #include "animation_system.hpp"
 
-#include "EASTL/numeric.h"
+#include <EASTL/numeric.h>
+
 #include "animation/animator_component.hpp"
 #include "core/engine.hpp"
 #include "render/components/skeletal_mesh_component.hpp"
-#include "resources/gltf_model_component.hpp"
+#include "resources/model_components.hpp"
 #include "scene/scene.hpp"
 #include "scene/transform_component.hpp"
 
@@ -39,12 +40,14 @@ void AnimationSystem::tick(float delta_time) {
 
     // Tick skeletal animators
 
-    registry.view<SkinnedModelComponent, SkeletalAnimatorComponent>().each(
-        [&](const entt::entity entity, SkinnedModelComponent& skelly, SkeletalAnimatorComponent& animator) {
+    registry.view<render::SkeletalMeshComponent, SkeletalAnimatorComponent>().each(
+        [&](const entt::entity entity, render::SkeletalMeshComponent& skelly, SkeletalAnimatorComponent& animator) {
             if(animator.animator.has_animation_ended(current_time)) {
                 registry.remove<SkeletalAnimatorComponent>(entity);
             } else {
                 animator.animator.update_bones(skelly.bones, current_time);
+
+                skelly.propagate_bone_transforms();
             }
         });
 
@@ -80,7 +83,8 @@ Animation& AnimationSystem::get_animation(SkeletonHandle skeleton, const eastl::
 
 void AnimationSystem::play_animation_on_entity(const entt::handle entity, const eastl::string& animation_name) {
     SkeletonHandle skeleton = nullptr;
-    if(const auto* skinned_component = entity.try_get<SkinnedModelComponent>()) {
+    if(const auto* skinned_component = entity.try_get<render::SkeletalMeshComponent>()) {
+        // TODO: Handle skinned meshes _better_
         skeleton = skinned_component->skeleton;
     }
     const auto& skeleton_animations = animations.at(skeleton);

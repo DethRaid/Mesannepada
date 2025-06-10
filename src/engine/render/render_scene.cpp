@@ -3,22 +3,21 @@
 #include <glm/gtx/matrix_decompose.hpp>
 
 #include "components/light_component.hpp"
+#include "components/skeletal_mesh_component.hpp"
 #include "console/cvars.hpp"
-#include "render/material_storage.hpp"
+#include "core/box.hpp"
+#include "core/issue_breakpoint.hpp"
 #include "render/indirect_drawing_utils.hpp"
+#include "render/material_storage.hpp"
 #include "render/mesh_storage.hpp"
 #include "render/raytracing_scene.hpp"
 #include "render/scene_view.hpp"
 #include "render/backend/pipeline_cache.hpp"
-#include "render/backend/resource_allocator.hpp"
 #include "render/backend/render_backend.hpp"
-#include "core/box.hpp"
-#include "core/issue_breakpoint.hpp"
-#include "components/skeletal_mesh_component.hpp"
+#include "render/backend/resource_allocator.hpp"
+#include "render/components/static_mesh_component.hpp"
 #include "scene/camera_component.hpp"
 #include "scene/scene.hpp"
-#include "render/components/static_mesh_component.hpp"
-#include "resources/gltf_model_component.hpp"
 #include "scene/transform_component.hpp"
 
 namespace render {
@@ -85,9 +84,10 @@ namespace render {
                 player_view.set_view_matrix(glm::inverse(inverse_view_matrix));
             });
 
+        auto& upload_queue = RenderBackend::get().get_upload_queue();
         // Pull bone matrices from skeletal animators
-        registry.view<SkinnedModelComponent>().each([&](const SkinnedModelComponent& skinny) {
-            eastl::vector<float4x4> 
+        registry.view<SkeletalMeshComponent>().each([&](const SkeletalMeshComponent& skinny) {
+            upload_queue.upload_to_buffer(skinny.bone_matrices_buffer, eastl::span{skinny.bones});
         });
     }
 
@@ -519,8 +519,14 @@ namespace render {
     }
 
     void RenderScene::on_construct_skeletal_mesh(entt::registry& registry, const entt::entity entity) {
+        auto& mesh = registry.get<SkeletalMeshComponent>(entity);
+        mesh.bone_matrices_buffer = RenderBackend::get().get_global_allocator().create_buffer(
+            "Bone matrices",
+            mesh.bones.size() * sizeof(float4x4),
+            BufferUsage::StorageBuffer);
+
         // TODO: We need to make per-primitive BLASes for skeletal meshes, since they can all be deformed individually
-        auto [transform, mesh] = registry.get<TransformComponent, SkeletalMeshComponent>(entity);
+        const auto& transform = registry.get<TransformComponent>(entity);
         for(auto& primitive : mesh.primitives) {
             primitive.proxy = create_skeletal_mesh_proxy(
                 transform.cached_parent_to_world * transform.local_to_parent,
@@ -533,6 +539,9 @@ namespace render {
 
     void RenderScene::on_destroy_skeletal_mesh(entt::registry& registry, const entt::entity entity) {
         const auto& mesh = registry.get<SkeletalMeshComponent>(entity);
+
+        RenderBackend::get().get_global_allocator().destroy_buffer(mesh.bone_matrices_buffer);
+
         for(auto& primitive : mesh.primitives) {
             destroy_primitive(primitive.proxy);
         }

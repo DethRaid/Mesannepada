@@ -4,16 +4,12 @@
 #include <magic_enum.hpp>
 #include <tracy/Tracy.hpp>
 
+#include "../render/components/skeletal_mesh_component.hpp"
 #include "core/spawn_gameobject_component.hpp"
 #include "core/system_interface.hpp"
-#include "ai/behavior_tree_component.hpp"
 #include "glm/gtx/matrix_decompose.hpp"
-#include "resources/gltf_model.hpp"
-#include "resources/gltf_model_component.hpp"
 #include "player/first_person_player.hpp"
-#include "../render/components/skeletal_mesh_component.hpp"
-#include "render/components/static_mesh_component.hpp"
-#include "scene/camera_component.hpp"
+#include "resources/gltf_model.hpp"
 #include "scene/game_object_component.hpp"
 #include "scene/transform_component.hpp"
 #include "ui/ui_controller.hpp"

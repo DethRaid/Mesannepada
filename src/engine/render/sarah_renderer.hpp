@@ -187,6 +187,8 @@ namespace render {
 
         ComputePipelineHandle average_exposure_pipeline;
 
+        void deform_skinned_meshes(RenderGraph& graph);
+
         /**
          * Measures the exposure of the lit scene target, saving to a 1x1 texture since that's what DLSS and friends want
          */

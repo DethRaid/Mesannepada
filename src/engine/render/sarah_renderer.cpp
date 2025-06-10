@@ -336,6 +336,8 @@ namespace render {
 
         scene->begin_frame(render_graph);
 
+        deform_skinned_meshes(render_graph);
+
         // Depth and stuff
 
         depth_culling_phase.render(
@@ -553,13 +555,17 @@ namespace render {
         frame_count++;
     }
 
+    void SarahRenderer::deform_skinned_meshes(RenderGraph& graph) {
+        // We need to dispatch a compute shader to
+    }
+
     void SarahRenderer::measure_exposure(RenderGraph& render_graph) {
         ZoneScoped;
 
         auto& descriptors = RenderBackend::get().get_transient_descriptor_allocator();
 
         const auto resolution = lit_scene_handle->get_resolution();
-        auto& player_view = scene->get_player_view();
+        const auto& player_view = scene->get_player_view();
 
         // Build histogram
         {

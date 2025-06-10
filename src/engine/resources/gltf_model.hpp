@@ -110,6 +110,8 @@ private:
 
     ExtrasData extras;
 
+    void validate_model();
+
     void import_resources_for_model(render::SarahRenderer& renderer);
 
     void import_materials(
