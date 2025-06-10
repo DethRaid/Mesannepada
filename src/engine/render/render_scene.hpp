@@ -38,6 +38,10 @@ namespace render {
          */
         void setup_observers(Scene& scene);
 
+        /**
+         * Performs scene updates that rely on the Scene, e.g. updating the player view matrices and uploading bone
+         * transforms
+         */
         void tick(Scene& scene);
 
         /**
@@ -59,7 +63,8 @@ namespace render {
             const float4x4& transform,
             MeshHandle mesh,
             PooledObject<BasicPbrMaterialProxy> material,
-            bool visible_to_ray_tracing
+            bool visible_to_ray_tracing,
+            BufferHandle bone_matrices_buffer
             );
 
         void update_mesh_proxy(MeshPrimitiveProxyHandle handle);
@@ -81,6 +86,8 @@ namespace render {
         void destroy_light(SpotLightProxyHandle proxy);
 
         void begin_frame(RenderGraph& graph);
+
+        void deform_skinned_meshes(RenderGraph& graph);
 
         const eastl::vector<MeshPrimitiveProxyHandle>& get_solid_primitives() const;
 
@@ -147,7 +154,7 @@ namespace render {
 
         MaterialStorage& materials;
 
-        eastl::optional<RaytracingScene> raytracing_scene;
+        eastl::optional<RaytracingScene> raytracing_scene = eastl::nullopt;
 
         SceneView player_view;
 
@@ -161,10 +168,14 @@ namespace render {
         ObjectPool<MeshPrimitiveProxy> static_mesh_primitives;
 
         ObjectPool<SkeletalMeshPrimitiveProxy> skeletal_mesh_primitives;
+        eastl::vector<SkeletalMeshPrimitiveProxyHandle> active_skeletal_meshes;
 
         BufferHandle primitive_data_buffer;
-
         ScatterUploadBuffer<PrimitiveDataGPU> primitive_upload_buffer;
+
+        TODO: Upload to these buffers when skeletal proxies are updated
+        BufferHandle skeletal_data_buffer;
+        ScatterUploadBuffer<SkeletalPrimitiveDataGPU> skeletal_data_upload_buffer;
 
         // TODO: Group solid primitives by front face
 

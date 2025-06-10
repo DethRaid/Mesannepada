@@ -14,7 +14,7 @@ namespace render {
 
         SkeletalPrimitiveDataGPU skeletal_data = {};
 
-        SkeletonHandle skeleton = nullptr;
+        BufferHandle bone_transforms = nullptr;
 
         BufferHandle transformed_vertices = nullptr;
 

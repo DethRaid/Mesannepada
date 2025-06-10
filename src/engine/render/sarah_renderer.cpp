@@ -336,7 +336,7 @@ namespace render {
 
         scene->begin_frame(render_graph);
 
-        deform_skinned_meshes(render_graph);
+        scene->deform_skinned_meshes(render_graph);
 
         // Depth and stuff
 
@@ -553,10 +553,6 @@ namespace render {
         backend.execute_graph(render_graph);
 
         frame_count++;
-    }
-
-    void SarahRenderer::deform_skinned_meshes(RenderGraph& graph) {
-        // We need to dispatch a compute shader to
     }
 
     void SarahRenderer::measure_exposure(RenderGraph& render_graph) {
