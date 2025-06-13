@@ -237,15 +237,16 @@ void GltfModel::add_static_mesh_component(const entt::handle& entity, const fast
         const auto& imported_mesh = gltf_primitive_to_mesh.at(mesh_index).at(i);
         const auto& imported_material = gltf_material_to_material_handle.at(
             gltf_primitive.materialIndex.value_or(0)
-        );
+            );
 
-        primitives.emplace_back(render::StaticMeshPrimitive{.mesh = imported_mesh, .material = imported_material, .visible_to_ray_tracing = cast_shadows});
+        primitives.emplace_back(render::StaticMeshPrimitive{.mesh = imported_mesh, .material = imported_material,
+                                                            .visible_to_ray_tracing = cast_shadows});
     }
 
     entity.emplace<render::StaticMeshComponent>(primitives);
 }
 
-void GltfModel::add_skeletal_mesh_component(const entt::handle& entity, const fastgltf::Node& node, size_t node_index
+void GltfModel::add_skeletal_mesh_component(const entt::handle& entity, const fastgltf::Node& node, const size_t node_index
     ) const {
     ZoneScoped;
     const auto mesh_index = *node.meshIndex;
@@ -264,9 +265,14 @@ void GltfModel::add_skeletal_mesh_component(const entt::handle& entity, const fa
         const auto& imported_mesh = gltf_primitive_to_mesh.at(mesh_index).at(i);
         const auto& imported_material = gltf_material_to_material_handle.at(
             gltf_primitive.materialIndex.value_or(0)
-        );
+            );
 
-        primitives.emplace_back(render::SkeletalMeshPrimitive{.mesh = imported_mesh, .material = imported_material, .visible_to_ray_tracing = cast_shadows});
+        primitives.emplace_back(
+            render::SkeletalMeshPrimitive{
+                .mesh = imported_mesh,
+                .material = imported_material,
+                .visible_to_ray_tracing = cast_shadows
+            });
     }
 
     // Skeletal mesh component should have a copy of the skin. The proxy will have buffers for the inverse bind matrices
@@ -274,7 +280,11 @@ void GltfModel::add_skeletal_mesh_component(const entt::handle& entity, const fa
     // The animation system can evaluate those, then update the proxy. THe render proxy will upload the bone matrices, then
     // the renderer will evaluate skinning and write out the new vertex buffers. We can update the RTAS
 
-    entity.emplace<render::SkeletalMeshComponent>(primitives, skeleton_handle);
+    entity.emplace<render::SkeletalMeshComponent>(
+        primitives,
+        skeleton_handle,
+        skeleton_handle->bones,
+        eastl::vector<float4x4>(skeleton_handle->bones.size()));
 }
 
 void GltfModel::add_collider_component(
@@ -766,7 +776,9 @@ void GltfModel::import_skins(AnimationSystem& animation_system) {
             const auto& node_transform = fastgltf::getTransformMatrix(node);
             auto& bone = skeleton.bones.emplace_back();
             bone.local_transform = glm::make_mat4(node_transform.data());
-            bone.children.insert(bone.children.begin(), node.children.data(), node.children.data() + node.children.size());
+            bone.children.insert(bone.children.begin(),
+                                 node.children.data(),
+                                 node.children.data() + node.children.size());
         }
 
         skeleton_handle = animation_system.add_skeleton(eastl::move(skeleton));

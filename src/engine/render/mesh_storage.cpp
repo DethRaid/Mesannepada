@@ -161,6 +161,14 @@ namespace render {
         return vertex_data_buffer;
     }
 
+    BufferHandle MeshStorage::get_weights_buffer() const {
+        return weights_buffer;
+    }
+
+    BufferHandle MeshStorage::get_bone_ids_buffer() const {
+        return bone_ids_buffer;
+    }
+
     BufferHandle MeshStorage::get_index_buffer() const {
         return index_buffer;
     }

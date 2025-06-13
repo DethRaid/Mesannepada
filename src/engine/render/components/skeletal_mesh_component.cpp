@@ -2,10 +2,6 @@
 
 namespace render {
     void SkeletalMeshComponent::propagate_bone_transforms() {
-        if(worldspace_bone_matrices.size() < bones.size()) {
-            worldspace_bone_matrices = eastl::vector<float4x4>(bones.size());
-        }
-
         for(const auto bone_idx : skeleton->root_bones) {
             propagate_bone_transform(bone_idx, float4x4{1.f});
         }

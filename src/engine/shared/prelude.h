@@ -57,6 +57,7 @@ using half4 = glm::mediump_vec4;
 
 #define u16vec2 uint16_t2
 #define u16vec3 uint16_t3
+#define u16vec4 uint16_t4
 #endif
 
 #ifndef PI

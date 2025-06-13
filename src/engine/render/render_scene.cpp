@@ -32,6 +32,11 @@ namespace render {
             MAX_NUM_PRIMITIVES * sizeof(PrimitiveDataGPU),
             BufferUsage::StorageBuffer
             );
+        skeletal_data_buffer = allocator.create_buffer(
+            "Skeletal primitive data",
+            MAX_NUM_PRIMITIVES * sizeof(SkeletalPrimitiveDataGPU),
+            BufferUsage::StorageBuffer
+            );
 
         point_light_data_buffer = allocator.create_buffer(
             "Point lights",
@@ -49,6 +54,8 @@ namespace render {
 
         auto& pipeline_cache = backend.get_pipeline_cache();
         emissive_point_cloud_shader = pipeline_cache.create_pipeline("shaders/util/emissive_point_cloud.comp.spv");
+
+        vertex_deformer = pipeline_cache.create_pipeline("shaders/animation/vertex_skinning.comp.spv");
     }
 
     void RenderScene::setup_observers(Scene& scene) {
@@ -86,7 +93,7 @@ namespace render {
         auto& upload_queue = RenderBackend::get().get_upload_queue();
         // Pull bone matrices from skeletal animators
         registry.view<SkeletalMeshComponent>().each([&](const SkeletalMeshComponent& skinny) {
-            upload_queue.upload_to_buffer(skinny.bone_matrices_buffer, eastl::span{skinny.bones});
+            upload_queue.upload_to_buffer(skinny.bone_matrices_buffer, eastl::span{skinny.worldspace_bone_matrices});
         });
     }
 
@@ -102,6 +109,21 @@ namespace render {
 
         handle->data.inverse_model = glm::inverse(handle->data.model);
         primitive_upload_buffer.add_data(handle.index, handle->data);
+    }
+
+    void RenderScene::update_mesh_proxy(const SkeletalMeshPrimitiveProxyHandle handle) {
+        if(skeletal_data_upload_buffer.is_full()) {
+            auto graph = RenderGraph{RenderBackend::get()};
+
+            skeletal_data_upload_buffer.flush_to_buffer(graph, skeletal_data_buffer);
+
+            graph.finish();
+            RenderBackend::get().execute_graph(graph);
+        }
+
+        handle->skeletal_data.bone_transforms = handle->bone_transforms->address;
+
+        skeletal_data_upload_buffer.add_data(handle.index, handle->skeletal_data);
     }
 
     MeshPrimitiveProxyHandle RenderScene::create_mesh_proxy(
@@ -174,36 +196,42 @@ namespace render {
     }
 
     SkeletalMeshPrimitiveProxyHandle RenderScene::create_skeletal_mesh_proxy(
-        const float4x4& transform, const MeshHandle mesh, const PooledObject<BasicPbrMaterialProxy> material,
-        const bool visible_to_ray_tracing, const BufferHandle bone_matrices_buffer
+        const float4x4& transform, const SkeletalMeshPrimitive& primitive, const BufferHandle bone_matrices_buffer
         ) {
-        auto primitive = SkeletalMeshPrimitiveProxy{
-            .mesh_proxy = create_mesh_proxy(transform, mesh, material, visible_to_ray_tracing),
+        auto proxy = SkeletalMeshPrimitiveProxy{
+            .mesh_proxy = create_mesh_proxy(transform, primitive.mesh, primitive.material, primitive.visible_to_ray_tracing),
             .bone_transforms = bone_matrices_buffer
         };
 
         // Allocate per-instance buffers for transformed vertex data. Set those as the data's vertex buffers to maintain
         // a consistent interface, and set the original buffers in the skeletal data
 
-        primitive.skeletal_data.original_positions = primitive.mesh_proxy->data.vertex_positions;
-        primitive.skeletal_data.original_data = primitive.mesh_proxy->data.vertex_data;
+        proxy.skeletal_data.original_positions = proxy.mesh_proxy->data.vertex_positions;
+        proxy.skeletal_data.original_data = proxy.mesh_proxy->data.vertex_data;
+
+        const auto bone_id_buffer_address = meshes.get_bone_ids_buffer()->address;
+        proxy.skeletal_data.bone_ids = bone_id_buffer_address + primitive.mesh->weights_offset * sizeof(u16vec4);
+        const auto weights_buffer_address = meshes.get_weights_buffer()->address;
+        proxy.skeletal_data.weights = weights_buffer_address + primitive.mesh->weights_offset * sizeof(float4);
 
         const auto& backend = RenderBackend::get();
         auto& allocator = backend.get_global_allocator();
 
-        primitive.transformed_vertices = allocator.create_buffer(
+        proxy.transformed_vertices = allocator.create_buffer(
             "transformed_vertex_positions",
-            mesh->num_vertices * sizeof(StandardVertexPosition),
+            primitive.mesh->num_vertices * sizeof(StandardVertexPosition),
             BufferUsage::VertexBuffer);
-        primitive.mesh_proxy->data.vertex_positions = primitive.transformed_vertices->address;
+        proxy.mesh_proxy->data.vertex_positions = proxy.transformed_vertices->address;
 
-        primitive.transformed_data = allocator.create_buffer(
+        proxy.transformed_data = allocator.create_buffer(
             "transformed_vertex_data",
-            mesh->num_vertices * sizeof(StandardVertexData),
+            primitive.mesh->num_vertices * sizeof(StandardVertexData),
             BufferUsage::VertexBuffer);
-        primitive.mesh_proxy->data.vertex_data = primitive.transformed_data->address;
+        proxy.mesh_proxy->data.vertex_data = proxy.transformed_data->address;
 
-        const auto handle = skeletal_mesh_primitives.emplace(eastl::move(primitive));
+        const auto handle = skeletal_mesh_primitives.emplace(eastl::move(proxy));
+
+        update_mesh_proxy(handle);
 
         return handle;
     }
@@ -293,6 +321,8 @@ namespace render {
 
         primitive_upload_buffer.flush_to_buffer(graph, primitive_data_buffer);
 
+        skeletal_data_upload_buffer.flush_to_buffer(graph, skeletal_data_buffer);
+
         point_light_uploads.flush_to_buffer(graph, point_light_data_buffer);
 
         spot_light_uploads.flush_to_buffer(graph, spot_light_data_buffer);
@@ -321,24 +351,29 @@ namespace render {
                                   VK_ACCESS_2_SHADER_WRITE_BIT);
         }
 
+        const auto set = RenderBackend::get().get_transient_descriptor_allocator()
+                                             .build_set(vertex_deformer, 0)
+                                             .bind(primitive_data_buffer)
+                                             .bind(skeletal_data_buffer)
+                                             .build();
+
         graph.add_pass({
             .name = "deform_skinned_meshes",
             .buffers = barriers,
+            .descriptor_sets = {set},
             .execute = [&](CommandBuffer& commands) {
                 commands.bind_pipeline(vertex_deformer);
 
-                commands.bind_buffer_reference(0, primitive_data_buffer);
-                commands.bind_buffer_reference(2, skeletal_data_buffer);
+                commands.bind_descriptor_set(0, set);
 
                 // For each _active_ skeletal mesh proxy, we bind the proxy's bone transforms buffer, and set push
                 // constants for the skeletal data (original vertices) and mesh data (transformed vertices). Dispatch
                 // enough workgroups that we have the number of vertices in the x
 
                 for(const auto& mesh : active_skeletal_meshes) {
-                    commands.bind_buffer_reference(4, mesh->bone_transforms);
-                    commands.set_push_constant(6, mesh.index);
-                    commands.set_push_constant(7, mesh->mesh_proxy.index);
-                    commands.set_push_constant(8, mesh->mesh_proxy->mesh->num_vertices);
+                    commands.set_push_constant(0, mesh.index);
+                    commands.set_push_constant(1, mesh->mesh_proxy.index);
+                    commands.set_push_constant(2, mesh->mesh_proxy->mesh->num_vertices);
 
                     commands.dispatch((mesh->mesh_proxy->mesh->num_vertices + 63) / 64, 1, 1);
                 }
@@ -576,9 +611,7 @@ namespace render {
         for(auto& primitive : mesh.primitives) {
             primitive.proxy = create_skeletal_mesh_proxy(
                 transform.cached_parent_to_world * transform.local_to_parent,
-                primitive.mesh,
-                primitive.material,
-                primitive.visible_to_ray_tracing,
+                primitive,
                 mesh.bone_matrices_buffer
                 );
             active_skeletal_meshes.emplace_back(primitive.proxy);

@@ -15,6 +15,10 @@
 #include "proxies/skeletal_mesh_primitive_proxy.hpp"
 #include "shared/lights.hpp"
 
+namespace render {
+    struct SkeletalMeshPrimitive;
+}
+
 class Scene;
 
 namespace render {
@@ -61,13 +65,13 @@ namespace render {
 
         SkeletalMeshPrimitiveProxyHandle create_skeletal_mesh_proxy(
             const float4x4& transform,
-            MeshHandle mesh,
-            PooledObject<BasicPbrMaterialProxy> material,
-            bool visible_to_ray_tracing,
+            const SkeletalMeshPrimitive& primitive,
             BufferHandle bone_matrices_buffer
             );
 
         void update_mesh_proxy(MeshPrimitiveProxyHandle handle);
+
+        void update_mesh_proxy(SkeletalMeshPrimitiveProxyHandle handle);
 
         void destroy_primitive(MeshPrimitiveProxyHandle primitive);
 
@@ -173,9 +177,10 @@ namespace render {
         BufferHandle primitive_data_buffer;
         ScatterUploadBuffer<PrimitiveDataGPU> primitive_upload_buffer;
 
-        TODO: Upload to these buffers when skeletal proxies are updated
         BufferHandle skeletal_data_buffer;
         ScatterUploadBuffer<SkeletalPrimitiveDataGPU> skeletal_data_upload_buffer;
+
+        ComputePipelineHandle vertex_deformer = nullptr;
 
         // TODO: Group solid primitives by front face
 

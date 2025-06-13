@@ -16,6 +16,8 @@ using VertexDataPointer = uint64_t;
 using BoneIdsPointer = uint64_t;
 using WeightsPointer = uint64_t;
 
+using BoneTransformsPointer = uint64_t;
+
 #elif defined(GL_core_profile)
 #define MaterialPointer uvec2
 #define IndexPointer uvec2
@@ -33,8 +35,10 @@ using WeightsPointer = uint64_t;
 #define VertexPositionPointer float3*
 #define VertexDataPointer StandardVertexData*
 
-#define BoneIdsPointer vector<uint16_t, 4>*
+#define BoneIdsPointer u16vec4*
 #define WeightsPointer float4*
+
+#define BoneTransformsPointer float4x4*
 #endif
 
 struct PrimitiveDataGPU {
@@ -61,6 +65,8 @@ struct SkeletalPrimitiveDataGPU {
 
     BoneIdsPointer bone_ids;
     WeightsPointer weights;
+
+    BoneTransformsPointer bone_transforms;
 };
 
 #endif

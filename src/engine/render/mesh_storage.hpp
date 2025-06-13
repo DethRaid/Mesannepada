@@ -44,6 +44,10 @@ namespace render {
 
         BufferHandle get_vertex_data_buffer() const;
 
+        BufferHandle get_weights_buffer() const;
+
+        BufferHandle get_bone_ids_buffer() const;
+
         BufferHandle get_index_buffer() const;
 
         BufferHandle get_draw_args_buffer() const;

@@ -1,5 +1,6 @@
 #include "resource_upload_queue.hpp"
 
+#include "core/issue_breakpoint.hpp"
 #include "render/backend/render_backend.hpp"
 #include "render/backend/utils.hpp"
 #include "core/system_interface.hpp"
@@ -84,6 +85,18 @@ namespace render {
 
         for (const auto& job : buffer_uploads) {
             total_size += job.data.size();
+
+            // Bitta validation
+            if(job.data.size() > job.buffer->create_info.size - job.dest_offset) {
+                logger->error(
+                    "Trying to upload {} bytes, but buffer {} only has space for {} at offset {}",
+                    job.data.size(),
+                    job.buffer->name,
+                    job.buffer->create_info.size - job.dest_offset,
+                    job.dest_offset
+                    );
+                SAH_BREAKPOINT;
+            }
 
             before_buffer_barriers.emplace_back(
                 VkBufferMemoryBarrier2{
