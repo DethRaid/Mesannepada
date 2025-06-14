@@ -62,7 +62,7 @@ namespace render {
     void DLSSAdapter::initialize(const glm::uvec2 output_resolution, const uint32_t frame_index) {
         slGetNewFrameToken(frame_token, &frame_index);
 
-        dlss_mode = cvar_dlss_mode.Get();
+        dlss_mode = cvar_dlss_mode.get();
 
         sl::DLSSOptions dlss_options;
         dlss_options.mode = dlss_mode;

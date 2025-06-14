@@ -41,7 +41,7 @@ namespace render {
 
         frame_index++;
 
-        switch (cvar_ao_technique.Get()) {
+        switch (cvar_ao_technique.get()) {
         case AoTechnique::Off:
             graph.add_render_pass(
                 {

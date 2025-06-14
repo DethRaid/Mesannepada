@@ -67,9 +67,7 @@ namespace render {
         }
 
 #else
-    {
-            volk_result = volkInitialize();
-    }
+        volk_result = volkInitialize();    
 #endif
 
         if(volk_result != VK_SUCCESS) {
@@ -372,7 +370,7 @@ namespace render {
             logger->info("Ray tracing supported");
         }
 
-        supports_rt = acceleration_structure_features.accelerationStructure == VK_TRUE;
+        supports_rt &= acceleration_structure_features.accelerationStructure == VK_TRUE;
 
         supports_dgc = device_generated_commands_features.deviceGeneratedCommands == VK_TRUE;
 

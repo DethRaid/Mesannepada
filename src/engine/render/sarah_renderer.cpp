@@ -71,9 +71,9 @@ namespace render {
 
         logger->debug("Initialized render backend");
 
-        if (!backend.supports_shading_rate_image && cvar_anti_aliasing.Get() == AntiAliasingType::VRSAA) {
+        if (!backend.supports_shading_rate_image && cvar_anti_aliasing.get() == AntiAliasingType::VRSAA) {
             logger->info("Backend does not support VRSAA, turning AA off");
-            cvar_anti_aliasing.Set(AntiAliasingType::None);
+            cvar_anti_aliasing.set(AntiAliasingType::None);
         }
 
         auto& allocator = backend.get_global_allocator();
@@ -184,7 +184,7 @@ namespace render {
 
         auto needs_motion_vectors = false;
 
-        switch (cvar_anti_aliasing.Get()) {
+        switch (cvar_anti_aliasing.get()) {
         case AntiAliasingType::VRSAA:
             if (vrsaa == nullptr) {
                 vrsaa = eastl::make_unique<VRSAA>();
@@ -231,7 +231,7 @@ namespace render {
             break;
         }
 
-        cached_aa = cvar_anti_aliasing.Get();
+        cached_aa = cvar_anti_aliasing.get();
 
         if (upscaler) {
             vrsaa = nullptr;
@@ -248,7 +248,11 @@ namespace render {
             needs_motion_vectors = true;
         }
 
-        switch (cvar_gi_mode.Get()) {
+        if(cvar_gi_mode.get() == GIMode::RT && !backend.supports_ray_tracing()) {
+            cvar_gi_mode.set(GIMode::LPV);
+        }
+
+        switch (cvar_gi_mode.get()) {
         case GIMode::Off:
             gi = nullptr;
             break;
@@ -263,7 +267,7 @@ namespace render {
             }
             break;
         }
-        cached_gi_mode = cvar_gi_mode.Get();
+        cached_gi_mode = cvar_gi_mode.get();
 
         ui_phase.add_data_upload_passes(backend.get_upload_queue());
 
@@ -627,7 +631,7 @@ namespace render {
         auto& backend = RenderBackend::get();
         auto& player_view = scene->get_player_view();
 
-        switch (cvar_anti_aliasing.Get()) {
+        switch (cvar_anti_aliasing.get()) {
         case AntiAliasingType::VRSAA:
             if (vrsaa) {
                 vrsaa->measure_aliasing(render_graph, gbuffer.color, gbuffer_depth_handle);

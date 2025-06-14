@@ -52,7 +52,7 @@ public:
 
     void propagate_transforms(float delta_time);
 
-    const eastl::unordered_set<entt::entity>& get_top_level_entities() const;
+    const eastl::unordered_set<entt::entity>& get_top_level_entities() const; 
 
 private:
     entt::registry registry;

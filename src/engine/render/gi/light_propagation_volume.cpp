@@ -232,7 +232,7 @@ namespace render {
         RenderGraph& graph, const SceneView& view, const RenderScene& scene, const GBuffer& gbuffer,
         TextureHandle noise_tex
     ) {
-        if(cvar_lpv_build_gv_mode.Get() == GvBuildMode::DepthBuffers) {
+        if(cvar_lpv_build_gv_mode.get() == GvBuildMode::DepthBuffers) {
             build_geometry_volume_from_scene_view(
                 graph,
                 gbuffer.depth,
@@ -745,7 +745,7 @@ namespace render {
 
         }
 
-        if(cvar_lpv_build_gv_mode.Get() == GvBuildMode::DepthBuffers) {
+        if(cvar_lpv_build_gv_mode.get() == GvBuildMode::DepthBuffers) {
             for(auto cascade_index = 0u; cascade_index < cascades.size(); cascade_index++) {
                 const auto& cascade = cascades[cascade_index];
                 inject_rsm_depth_into_cascade_gv(graph, cascade, cascade_index);
@@ -933,7 +933,7 @@ namespace render {
     }
 
     GvBuildMode LightPropagationVolume::get_build_mode() {
-        return cvar_lpv_build_gv_mode.Get();
+        return cvar_lpv_build_gv_mode.get();
     }
 
     void LightPropagationVolume::build_geometry_volume_from_scene_view(

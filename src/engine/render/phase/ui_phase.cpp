@@ -125,7 +125,7 @@ namespace render {
 
         commands.bind_descriptor_set(0, set);
 
-        commands.set_push_constant(0, static_cast<uint32_t>(cvar_tonemapper.Get()));
+        commands.set_push_constant(0, static_cast<uint32_t>(cvar_tonemapper.get()));
 
         commands.bind_pipeline(tonemapping_pipeline);
 

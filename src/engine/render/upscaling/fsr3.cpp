@@ -49,7 +49,7 @@ namespace render {
         ffx::QueryDescUpscaleGetRenderResolutionFromQualityMode query = {};
         query.displayWidth = output_resolution.x;
         query.displayHeight = output_resolution.y;
-        query.qualityMode = static_cast<uint32_t>(cvar_fsr3_quality.Get());
+        query.qualityMode = static_cast<uint32_t>(cvar_fsr3_quality.get());
         query.pOutRenderWidth = &new_render_resolution.x;
         query.pOutRenderHeight = &new_render_resolution.y;
         auto result = ffx::Query(query);
@@ -62,7 +62,7 @@ namespace render {
                 optimal_render_resolution.y,
                 output_resolution.x,
                 output_resolution.y,
-                to_string(cvar_fsr3_quality.Get()));
+                to_string(cvar_fsr3_quality.get()));
 
             if (has_context) {
                 RenderBackend::get().wait_for_idle();

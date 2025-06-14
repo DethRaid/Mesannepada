@@ -20,9 +20,14 @@ namespace render {
     LightingPhase::LightingPhase() {
         auto& backend = RenderBackend::get();
 
+        auto point_lights_fragment_shader_name = "shaders/lighting/point_lights.frag.spv";
+        if(!backend.supports_ray_tracing()) {
+            point_lights_fragment_shader_name = "shaders/lighting/point_lights_no_rt.frag.spv";
+        }
+
         point_lights_pipeline = backend.begin_building_pipeline("point_lights")
                                        .set_vertex_shader("shaders/common/fullscreen.vert.spv")
-                                       .set_fragment_shader("shaders/lighting/point_lights.frag.spv")
+                                       .set_fragment_shader(point_lights_fragment_shader_name)
                                        .set_depth_state({.enable_depth_write = false, .compare_op = VK_COMPARE_OP_LESS})
                                        .set_blend_mode(BlendMode::Additive)
                                        .build();
@@ -35,7 +40,7 @@ namespace render {
                                            .enable_depth_write = false,
                                            .compare_op = VK_COMPARE_OP_LESS
                                        }
-                                   )
+                                       )
                                    .set_blend_mode(BlendMode::Additive)
                                    .build();
     }
@@ -50,13 +55,13 @@ namespace render {
         const eastl::optional<TextureHandle> vrsaa_shading_rate_image,
         const NoiseTexture& noise,
         const TextureHandle noise_2d
-    ) {
+        ) {
         ZoneScoped;
 
         const auto& view = scene.get_player_view();
         auto& backend = RenderBackend::get();
 
-        if(cvar_sky_occlusion_type.Get() == SkyOcclusionType::DepthMap) {
+        if(cvar_sky_occlusion_type.get() == SkyOcclusionType::DepthMap) {
             rasterize_sky_shadow(render_graph, view);
         } else {
             if(sky_occlusion_map != nullptr) {
@@ -77,12 +82,14 @@ namespace render {
                                               .bind(gbuffer.depth, sampler)
                                               .build();
 
-        auto point_lights_descriptor_set = backend.get_transient_descriptor_allocator()
-                                                  .build_set(point_lights_pipeline, 1)
-                                                  .bind(view.get_buffer())
-                                                  .bind(scene.get_point_lights_buffer())
-                                                  .bind(scene.get_raytracing_scene().get_acceleration_structure())
-                                                  .build();
+        auto point_lights_descriptor_set_builder = backend.get_transient_descriptor_allocator()
+                                                          .build_set(point_lights_pipeline, 1)
+                                                          .bind(view.get_buffer())
+                                                          .bind(scene.get_point_lights_buffer());
+        if(backend.supports_ray_tracing()) {
+            point_lights_descriptor_set_builder.bind(scene.get_raytracing_scene().get_acceleration_structure());
+        }
+        auto point_lights_descriptor_set = point_lights_descriptor_set_builder.build();
 
         auto texture_usages = TextureUsageList{
             {
@@ -112,37 +119,37 @@ namespace render {
         sun.get_resource_usages(buffer_usages, texture_usages);
 
         render_graph.add_render_pass(
-            {
-                .name = "Lighting",
-                .textures = texture_usages,
-                .buffers = buffer_usages,
-                .descriptor_sets = {gbuffers_descriptor_set, point_lights_descriptor_set},
-                .color_attachments = {
-                    RenderingAttachmentInfo{.image = lit_scene_texture, .load_op = VK_ATTACHMENT_LOAD_OP_CLEAR}
-                },
-                .execute = [&](CommandBuffer& commands) {
-                    commands.bind_descriptor_set(0, gbuffers_descriptor_set);
+        {
+            .name = "Lighting",
+            .textures = texture_usages,
+            .buffers = buffer_usages,
+            .descriptor_sets = {gbuffers_descriptor_set, point_lights_descriptor_set},
+            .color_attachments = {
+                RenderingAttachmentInfo{.image = lit_scene_texture, .load_op = VK_ATTACHMENT_LOAD_OP_CLEAR}
+            },
+            .execute = [&](CommandBuffer& commands) {
+                commands.bind_descriptor_set(0, gbuffers_descriptor_set);
 
-                    sun.render(commands, view);
+                sun.render(commands, view);
 
-                    apply_point_lights(commands, point_lights_descriptor_set, scene.get_num_point_lights());
+                apply_point_lights(commands, point_lights_descriptor_set, scene.get_num_point_lights());
 
-                    if(gi) {
-                        gi->render_to_lit_scene(
-                            commands,
-                            view.get_buffer(),
-                            sun.get_constant_buffer(),
-                            ao_texture,
-                            noise_2d);
-                    }
-
-                    add_emissive_lighting(commands);
-
-                    scene.get_sky().render_sky(commands, view.get_buffer(), sun.get_constant_buffer(), gbuffer.depth);
-
-                    // The sky uses different descriptor sets, so if we add anything after this we'll have to re-bind the gbuffer descriptor set
+                if(gi) {
+                    gi->render_to_lit_scene(
+                        commands,
+                        view.get_buffer(),
+                        sun.get_constant_buffer(),
+                        ao_texture,
+                        noise_2d);
                 }
-            });
+
+                add_emissive_lighting(commands);
+
+                scene.get_sky().render_sky(commands, view.get_buffer(), sun.get_constant_buffer(), gbuffer.depth);
+
+                // The sky uses different descriptor sets, so if we add anything after this we'll have to re-bind the gbuffer descriptor set
+            }
+        });
     }
 
     void LightingPhase::rasterize_sky_shadow(RenderGraph& render_graph, const SceneView& view) {
@@ -176,7 +183,7 @@ namespace render {
 
     void LightingPhase::apply_point_lights(
         CommandBuffer& commands, const DescriptorSet& set, const uint32_t num_point_lights
-    ) const {
+        ) const {
         if(num_point_lights == 0) {
             return;
         }

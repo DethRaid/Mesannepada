@@ -22,14 +22,14 @@ namespace render {
     };
 
     uint32_t RayTracingDebugPhase::get_debug_mode() {
-        return static_cast<uint32_t>(cvar_debug_mode.Get());
+        return static_cast<uint32_t>(cvar_debug_mode.get());
     }
 
     void RayTracingDebugPhase::raytrace(
         RenderGraph& graph, const SceneView& view, const RenderScene& scene, const GBuffer& gbuffer,
         const TextureHandle output_texture
     ) {
-        if (cvar_debug_mode.Get() == RaytracingDebugMode::Off) {
+        if (cvar_debug_mode.get() == RaytracingDebugMode::Off) {
             return;
         }
 
