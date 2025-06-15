@@ -50,7 +50,7 @@ static eastl::vector<StandardVertex> read_vertex_data(const fastgltf::Primitive&
 
 static eastl::vector<uint32_t> read_index_data(const fastgltf::Primitive& primitive, const fastgltf::Asset& model);
 
-static eastl::tuple<eastl::vector<u16vec4>, eastl::vector<float4> > read_skinning_data(
+static eastl::tuple<eastl::vector<u16vec4>, eastl::vector<float4>> read_skinning_data(
     const fastgltf::Primitive& primitive, const fastgltf::Asset& asset
     );
 
@@ -246,7 +246,8 @@ void GltfModel::add_static_mesh_component(const entt::handle& entity, const fast
     entity.emplace<render::StaticMeshComponent>(primitives);
 }
 
-void GltfModel::add_skeletal_mesh_component(const entt::handle& entity, const fastgltf::Node& node, const size_t node_index
+void GltfModel::add_skeletal_mesh_component(const entt::handle& entity, const fastgltf::Node& node,
+                                            const size_t node_index
     ) const {
     ZoneScoped;
     const auto mesh_index = *node.meshIndex;
@@ -345,7 +346,8 @@ void GltfModel::add_collider_component(
             }
 
             body_settings.mGravityFactor = rigid_body.motion->gravityFactor;
-        } {
+        }
+        {
             ZoneScopedN("create_body");
             auto& physics_scene = Engine::get().get_physics_scene();
             auto& body_interface = physics_scene.get_body_interface();
@@ -776,9 +778,17 @@ void GltfModel::import_skins(AnimationSystem& animation_system) {
             const auto& node_transform = fastgltf::getTransformMatrix(node);
             auto& bone = skeleton.bones.emplace_back();
             bone.local_transform = glm::make_mat4(node_transform.data());
-            bone.children.insert(bone.children.begin(),
-                                 node.children.data(),
-                                 node.children.data() + node.children.size());
+            bone.children.reserve(node.children.size());
+            for(const auto child_idx : node.children) {
+                bone.children.emplace_back(child_idx);
+            }
+        }
+
+        // Fix up children to refer to bones, not nodes
+        for(auto& bone : skeleton.bones) {
+            for(auto& child_idx : bone.children) {
+                child_idx = node_id_to_bone_id.at(child_idx);
+            }
         }
 
         skeleton_handle = animation_system.add_skeleton(eastl::move(skeleton));
@@ -1201,7 +1211,7 @@ Box read_mesh_bounds(const fastgltf::Primitive& primitive, const fastgltf::Asset
     return {.min = min, .max = max};
 }
 
-eastl::tuple<eastl::vector<u16vec4>, eastl::vector<float4> > read_skinning_data(
+eastl::tuple<eastl::vector<u16vec4>, eastl::vector<float4>> read_skinning_data(
     const fastgltf::Primitive& primitive, const fastgltf::Asset& asset
     ) {
     const auto weights_index = primitive.findAttribute("WEIGHTS_0")->accessorIndex;

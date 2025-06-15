@@ -46,9 +46,12 @@ void AnimationSystem::tick(float delta_time) {
                 registry.remove<SkeletalAnimatorComponent>(entity);
             } else {
                 animator.animator.update_bones(skelly.bones, current_time);
-
-                skelly.propagate_bone_transforms();
             }
+        });
+
+    registry.view<render::SkeletalMeshComponent>().each(
+        [&](render::SkeletalMeshComponent& skelly) {
+            skelly.propagate_bone_transforms();
         });
 
     // Clean up
@@ -71,7 +74,7 @@ void AnimationSystem::add_animation(SkeletonHandle skeleton, const eastl::string
 
     auto& animation_map = animations.at(skeleton);
     if(animation_map.find(name) != animation_map.end()) {
-        throw std::runtime_error{"Duplicate animation names are not allowed!"};        
+        throw std::runtime_error{"Duplicate animation names are not allowed!"};
     }
 
     animation_map.emplace(name, eastl::make_unique<Animation>(eastl::forward<Animation>(animation)));
