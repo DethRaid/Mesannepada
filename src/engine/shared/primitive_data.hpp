@@ -25,6 +25,7 @@ using BoneTransformsPointer = uint64_t;
 #define VertexDataPointer uvec2
 #define BoneIdsPointer uvec2
 #define WeightsPointer uvec2
+#define BoneTransformsPointer uvec2
 
 #else
 #include "shared/basic_pbr_material.hpp"

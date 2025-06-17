@@ -321,3 +321,23 @@ if(WIN32)
     )
     FetchContent_MakeAvailable(fetch_glfw)
 endif()
+
+
+set(SAH_EXTERNAL_NATVIS_FILES
+        "${FETCHCONTENT_BASE_DIR}/eastl-src/doc/EASTL.natvis"
+        "${FETCHCONTENT_BASE_DIR}/entt-src/natvis/entt/signal.natvis"
+        "${FETCHCONTENT_BASE_DIR}/entt-src/natvis/entt/resource.natvis"
+        "${FETCHCONTENT_BASE_DIR}/entt-src/natvis/entt/process.natvis"
+        "${FETCHCONTENT_BASE_DIR}/entt-src/natvis/entt/poly.natvis"
+        "${FETCHCONTENT_BASE_DIR}/entt-src/natvis/entt/meta.natvis"
+        "${FETCHCONTENT_BASE_DIR}/entt-src/natvis/entt/locator.natvis"
+        "${FETCHCONTENT_BASE_DIR}/entt-src/natvis/entt/graph.natvis"
+        "${FETCHCONTENT_BASE_DIR}/entt-src/natvis/entt/entity.natvis"
+        "${FETCHCONTENT_BASE_DIR}/entt-src/natvis/entt/core.natvis"
+        "${FETCHCONTENT_BASE_DIR}/entt-src/natvis/entt/container.natvis"
+        "${FETCHCONTENT_BASE_DIR}/entt-src/natvis/entt/config.natvis"
+        "${FETCHCONTENT_BASE_DIR}/glm-src/util/glm.natvis"
+        "${FETCHCONTENT_BASE_DIR}/joltphysics-src/Jolt/Jolt.natvis"
+        "${FETCHCONTENT_BASE_DIR}/fetch_vma-src/src/vk_mem_alloc.natvis"
+        "${FETCHCONTENT_BASE_DIR}/fetch_imgui-src/mics/debuggers/imgui.natvis"
+)

@@ -31,7 +31,7 @@ namespace render {
     /**
      * A scene that can be rendered!
      *
-     * Contains lots of wonderful things - meshes, materials, ray tracing acceleration structure, emissive point clouds, and more!
+     * Contains lots of wonderful things - meshes, materials, ray tracing acceleration structure, and more!
      */
     class RenderScene {
     public:

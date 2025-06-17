@@ -57,7 +57,7 @@ private:
 
     void update_mouse_cursor() const;
 
-    void draw_fps_info();
+    static void draw_fps_info();
 
     void draw_debug_menu();
 

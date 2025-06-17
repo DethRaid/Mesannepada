@@ -19,7 +19,7 @@ set(SHADER_DIR ${CMAKE_CURRENT_LIST_DIR}/shaders)
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_LIST_DIR}/*.cpp ${CMAKE_CURRENT_LIST_DIR}/*.hpp)
 
-add_library(SahCore STATIC ${SOURCES})
+add_library(SahCore STATIC ${SOURCES} ${SAH_EXTERNAL_NATVIS_FILES})
 
 # External code
 # Must be after we set CMAKE_RUNTIME_OUTPUT_DIRECTORY, because Streamline needs that variable

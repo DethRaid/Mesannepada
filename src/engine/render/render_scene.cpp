@@ -112,6 +112,8 @@ namespace render {
     }
 
     void RenderScene::update_mesh_proxy(const SkeletalMeshPrimitiveProxyHandle handle) {
+        update_mesh_proxy(handle->mesh_proxy);
+
         if(skeletal_data_upload_buffer.is_full()) {
             auto graph = RenderGraph{RenderBackend::get()};
 
@@ -695,7 +697,7 @@ namespace render {
 
             for(const auto& primitive : mesh->primitives) {
                 primitive.proxy->mesh_proxy->data.model = matrix;
-                update_mesh_proxy(primitive.proxy->mesh_proxy);
+                update_mesh_proxy(primitive.proxy);
 
                 if(raytracing_scene && primitive.visible_to_ray_tracing) {
                     raytracing_scene->update_primitive(primitive.proxy->mesh_proxy);

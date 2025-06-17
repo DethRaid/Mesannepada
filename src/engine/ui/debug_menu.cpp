@@ -18,9 +18,10 @@
 #include "core/system_interface.hpp"
 #include "physics/collider_component.hpp"
 #include "render/sarah_renderer.hpp"
-#include "render/components/static_mesh_component.hpp"
 #include "render/backend/render_backend.hpp"
 #include "render/backend/resource_allocator.hpp"
+#include "render/components/skeletal_mesh_component.hpp"
+#include "render/components/static_mesh_component.hpp"
 #include "render/visualizers/visualizer_type.hpp"
 #include "scene/camera_component.hpp"
 #include "scene/transform_component.hpp"
@@ -109,7 +110,7 @@ static void char_callback(GLFWwindow* window, const unsigned int c) {
 DebugUI::DebugUI(render::SarahRenderer& renderer_in) : renderer{renderer_in} {
     ImGui::CreateContext();
 
-    auto& system_interface = SystemInterface::get();
+    const auto& system_interface = SystemInterface::get();
     window = system_interface.get_glfw_window();
 
     ImGui::CreateContext();
@@ -282,8 +283,7 @@ void DebugUI::update_mouse_pos_and_buttons() const {
     const auto mouse_pos_backup = io.MousePos;
     io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX);
 
-    const auto focused = glfwGetWindowAttrib(window, GLFW_FOCUSED) != 0;
-    if(focused) {
+    if(glfwGetWindowAttrib(window, GLFW_FOCUSED) != 0) {
         if(io.WantSetMousePos) {
             glfwSetCursorPos(window, static_cast<double>(mouse_pos_backup.x), static_cast<double>(mouse_pos_backup.y));
         } else {
@@ -295,7 +295,7 @@ void DebugUI::update_mouse_pos_and_buttons() const {
 }
 
 void DebugUI::update_mouse_cursor() const {
-    auto& io = ImGui::GetIO();
+    const auto& io = ImGui::GetIO();
     if((io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange) || glfwGetInputMode(window, GLFW_CURSOR) ==
         GLFW_CURSOR_DISABLED) {
         return;
@@ -515,8 +515,7 @@ void DebugUI::draw_scene_outline() {
 
 void DebugUI::draw_entity(entt::entity entity, const entt::registry& registry, const eastl::string& prefix) {
     auto object_name = std::to_string(static_cast<uint32_t>(entity));
-    const auto* game_object = registry.try_get<GameObjectComponent>(entity);
-    if(game_object) {
+    if(const auto* game_object = registry.try_get<GameObjectComponent>(entity)) {
         object_name = game_object->game_object->name.c_str();
     }
     ImGui::Text("%sEntity %s", prefix.c_str(), object_name.c_str());
@@ -533,6 +532,13 @@ void DebugUI::draw_entity(entt::entity entity, const entt::registry& registry, c
         const auto& mesh = registry.get<render::StaticMeshComponent>(entity);
         for(const auto& primitive : mesh.primitives) {
             ImGui::Text("%s\tStaticMeshPrimitive %u", prefix.c_str(), primitive.proxy.index);
+        }
+    }
+
+    if(registry.all_of<render::SkeletalMeshComponent>(entity)) {
+        const auto& mesh = registry.get<render::SkeletalMeshComponent>(entity);
+        for(const auto& primitive : mesh.primitives) {
+            ImGui::Text("%s\tSkeletalMeshPrimitive %u", prefix.c_str(), primitive.proxy.index);
         }
     }
 
