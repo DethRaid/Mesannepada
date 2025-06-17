@@ -7,22 +7,23 @@
 #include <tracy/Tracy.hpp>
 #include <vulkan/vk_enum_string_helper.h>
 
-#include "render_graph.hpp"
 #include "console/cvars.hpp"
+#include "core/issue_breakpoint.hpp"
 #include "core/system_interface.hpp"
 #include "render/backend/blas_build_queue.hpp"
 #include "render/backend/p_next_chain.hpp"
-#include "render/backend/rhi_globals.hpp"
 #include "render/backend/pipeline_cache.hpp"
 #include "render/backend/resource_upload_queue.hpp"
-#include "core/issue_breakpoint.hpp"
+#include "render/backend/rhi_globals.hpp"
 #include "render/upscaling/xess.hpp"
+#include "render_graph.hpp"
 #include "shared/prelude.h"
 
 namespace render {
     [[maybe_unused]] static auto cvar_use_dgc = AutoCVar_Int{
         "r.RHI.DGC.Enable",
-        "Whether to use Device-Generated Commands when available. Reduces CPU load, but is not supported on all hardware. We currently use VK_NV_device_generated_commands, will switch to EXT when it reaches my GPU",
+        "Whether to use Device-Generated Commands when available. Reduces CPU load, but is not supported on all "
+        "hardware. We currently use VK_NV_device_generated_commands, will switch to EXT when it reaches my GPU",
         0 // Keep this off until we have material functions working
     };
 
@@ -48,10 +49,7 @@ namespace render {
         return lib_vulkan;
     }
 
-    RenderBackend::RenderBackend() : resource_access_synchronizer{*this}, global_descriptor_allocator{*this},
-                                     frame_descriptor_allocators{
-                                         DescriptorSetAllocator{*this}, DescriptorSetAllocator{*this}
-                                     } {
+    RenderBackend::RenderBackend() : resource_access_synchronizer{*this} {
         ZoneScoped;
 
         logger = SystemInterface::get().get_logger("RenderBackend");
@@ -67,13 +65,12 @@ namespace render {
         }
 
 #else
-        volk_result = volkInitialize();    
+        volk_result = volkInitialize();
 #endif
 
         if(volk_result != VK_SUCCESS) {
             throw std::runtime_error{
-                fmt::format("Could not initialize Volk, Vulkan is not available ({})", string_VkResult(volk_result))
-            };
+                fmt::format("Could not initialize Volk, Vulkan is not available ({})", string_VkResult(volk_result))};
         }
 
         supports_raytracing = *CVarSystem::Get()->GetIntCVar("r.Raytracing.Enable") != 0;
@@ -90,12 +87,11 @@ namespace render {
 
         // vkb enables the surface extensions for us
         auto instance_builder = vkb::InstanceBuilder{vkGetInstanceProcAddr}
-        .set_app_name("𒈩𒀭𒉌𒅆𒊒𒁕")
-        .set_engine_name("𒊓𒊏")
-        .set_app_version(0, 13, 0)
-        .require_api_version(1, 4, 0)
-        .enable_extension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME)
-;
+                                    .set_app_name("𒈩𒀭𒉌𒅆𒊒𒁕")
+                                    .set_engine_name("𒊓𒊏")
+                                    .set_app_version(0, 13, 0)
+                                    .require_api_version(1, 4, 0)
+                                    .enable_extension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
 #if SAH_USE_XESS
         const auto xess_extensions = XeSSAdapter::get_instance_extensions();
@@ -108,11 +104,9 @@ namespace render {
             ZoneScopedN("vkCreateInstance");
             auto instance_ret = instance_builder.build();
             if(!instance_ret) {
-                const auto error_message = fmt::format(
-                    "Could not initialize Vulkan: {} (VK_RESULT {})",
-                    instance_ret.error().message(),
-                    string_VkResult(instance_ret.vk_result())
-                );
+                const auto error_message = fmt::format("Could not initialize Vulkan: {} (VK_RESULT {})",
+                                                       instance_ret.error().message(),
+                                                       string_VkResult(instance_ret.vk_result()));
                 throw std::runtime_error{error_message};
             }
             instance = instance_ret.value();
@@ -183,17 +177,17 @@ namespace render {
             .maintenance5 = VK_TRUE,
         };
 
-        auto phys_device_builder = vkb::PhysicalDeviceSelector{instance}
-                                   .set_surface(surface)
-                                   .add_required_extension(VK_KHR_SWAPCHAIN_EXTENSION_NAME)
-                                   .add_required_extension(
-                                       VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME) // FFX needs this
-                                   .set_required_features(required_features)
-                                   .set_required_features_11(required_1_1_features)
-                                   .set_required_features_12(required_1_2_features)
-                                   .set_required_features_13(required_1_3_features)
-                                   //.set_required_features_14(required_1_4_features)
-                                   .set_minimum_version(1, 3);
+        auto phys_device_builder =
+            vkb::PhysicalDeviceSelector{instance}
+                .set_surface(surface)
+                .add_required_extension(VK_KHR_SWAPCHAIN_EXTENSION_NAME)
+                .add_required_extension(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME) // FFX needs this
+                .set_required_features(required_features)
+                .set_required_features_11(required_1_1_features)
+                .set_required_features_12(required_1_2_features)
+                .set_required_features_13(required_1_3_features)
+                //.set_required_features_14(required_1_4_features)
+                .set_minimum_version(1, 3);
 
         auto phys_device_ret = phys_device_builder.select();
         if(!phys_device_ret) {
@@ -220,21 +214,25 @@ namespace render {
 
         auto supports_rt_validation = false;
         if(supports_rt) {
-            supports_rt_validation = physical_device.enable_extension_if_present(VK_NV_RAY_TRACING_VALIDATION_EXTENSION_NAME);
+            supports_rt_validation =
+                physical_device.enable_extension_if_present(VK_NV_RAY_TRACING_VALIDATION_EXTENSION_NAME);
+            logger->info("Device {} supporta ray tracing", physical_device.name);
+        } else {
+            logger->warn("Device {} does not support tay tracing!", physical_device.name);
         }
 
         physical_device.enable_extension_if_present(VK_NV_DEVICE_GENERATED_COMMANDS_EXTENSION_NAME);
         physical_device.enable_extension_if_present(VK_NV_DEVICE_GENERATED_COMMANDS_COMPUTE_EXTENSION_NAME);
 
-        supports_nv_shader_reorder = physical_device.enable_extension_if_present(
-            VK_NV_RAY_TRACING_INVOCATION_REORDER_EXTENSION_NAME);
+        supports_nv_shader_reorder =
+            physical_device.enable_extension_if_present(VK_NV_RAY_TRACING_INVOCATION_REORDER_EXTENSION_NAME);
 
         physical_device.enable_extension_if_present(VK_NV_DEVICE_DIAGNOSTIC_CHECKPOINTS_EXTENSION_NAME);
-        supports_nv_diagnostics_config = physical_device.enable_extension_if_present(
-            VK_NV_DEVICE_DIAGNOSTICS_CONFIG_EXTENSION_NAME);
+        supports_nv_diagnostics_config =
+            physical_device.enable_extension_if_present(VK_NV_DEVICE_DIAGNOSTICS_CONFIG_EXTENSION_NAME);
 
-        supports_shading_rate_image = physical_device.enable_extension_if_present(
-            VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME);
+        supports_shading_rate_image =
+            physical_device.enable_extension_if_present(VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME);
         if(supports_shading_rate_image) {
             logger->debug("{} is supported", VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME);
         }
@@ -255,9 +253,7 @@ namespace render {
         auto device_builder = vkb::DeviceBuilder{physical_device};
 
 #if SAH_USE_XESS
-        auto xess_features = VkPhysicalDeviceFeatures2{
-            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2
-        };
+        auto xess_features = VkPhysicalDeviceFeatures2{.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2};
         XeSSAdapter::add_required_features(instance, physical_device, xess_features);
         // TODO: Merge their requests properly
         auto mutable_descriptor = VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT{
@@ -275,8 +271,7 @@ namespace render {
 
         auto rt_validation_features = VkPhysicalDeviceRayTracingValidationFeaturesNV{
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_VALIDATION_FEATURES_NV,
-            .rayTracingValidation = VK_TRUE
-        };
+            .rayTracingValidation = VK_TRUE};
 
         if(supports_ray_tracing()) {
             device_builder.add_pNext(&acceleration_structure_features);
@@ -300,12 +295,9 @@ namespace render {
             VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_RESOURCE_TRACKING_BIT_NV |
             VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_AUTOMATIC_CHECKPOINTS_BIT_NV |
             VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_SHADER_DEBUG_INFO_BIT_NV |
-            VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_SHADER_ERROR_REPORTING_BIT_NV
-        );
+            VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_SHADER_ERROR_REPORTING_BIT_NV);
         auto device_diagnostics_info = VkDeviceDiagnosticsConfigCreateInfoNV{
-            .sType = VK_STRUCTURE_TYPE_DEVICE_DIAGNOSTICS_CONFIG_CREATE_INFO_NV,
-            .flags = aftermath_flags
-        };
+            .sType = VK_STRUCTURE_TYPE_DEVICE_DIAGNOSTICS_CONFIG_CREATE_INFO_NV, .flags = aftermath_flags};
 
         if(supports_nv_diagnostics_config) {
             device_builder.add_pNext(&device_diagnostics_info);
@@ -332,8 +324,7 @@ namespace render {
 
         if(supports_ray_tracing()) {
             ray_pipeline_features = VkPhysicalDeviceRayTracingPipelineFeaturesKHR{
-                .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR
-            };
+                .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR};
             physical_device_features.add_extension(&ray_pipeline_features);
 
             acceleration_structure_features = VkPhysicalDeviceAccelerationStructureFeaturesKHR{
@@ -388,8 +379,7 @@ namespace render {
             auto shading_rates = eastl::vector<VkPhysicalDeviceFragmentShadingRateKHR>(
                 count,
                 VkPhysicalDeviceFragmentShadingRateKHR{
-                    .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_KHR
-                });
+                    .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_KHR});
             vkGetPhysicalDeviceFragmentShadingRatesKHR(physical_device, &count, shading_rates.data());
 
             supported_shading_rates = eastl::vector<glm::uvec2>{};
@@ -416,28 +406,23 @@ namespace render {
 
         vkGetPhysicalDeviceProperties2(physical_device, *physical_device_properties);
 
-        logger->debug(
-            "Max supported texel size: {}x{}",
-            shading_rate_properties.maxFragmentShadingRateAttachmentTexelSize.width,
-            shading_rate_properties.maxFragmentShadingRateAttachmentTexelSize.height);
+        logger->debug("Max supported texel size: {}x{}",
+                      shading_rate_properties.maxFragmentShadingRateAttachmentTexelSize.width,
+                      shading_rate_properties.maxFragmentShadingRateAttachmentTexelSize.height);
     }
 
     void RenderBackend::create_swapchain(const uint2 resolution) {
         ZoneScoped;
 
-        auto swapchain_ret = vkb::SwapchainBuilder{device}
-                             .set_desired_format(
-                                 {.format = VK_FORMAT_R8G8B8A8_SRGB, .colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR}
-                             )
-                             .add_fallback_format(
-                                 {.format = VK_FORMAT_B8G8R8A8_SRGB, .colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR}
-                             )
-                             .set_desired_present_mode(VK_PRESENT_MODE_IMMEDIATE_KHR)
-                             .set_image_usage_flags(
-                                 VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT
-                             )
-        .set_desired_extent(resolution.x, resolution.y)
-            .build();
+        auto swapchain_ret =
+            vkb::SwapchainBuilder{device}
+                .set_desired_format({.format = VK_FORMAT_R8G8B8A8_SRGB, .colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR})
+                .add_fallback_format(
+                    {.format = VK_FORMAT_B8G8R8A8_SRGB, .colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR})
+                .set_desired_present_mode(VK_PRESENT_MODE_IMMEDIATE_KHR)
+                .set_image_usage_flags(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT)
+                .set_desired_extent(resolution.x, resolution.y)
+                .build();
         if(!swapchain_ret) {
             throw std::runtime_error{"Could not create swapchain"};
         }
@@ -475,7 +460,10 @@ namespace render {
 
         create_tracy_context();
 
-        global_descriptor_allocator.init(device.device);
+        global_descriptor_allocator = eastl::make_unique<DescriptorSetAllocator>(*this);
+        global_descriptor_allocator->init(device.device);
+
+        frame_descriptor_allocators = {DescriptorSetAllocator{*this}, DescriptorSetAllocator{*this}};
         for(auto& frame_allocator : frame_descriptor_allocators) {
             frame_allocator.init(device.device);
         }
@@ -522,10 +510,8 @@ namespace render {
     }
 
     glm::vec2 RenderBackend::get_max_shading_rate_texel_size() const {
-        const auto properties_max = glm::vec2{
-            shading_rate_properties.maxFragmentShadingRateAttachmentTexelSize.width,
-            shading_rate_properties.maxFragmentShadingRateAttachmentTexelSize.height
-        };
+        const auto properties_max = glm::vec2{shading_rate_properties.maxFragmentShadingRateAttachmentTexelSize.width,
+                                              shading_rate_properties.maxFragmentShadingRateAttachmentTexelSize.height};
 
         return properties_max;
     }
@@ -602,12 +588,8 @@ namespace render {
 
         {
             ZoneScopedN("Wait for previous frame");
-            const auto result = vkWaitForFences(
-                device,
-                1,
-                &frame_fences[cur_frame_idx],
-                VK_TRUE,
-                std::numeric_limits<uint64_t>::max());
+            const auto result =
+                vkWaitForFences(device, 1, &frame_fences[cur_frame_idx], VK_TRUE, std::numeric_limits<uint64_t>::max());
             if(result != VK_SUCCESS) {
                 logger->error("Could not wait for frame fence: {}", string_VkResult(result));
             }
@@ -616,14 +598,12 @@ namespace render {
         swapchain_semaphore = create_transient_semaphore("Acquire swapchain semaphore");
         {
             ZoneScopedN("Acquire swapchain image");
-            vkAcquireNextImageKHR(
-                device,
-                swapchain.swapchain,
-                std::numeric_limits<uint64_t>::max(),
-                swapchain_semaphore,
-                VK_NULL_HANDLE,
-                &cur_swapchain_image_idx
-            );
+            vkAcquireNextImageKHR(device,
+                                  swapchain.swapchain,
+                                  std::numeric_limits<uint64_t>::max(),
+                                  swapchain_semaphore,
+                                  VK_NULL_HANDLE,
+                                  &cur_swapchain_image_idx);
         }
 
         if(!is_first_frame) {
@@ -686,7 +666,7 @@ namespace render {
 
         // Submit any transfer barriers
         // Currently, the high-level code decides if we need a transfer barrier and the backend just does what it's told
-        // This is fine I guess 
+        // This is fine I guess
         if(!transfer_barriers.empty()) {
             const auto transfer_semaphore = create_transient_semaphore("Queue transfer operation");
 
@@ -694,17 +674,15 @@ namespace render {
             {
                 const auto commands = create_transfer_command_buffer("Transfer queue release command buffer");
 
-                constexpr auto begin_info = VkCommandBufferBeginInfo{
-                    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-                    .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
-                };
+                constexpr auto begin_info =
+                    VkCommandBufferBeginInfo{.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+                                             .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT};
                 vkBeginCommandBuffer(commands, &begin_info);
 
-                const auto dependency = VkDependencyInfo{
-                    .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
-                    .imageMemoryBarrierCount = static_cast<uint32_t>(transfer_barriers.size()),
-                    .pImageMemoryBarriers = transfer_barriers.data()
-                };
+                const auto dependency =
+                    VkDependencyInfo{.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+                                     .imageMemoryBarrierCount = static_cast<uint32_t>(transfer_barriers.size()),
+                                     .pImageMemoryBarriers = transfer_barriers.data()};
                 vkCmdPipelineBarrier2(commands, &dependency);
 
                 vkEndCommandBuffer(commands);
@@ -713,11 +691,10 @@ namespace render {
                     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
                     .commandBuffer = commands,
                 };
-                const auto semaphore_signal = VkSemaphoreSubmitInfo{
-                    .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-                    .semaphore = transfer_semaphore,
-                    .stageMask = VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT
-                };
+                const auto semaphore_signal =
+                    VkSemaphoreSubmitInfo{.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+                                          .semaphore = transfer_semaphore,
+                                          .stageMask = VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT};
                 const auto submit = VkSubmitInfo2{
                     .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
                     .commandBufferInfoCount = 1,
@@ -738,11 +715,9 @@ namespace render {
 
                 commands.end();
 
-                const auto semaphore_wait = VkSemaphoreSubmitInfo{
-                    .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-                    .semaphore = transfer_semaphore,
-                    .stageMask = VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT
-                };
+                const auto semaphore_wait = VkSemaphoreSubmitInfo{.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+                                                                  .semaphore = transfer_semaphore,
+                                                                  .stageMask = VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT};
                 const auto command_submit = VkCommandBufferSubmitInfo{
                     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
                     .commandBuffer = commands.get_vk_commands(),
@@ -756,7 +731,6 @@ namespace render {
                     // No need for semaphores - the command buffer only contains barriers, those provide synchronization
                 };
                 vkQueueSubmit2(graphics_queue, 1, &submit, VK_NULL_HANDLE);
-
 
                 destroy_semaphore(transfer_semaphore);
             }
@@ -776,17 +750,14 @@ namespace render {
             auto wait_semaphores = eastl::fixed_vector<VkSemaphore, 8>{swapchain_semaphore};
             if(!last_submission_semaphores.empty()) {
                 wait_semaphores.insert(
-                    wait_semaphores.end(),
-                    last_submission_semaphores.begin(),
-                    last_submission_semaphores.end()
-                );
+                    wait_semaphores.end(), last_submission_semaphores.begin(), last_submission_semaphores.end());
                 wait_stages.emplace_back(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
 
                 last_submission_semaphores.clear();
             }
 
-            auto signal_semaphore = create_transient_semaphore(
-                fmt::format("Graphics submit semaphore {}", cur_frame_idx));
+            auto signal_semaphore =
+                create_transient_semaphore(fmt::format("Graphics submit semaphore {}", cur_frame_idx));
 
             const auto submit = VkSubmitInfo{
                 .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -828,10 +799,8 @@ namespace render {
         }
     }
 
-
     void RenderBackend::collect_tracy_data(const CommandBuffer& commands) const {
-        TracyVkCollect(tracy_context, commands.get_vk_commands())
-    }
+        TracyVkCollect(tracy_context, commands.get_vk_commands())}
 
     TracyVkCtx RenderBackend::get_tracy_context() const {
         return tracy_context;
@@ -855,12 +824,8 @@ namespace render {
         };
         vkAllocateCommandBuffers(device.device, &command_buffer_allocate, &tracy_command_buffer);
 
-        tracy_context = TracyVkContext(
-            physical_device.physical_device,
-            device.device,
-            graphics_queue,
-            tracy_command_buffer
-        )
+        tracy_context =
+            TracyVkContext(physical_device.physical_device, device.device, graphics_queue, tracy_command_buffer)
     }
 
     ResourceAllocator& RenderBackend::get_global_allocator() const {
@@ -901,18 +866,14 @@ namespace render {
 
     CommandBuffer RenderBackend::create_graphics_command_buffer(const std::string& name) {
         static uint32_t num_command_buffers = 0;
-        return CommandBuffer{
-            graphics_command_allocators[cur_frame_idx].allocate_command_buffer(
-                fmt::format("{} for frame {} {}", name, cur_frame_idx, num_command_buffers++)
-            ),
-            *this
-        };
+        return CommandBuffer{graphics_command_allocators[cur_frame_idx].allocate_command_buffer(
+                                 fmt::format("{} for frame {} {}", name, cur_frame_idx, num_command_buffers++)),
+                             *this};
     }
 
     VkCommandBuffer RenderBackend::create_transfer_command_buffer(const std::string& name) {
         return transfer_command_allocators[cur_frame_idx].allocate_command_buffer(
-            fmt::format("{} for frame {}", name, cur_frame_idx)
-        );
+            fmt::format("{} for frame {}", name, cur_frame_idx));
     }
 
     void RenderBackend::create_command_pools() {
@@ -939,14 +900,13 @@ namespace render {
     }
 
     void RenderBackend::present() {
-        const auto present_info = VkPresentInfoKHR{
-            .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-            .waitSemaphoreCount = static_cast<uint32_t>(last_submission_semaphores.size()),
-            .pWaitSemaphores = last_submission_semaphores.data(),
-            .swapchainCount = 1,
-            .pSwapchains = &swapchain.swapchain,
-            .pImageIndices = &cur_swapchain_image_idx
-        };
+        const auto present_info =
+            VkPresentInfoKHR{.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+                             .waitSemaphoreCount = static_cast<uint32_t>(last_submission_semaphores.size()),
+                             .pWaitSemaphores = last_submission_semaphores.data(),
+                             .swapchainCount = 1,
+                             .pSwapchains = &swapchain.swapchain,
+                             .pImageIndices = &cur_swapchain_image_idx};
         {
             ZoneScopedN("vkQueuePresentKHR");
             vkQueuePresentKHR(graphics_queue, &present_info);
@@ -960,7 +920,7 @@ namespace render {
     }
 
     DescriptorSetAllocator& RenderBackend::get_persistent_descriptor_allocator() {
-        return global_descriptor_allocator;
+        return *global_descriptor_allocator;
     }
 
     DescriptorSetAllocator& RenderBackend::get_transient_descriptor_allocator() {
@@ -1043,71 +1003,45 @@ namespace render {
         ZoneScoped;
 
         white_texture_handle = allocator->create_texture(
-            "White texture",
-            {
-                VK_FORMAT_R8G8B8A8_UNORM,
-                glm::uvec2{8, 8},
-                1,
-                TextureUsage::StaticImage
-            }
-        );
+            "White texture", {VK_FORMAT_R8G8B8A8_UNORM, glm::uvec2{8, 8}, 1, TextureUsage::StaticImage});
 
         default_normalmap_handle = allocator->create_texture(
-            "Default normalmap",
-            {
-                VK_FORMAT_R8G8B8A8_UNORM,
-                glm::uvec2{8, 8},
-                1,
-                TextureUsage::StaticImage
-            }
-        );
+            "Default normalmap", {VK_FORMAT_R8G8B8A8_UNORM, glm::uvec2{8, 8}, 1, TextureUsage::StaticImage});
 
         default_sampler = allocator->get_sampler(
-            VkSamplerCreateInfo{
-                .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-                .maxLod = VK_LOD_CLAMP_NONE
-            }
-        );
+            VkSamplerCreateInfo{.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO, .maxLod = VK_LOD_CLAMP_NONE});
 
-        upload_queue->enqueue(
-            TextureUploadJob{
-                .destination = white_texture_handle,
-                .mip = 0,
-                .data = eastl::vector<uint8_t>(static_cast<size_t>(64 * 4), 0xFF)
-            }
-        );
-        upload_queue->enqueue(
-            TextureUploadJob{
-                .destination = default_normalmap_handle,
-                .mip = 0,
-                .data = eastl::vector<uint8_t>{
-                    0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
-                    0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
-                    0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
-                    0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
-                    0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
-                    0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
-                    0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
-                    0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
-                    0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
-                    0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
-                    0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
-                    0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
-                    0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
-                    0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
-                    0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
-                    0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
-                }
-            }
-        );
+        upload_queue->enqueue(TextureUploadJob{.destination = white_texture_handle,
+                                               .mip = 0,
+                                               .data = eastl::vector<uint8_t>(static_cast<size_t>(64 * 4), 0xFF)});
+        upload_queue->enqueue(TextureUploadJob{
+            .destination = default_normalmap_handle,
+            .mip = 0,
+            .data = eastl::vector<uint8_t>{
+                0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
+                0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
+                0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
+                0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
+                0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
+                0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
+                0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
+                0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
+                0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
+                0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
+                0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
+                0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
+                0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
+                0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
+                0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
+                0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00, 0x80, 0x80, 0xFF, 0x00,
+            }});
 
         white_texture_srv = texture_descriptor_pool->create_texture_srv(white_texture_handle, default_sampler);
         default_normalmap_srv = texture_descriptor_pool->create_texture_srv(default_normalmap_handle, default_sampler);
     }
 
-    void RenderBackend::set_object_name(
-        const uint64_t object_handle, const VkObjectType object_type, const std::string& name
-    ) const {
+    void RenderBackend::set_object_name(const uint64_t object_handle, const VkObjectType object_type,
+                                        const std::string& name) const {
         if(vkSetDebugUtilsObjectNameEXT != nullptr) {
             const auto name_info = VkDebugUtilsObjectNameInfoEXT{
                 .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
@@ -1118,4 +1052,4 @@ namespace render {
             vkSetDebugUtilsObjectNameEXT(device, &name_info);
         }
     }
-}
+} // namespace render

@@ -264,9 +264,9 @@ namespace render {
         VkCommandBuffer tracy_command_buffer = VK_NULL_HANDLE;
         TracyVkCtx tracy_context = nullptr;
 
-        DescriptorSetAllocator global_descriptor_allocator;
+        eastl::unique_ptr<DescriptorSetAllocator> global_descriptor_allocator;
 
-        eastl::array<DescriptorSetAllocator, num_in_flight_frames> frame_descriptor_allocators;
+        eastl::vector<DescriptorSetAllocator> frame_descriptor_allocators;
 
         vkutil::DescriptorLayoutCache descriptor_layout_cache;
 

@@ -15,8 +15,8 @@
 namespace render {
     constexpr uint32_t max_num_meshes = 65536;
 
-    constexpr uint32_t max_num_vertices = 100000000;
-    constexpr uint32_t max_num_indices = 100000000;
+    constexpr uint32_t max_num_vertices = 10000000;
+    constexpr uint32_t max_num_indices = 10000000;
 
     static std::shared_ptr<spdlog::logger> logger;
 

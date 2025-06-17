@@ -2,31 +2,35 @@
 
 #include <EASTL/string.h>
 
-#include "render/backend/graphics_pipeline.hpp"
 #include "render/backend/compute_shader.hpp"
+#include "render/backend/graphics_pipeline.hpp"
 #include "render/backend/ray_tracing_pipeline.hpp"
+#include "render_backend.hpp"
 
 namespace render {
-    DescriptorSetAllocator::DescriptorSetAllocator(RenderBackend& backend_in) : backend{ &backend_in } {}
-
-    DescriptorSetBuilder DescriptorSetAllocator::build_set(
-        const GraphicsPipelineHandle pipeline, const uint32_t set_index
-    ) {
-        const auto name = eastl::string{ eastl::string::CtorSprintf(), "%s set %d", pipeline->name.c_str(), set_index };
-        return build_set(pipeline->descriptor_sets.at(set_index), std::string_view{ name.data(), name.size() });
+    DescriptorSetAllocator::DescriptorSetAllocator(RenderBackend& backend_in) :
+        vkutil::DescriptorAllocator{backend_in.supports_ray_tracing()}, backend{&backend_in} {
     }
 
-    DescriptorSetBuilder DescriptorSetAllocator::build_set(const ComputePipelineHandle pipeline, const uint32_t set_index) {
-        const auto name = eastl::string{ eastl::string::CtorSprintf(), "%s set %d", pipeline->name.c_str(), set_index };
-        return build_set(pipeline->descriptor_sets.at(set_index), std::string_view{ name.data(), name.size() });
+    DescriptorSetBuilder DescriptorSetAllocator::build_set(const GraphicsPipelineHandle pipeline,
+                                                           const uint32_t set_index) {
+        const auto name = eastl::string{eastl::string::CtorSprintf(), "%s set %d", pipeline->name.c_str(), set_index};
+        return build_set(pipeline->descriptor_sets.at(set_index), std::string_view{name.data(), name.size()});
+    }
+
+    DescriptorSetBuilder DescriptorSetAllocator::build_set(const ComputePipelineHandle pipeline,
+                                                           const uint32_t set_index) {
+        const auto name = eastl::string{eastl::string::CtorSprintf(), "%s set %d", pipeline->name.c_str(), set_index};
+        return build_set(pipeline->descriptor_sets.at(set_index), std::string_view{name.data(), name.size()});
     }
 
     DescriptorSetBuilder DescriptorSetAllocator::build_set(const DescriptorSetInfo& info, const std::string_view name) {
-        return DescriptorSetBuilder{ *backend, *this, info, name };
+        return DescriptorSetBuilder{*backend, *this, info, name};
     }
 
-    DescriptorSetBuilder DescriptorSetAllocator::build_set(const RayTracingPipelineHandle pipeline, const uint32_t set_index) {
-        const auto name = eastl::string{ eastl::string::CtorSprintf(), "%s set %d", pipeline->name.c_str(), set_index };
-        return build_set(pipeline->descriptor_sets[set_index], std::string_view{ name.data(), name.size() });
+    DescriptorSetBuilder DescriptorSetAllocator::build_set(const RayTracingPipelineHandle pipeline,
+                                                           const uint32_t set_index) {
+        const auto name = eastl::string{eastl::string::CtorSprintf(), "%s set %d", pipeline->name.c_str(), set_index};
+        return build_set(pipeline->descriptor_sets[set_index], std::string_view{name.data(), name.size()});
     }
-}
+} // namespace render
