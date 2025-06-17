@@ -323,6 +323,10 @@ namespace render {
         case SunShadowMode::RayTracing:
             ray_trace_shadows(graph, gbuffer, scene, noise);
             break;
+
+        default:
+            // This page intentionally left blank
+            break;
         }
     }
 

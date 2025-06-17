@@ -574,7 +574,7 @@ namespace render {
                 mesh->num_indices,
                 1,
                 static_cast<uint32_t>(mesh->first_index),
-                static_cast<uint32_t>(mesh->first_vertex),
+                0,
                 0);
         }
 
