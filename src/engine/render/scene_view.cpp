@@ -97,11 +97,7 @@ namespace render {
     }
 
     glm::vec3 SceneView::get_position() const {
-        return -float3{
-            gpu_data.view[0][3],
-            gpu_data.view[1][3],
-            gpu_data.view[2][3],
-        };
+        return float3{gpu_data.inverse_view[3]};
     }
 
     glm::vec3 SceneView::get_forward() const {
