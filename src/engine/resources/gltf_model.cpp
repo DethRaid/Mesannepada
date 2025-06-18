@@ -783,7 +783,7 @@ void GltfModel::import_skins(AnimationSystem& animation_system) {
                 bone.children.emplace_back(child_idx);
             }
         }
-
+         
         // Fix up children to refer to bones, not nodes
         for(auto& bone : skeleton.bones) {
             for(auto& child_idx : bone.children) {
