@@ -42,22 +42,23 @@ using BoneTransformsPointer = uint64_t;
 #define BoneTransformsPointer float4x4*
 #endif
 
+// Size 200
 struct PrimitiveDataGPU {
-    float4x4 model;
-    float4x4 inverse_model;
+    float4x4 model;                                         // Offset 0, size 64
+    float4x4 inverse_model;                                 // Offset 64, size 64
 
     // Bounds min (xyz) and radius (w) of the mesh
-    float4 bounds_min_and_radius;
-    float4 bounds_max;
+    float4 bounds_min_and_radius;                           // Offset 128, size 16
+    float4 bounds_max;                                      // Offset 144, size 16
 
-    MaterialPointer material;
+    MaterialPointer material;                               // Offset 160, size 8
 
-    uint mesh_id;
-    uint type;  // See the PRIMITIVE_TYPE_ defines above
+    uint mesh_id;                                           // Offset 168, size 4
+    uint type;  // See the PRIMITIVE_TYPE_ defines above    // Offset 172, size 4
 
-    IndexPointer indices;
-    VertexPositionPointer vertex_positions;
-    VertexDataPointer vertex_data;
+    IndexPointer indices;                                   // Offset 176, size 8
+    VertexPositionPointer vertex_positions;                 // Offset 184, size 8
+    VertexDataPointer vertex_data;                          // Offset 192, size 8
 };
 
 struct SkeletalPrimitiveDataGPU {
@@ -69,5 +70,10 @@ struct SkeletalPrimitiveDataGPU {
 
     BoneTransformsPointer bone_transforms;
 };
+
+#if __cplusplus
+static_assert(sizeof(PrimitiveDataGPU) == 200);
+static_assert(200 % alignof(PrimitiveDataGPU) == 0);
+#endif
 
 #endif

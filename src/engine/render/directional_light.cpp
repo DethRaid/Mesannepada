@@ -1,21 +1,20 @@
 #include "directional_light.hpp"
 
-#include <glm/ext/matrix_transform.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/matrix_transform.hpp>
 
-#include "gbuffer.hpp"
-#include "material_pipelines.hpp"
-#include "material_storage.hpp"
-#include "mesh_storage.hpp"
-#include "noise_texture.hpp"
-#include "render_scene.hpp"
 #include "backend/pipeline_cache.hpp"
-#include "render/backend/render_backend.hpp"
-#include "render/backend/resource_allocator.hpp"
-#include "render/backend/command_buffer.hpp"
-#include "render/scene_view.hpp"
 #include "console/cvars.hpp"
 #include "core/system_interface.hpp"
+#include "render/gbuffer.hpp"
+#include "render/material_pipelines.hpp"
+#include "render/material_storage.hpp"
+#include "render/mesh_storage.hpp"
+#include "render/render_scene.hpp"
+#include "render/scene_view.hpp"
+#include "render/backend/command_buffer.hpp"
+#include "render/backend/render_backend.hpp"
+#include "render/backend/resource_allocator.hpp"
 
 namespace render {
     static std::shared_ptr<spdlog::logger> logger;
@@ -58,7 +57,7 @@ namespace render {
             sizeof(glm::mat4) * cvar_num_shadow_cascades.Get(),
             BufferUsage::UniformBuffer);
 
-        auto& backend = RenderBackend::get();
+        const auto& backend = RenderBackend::get();
         pipeline = backend.begin_building_pipeline("Sun Light")
                           .set_vertex_shader("shaders/common/fullscreen.vert.spv")
                           .set_fragment_shader("shaders/lighting/directional_light.frag.spv")
