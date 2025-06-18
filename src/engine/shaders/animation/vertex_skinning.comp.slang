@@ -11,6 +11,7 @@ cbuffer Constants {
     uint num_vertices;
 };
 
+[numthreads(64, 1, 1)]
 [shader("compute")]
 void main(uint vertex_id : SV_DispatchThreadID) {
     if(vertex_id >= num_vertices) {
