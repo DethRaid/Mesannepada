@@ -172,6 +172,7 @@ entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<e
 
             if(node.meshIndex) {
                 if(node.skinIndex) {
+                    logger->debug("Adding skeletal mesh component to entity {}", static_cast<uint32_t>(entity.entity()));
                     add_skeletal_mesh_component(entity, node, node_index);
                 } else {
                     add_static_mesh_component(entity, node, node_index);

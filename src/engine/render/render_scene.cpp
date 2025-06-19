@@ -112,6 +112,7 @@ namespace render {
     }
 
     void RenderScene::update_mesh_proxy(const SkeletalMeshPrimitiveProxyHandle handle) {
+        const auto& mesh_data = *handle->mesh_proxy;
         update_mesh_proxy(handle->mesh_proxy);
 
         if(skeletal_data_upload_buffer.is_full()) {
@@ -201,7 +202,10 @@ namespace render {
         const float4x4& transform, const SkeletalMeshPrimitive& primitive, const BufferHandle bone_matrices_buffer
         ) {
         auto proxy = SkeletalMeshPrimitiveProxy{
-            .mesh_proxy = create_mesh_proxy(transform, primitive.mesh, primitive.material, primitive.visible_to_ray_tracing),
+            .mesh_proxy = create_mesh_proxy(transform,
+                                            primitive.mesh,
+                                            primitive.material,
+                                            primitive.visible_to_ray_tracing),
             .bone_transforms = bone_matrices_buffer
         };
 
@@ -671,7 +675,8 @@ namespace render {
     }
 
     void RenderScene::on_transform_update(entt::registry& registry, const entt::entity entity) {
-        if(!registry.any_of<StaticMeshComponent, PointLightComponent, SpotLightComponent, DirectionalLightComponent>(
+        if(!registry.any_of<StaticMeshComponent, SkeletalMeshComponent, PointLightComponent, SpotLightComponent,
+                            DirectionalLightComponent>(
             entity)) {
             return;
         }
