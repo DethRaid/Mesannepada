@@ -86,6 +86,11 @@ target_link_libraries(SahCore PUBLIC
         Jolt
         magic_enum::magic_enum
         plf_colony
+        RecastNavigation::DebugUtils
+        RecastNavigation::Detour
+        RecastNavigation::DetourCrowd
+        RecastNavigation::DetourTileCache
+        RecastNavigation::Recast
         spdlog::spdlog
         spirv-reflect-static
         stb

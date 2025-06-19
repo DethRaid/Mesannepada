@@ -675,9 +675,7 @@ namespace render {
     }
 
     void RenderScene::on_transform_update(entt::registry& registry, const entt::entity entity) {
-        if(!registry.any_of<StaticMeshComponent, SkeletalMeshComponent, PointLightComponent, SpotLightComponent,
-                            DirectionalLightComponent>(
-            entity)) {
+        if(!registry.any_of<SkeletalMeshComponent, StaticMeshComponent, PointLightComponent, SpotLightComponent, DirectionalLightComponent>(entity)) {
             return;
         }
 

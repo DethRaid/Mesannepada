@@ -37,6 +37,10 @@ set(RMLUI_CUSTOM_RTTI ON CACHE BOOL "" FORCE)
 
 set(ENTT_INCLUDE_NATVIS ON CACHE BOOL "" FORCE)
 
+set(RECASTNAVIGATION_DEMO OFF CACHE BOOL "" FORCE)
+set(RECASTNAVIGATION_TESTS OFF CACHE BOOL "" FORCE)
+set(RECASTNAVIGATION_EXAMPLES OFF CACHE BOOL "" FORCE)
+
 # Couple of Linux-specific things - glfw defaults to X11, but Fedora uses Wayland
 if(LINUX)
     set(GLFW_BUILD_WAYLAND ON CACHE BOOL "" FORCE)
@@ -90,6 +94,17 @@ FetchContent_Declare(
         GIT_TAG         v0.9.5
 )
 FetchContent_Declare(
+        recast
+        GIT_REPOSITORY https://github.com/recastnavigation/recastnavigation
+        GIT_TAG        bd98d84c274ee06842bf51a4088ca82ac71f8c2d
+)
+FetchContent_Declare(
+        rmlui
+        GIT_REPOSITORY  https://github.com/mikke89/RmlUi.git
+        GIT_SHALLOW     ON
+        GIT_TAG         6.0
+)
+FetchContent_Declare(
         spdlog
         GIT_REPOSITORY  https://github.com/gabime/spdlog.git
         GIT_TAG         v1.15.3
@@ -99,12 +114,6 @@ FetchContent_Declare(
         GIT_REPOSITORY  https://github.com/KhronosGroup/SPIRV-Reflect.git
         GIT_SHALLOW     ON
         GIT_TAG         vulkan-sdk-1.4.304.0
-)
-FetchContent_Declare(
-        rmlui
-        GIT_REPOSITORY  https://github.com/mikke89/RmlUi.git
-        GIT_SHALLOW     ON
-        GIT_TAG         6.0
 )
 FetchContent_Declare(
         toml11
@@ -168,6 +177,7 @@ FetchContent_MakeAvailable(
         glm
         JoltPhysics
         fetch_magic_enum
+        recast
         rmlui
         spdlog
         fetch_spirv_reflect
