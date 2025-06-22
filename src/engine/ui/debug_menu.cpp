@@ -81,6 +81,8 @@ void DebugUI::draw() {
 
     draw_debug_menu();
 
+    draw_entity_editor();
+
     ImGui::Render();
 }
 
@@ -315,6 +317,7 @@ void DebugUI::draw_scene_outline() {
         const auto& scene = application.get_scene();
         const auto& registry = scene.get_registry();
 
+        auto root_idx = 0u;
         const auto& roots = scene.get_top_level_entities();
         for(const auto root : roots) {
             auto object_name = std::to_string(static_cast<uint32_t>(root));
@@ -322,10 +325,13 @@ void DebugUI::draw_scene_outline() {
                 object_name = game_object->game_object->name.c_str();
             }
 
+            ImGui::PushID(root_idx);
+            root_idx++;
             if(ImGui::Button(object_name.c_str())) {
                 selected_entity = root;
                 show_entity_editor = true;
             }
+            ImGui::PopID();
         }
     }
 
@@ -333,7 +339,7 @@ void DebugUI::draw_scene_outline() {
 }
 
 void DebugUI::draw_entity_editor() {
-    if(show_entity_editor && ImGui::Begin("Entity Editor")) {
+    if(ImGui::Begin("Entity Editor")) {
         ImGui::PushID(static_cast<int>(selected_entity));
 
         auto& registry = Engine::get().get_scene().get_registry();
