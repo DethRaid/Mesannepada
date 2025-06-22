@@ -40,7 +40,7 @@ const entt::registry& Scene::get_registry() const {
     return registry;
 }
 
-void Scene::parent_entity_to_entity(const entt::entity child, const entt::entity parent) {
+void Scene::parent_entity_to_entity(const entt::handle child, const entt::handle parent) {
     if(!registry.valid(child)) {
         logger->error("No child set, unable to parent!");
         return;
@@ -68,11 +68,13 @@ void Scene::parent_entity_to_entity(const entt::entity child, const entt::entity
             propagate_transform(child, transform.get_local_to_world());
         });
 
-    top_level_entities.erase(child);
+    top_level_entities.erase(child.entity());
 }
 
-void Scene::add_top_level_entities(const eastl::span<const entt::entity> entities) {
-    top_level_entities.insert(entities.begin(), entities.end());
+void Scene::add_top_level_entities(const eastl::span<const entt::handle> entities) {
+    for(const auto& entity : entities) {
+        top_level_entities.insert(entity.entity());
+    }
 }
 
 void Scene::propagate_transforms(float delta_time) {

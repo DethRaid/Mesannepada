@@ -56,7 +56,7 @@ entt::handle PrefabLoader::load_prefab(const std::filesystem::path& prefab_file,
         transform_comp.local_to_parent = transform;
     });
 
-    scene.add_top_level_entities(eastl::array{entity.entity()});
+    scene.add_top_level_entities(eastl::array{entity});
 
     return entity;
 }

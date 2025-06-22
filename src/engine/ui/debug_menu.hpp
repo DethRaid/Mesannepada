@@ -1,14 +1,13 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-
-#include <GLFW/glfw3.h>
-
 #include <string>
+
 #include <EASTL/span.h>
 #include <EASTL/string.h>
 #include <EASTL/unordered_map.h>
-#include <entt/entity/registry.hpp>
+#include <GLFW/glfw3.h>
+#include <entt/entt.hpp>
+#include <vulkan/vulkan.h>
 
 #include "render/backend/handles.hpp"
 #include "render/visualizers/visualizer_type.hpp"
@@ -21,6 +20,8 @@ class DebugUI {
 public:
     explicit DebugUI(render::SarahRenderer& renderer_in);
 
+    ~DebugUI();
+
     void draw();
 
 private:
@@ -29,8 +30,6 @@ private:
     render::SarahRenderer& renderer;
 
     bool is_debug_menu_open = true;
-
-    double last_start_time = 0.0;
 
     render::TextureHandle font_atlas_handle;
 
@@ -53,10 +52,6 @@ private:
 
     void create_font_texture();
 
-    void update_mouse_pos_and_buttons() const;
-
-    void update_mouse_cursor() const;
-
     static void draw_fps_info();
 
     void draw_debug_menu();
@@ -66,6 +61,13 @@ private:
     void draw_gi_menu();
 
     void draw_scene_outline();
+
+    entt::entity selected_entity = {};
+    bool show_entity_editor = false;
+
+    void draw_entity_editor();
+
+    void draw_component_helper(entt::meta_any instance, const entt::meta_custom& custom, int& gui_id);
 
     /**
      * Map from entity ID to whether its children are expanded

@@ -136,7 +136,7 @@ const fastgltf::Asset& GltfModel::get_gltf_data() const {
     return asset;
 }
 
-entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<entt::entity>& parent_node) const {
+entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<entt::handle>& parent_node) const {
     ZoneScoped;
 
     auto& registry = scene.get_registry();
@@ -198,7 +198,7 @@ entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<e
 
     // Add our top-level entities to the scene
     if(!parent_node) {
-        auto top_levels = eastl::fixed_vector<entt::entity, 16>{};
+        auto top_levels = eastl::fixed_vector<entt::handle, 16>{};
         for(const auto top_level_node : asset.scenes[*asset.defaultScene].nodeIndices) {
             top_levels.emplace_back(scene_entities.at(top_level_node));
         }
@@ -494,7 +494,7 @@ JPH::Ref<JPH::Shape> GltfModel::create_jolt_shape(const fastgltf::Collider& coll
     return nullptr;
 }
 
-entt::handle GltfModel::add_to_scene(Scene& scene_in, const eastl::optional<entt::entity>& parent_node) const {
+entt::handle GltfModel::add_to_scene(Scene& scene_in, const eastl::optional<entt::handle>& parent_node) const {
     const auto root_entity = add_nodes_to_scene(scene_in, parent_node);
 
     // I'm slightly sorry, future Sarah

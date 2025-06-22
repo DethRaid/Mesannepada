@@ -46,13 +46,13 @@ public:
 
     const entt::registry& get_registry() const;
 
-    void parent_entity_to_entity(entt::entity child, entt::entity parent);
+    void parent_entity_to_entity(entt::handle child, entt::handle parent);
 
-    void add_top_level_entities(eastl::span<const entt::entity> entities);
+    void add_top_level_entities(eastl::span<const entt::handle> entities);
 
     void propagate_transforms(float delta_time);
 
-    const eastl::unordered_set<entt::entity>& get_top_level_entities() const; 
+    const eastl::unordered_set<entt::entity>& get_top_level_entities() const;
 
 private:
     entt::registry registry;
@@ -81,7 +81,7 @@ entt::handle Scene::create_game_object(
     if(parent_node) {
         parent_entity_to_entity(entity, *parent_node);
     } else {
-        add_top_level_entities(eastl::array{entity.entity()});
+        add_top_level_entities(eastl::array{entity});
     }
 
     return entity;

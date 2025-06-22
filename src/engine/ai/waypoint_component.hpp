@@ -1,6 +1,6 @@
 #pragma once
 
-#include <entt/entity/handle.hpp>
+#include <entt/entt.hpp>
 
 namespace ai {
     /**

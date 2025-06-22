@@ -2,6 +2,7 @@
 
 #include <imgui.h>
 #include <magic_enum.hpp>
+#include <imgui_impl_glfw.h>
 #if SAH_USE_STREAMLINE
 #include <sl.h>
 #include <sl_dlss.h>
@@ -17,6 +18,7 @@
 #include "core/engine.hpp"
 #include "core/system_interface.hpp"
 #include "physics/collider_component.hpp"
+#include "reflection/reflection_types.hpp"
 #include "render/sarah_renderer.hpp"
 #include "render/backend/render_backend.hpp"
 #include "render/backend/resource_allocator.hpp"
@@ -26,142 +28,17 @@
 #include "scene/camera_component.hpp"
 #include "scene/transform_component.hpp"
 
-static bool g_MouseJustPressed[5] = {false, false, false, false, false};
-
 #include <GLFW/glfw3.h>
 
-static GLFWmousebuttonfun prev_mouse_button_callback;
-static GLFWscrollfun prev_scroll_callback;
-static GLFWkeyfun prev_key_callback;
-static GLFWcharfun prev_char_callback;
-
-static eastl::array<GLFWcursor*, ImGuiMouseCursor_COUNT> mouse_cursors = {};
-
-static const char* get_clipboard_text(void* user_data) {
-    return glfwGetClipboardString(static_cast<GLFWwindow*>(user_data));
-}
-
-static void set_clipboard_text(void* user_data, const char* text) {
-    glfwSetClipboardString(static_cast<GLFWwindow*>(user_data), text);
-}
-
-static void mouse_button_callback(GLFWwindow* window, const int button, const int action, const int mods) {
-    if(prev_mouse_button_callback != nullptr) {
-        prev_mouse_button_callback(window, button, action, mods);
-    }
-
-    if(action == GLFW_PRESS && button >= 0 && button < IM_ARRAYSIZE(g_MouseJustPressed)) {
-        g_MouseJustPressed[button] = true;
-    }
-}
-
-static void scroll_callback(GLFWwindow* window, const double x_offset, const double y_offset) {
-    if(prev_scroll_callback != nullptr) {
-        prev_scroll_callback(window, x_offset, y_offset);
-    }
-
-    auto& io = ImGui::GetIO();
-    io.MouseWheelH += static_cast<float>(x_offset);
-    io.MouseWheel += static_cast<float>(y_offset);
-}
-
-static void key_callback(GLFWwindow* window, const int key, const int scancode, const int action, const int mods) {
-    if(prev_key_callback != nullptr) {
-        prev_key_callback(window, key, scancode, action, mods);
-    }
-
-    // TODO: Use the new io.AddKeyEvent API? We'd have to convert from raw keycode to ImGUI named key, which is slightly annoying
-    auto& io = ImGui::GetIO();
-    if(action == GLFW_PRESS) {
-        io.KeysDown[key] = true;
-    }
-    if(action == GLFW_RELEASE) {
-        io.KeysDown[key] = false;
-    }
-
-    // Modifiers are not reliable across systems
-    io.KeyMods = ImGuiModFlags_None;
-
-    io.KeyCtrl = io.KeysDown[GLFW_KEY_LEFT_CONTROL] || io.KeysDown[GLFW_KEY_RIGHT_CONTROL];
-    io.KeyShift = io.KeysDown[GLFW_KEY_LEFT_SHIFT] || io.KeysDown[GLFW_KEY_RIGHT_SHIFT];
-    io.KeyAlt = io.KeysDown[GLFW_KEY_LEFT_ALT] || io.KeysDown[GLFW_KEY_RIGHT_ALT];
-    io.KeySuper = false;
-
-    if(io.KeyCtrl) {
-        io.KeyMods |= ImGuiModFlags_Ctrl;
-    }
-    if(io.KeyShift) {
-        io.KeyMods |= ImGuiModFlags_Shift;
-    }
-    if(io.KeyAlt) {
-        io.KeyMods |= ImGuiModFlags_Alt;
-    }
-}
-
-static void char_callback(GLFWwindow* window, const unsigned int c) {
-    if(prev_char_callback != nullptr) {
-        prev_char_callback(window, c);
-    }
-
-    auto& io = ImGui::GetIO();
-    io.AddInputCharacter(c);
-}
-
-DebugUI::DebugUI(render::SarahRenderer& renderer_in) : renderer{renderer_in} {
-    ImGui::CreateContext();
-
+DebugUI::DebugUI(render::SarahRenderer& renderer_in) :
+    renderer{renderer_in} {
     const auto& system_interface = SystemInterface::get();
     window = system_interface.get_glfw_window();
 
+    IMGUI_CHECKVERSION();
     ImGui::CreateContext();
 
-    auto& io = ImGui::GetIO();
-    io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors | ImGuiBackendFlags_RendererHasVtxOffset;
-    io.BackendPlatformName = "Windows";
-    io.BackendRendererName = "SAH Engine";
-
-    io.ConfigFlags |= ImGuiConfigFlags_IsSRGB;
-
-    io.SetClipboardTextFn = set_clipboard_text;
-    io.GetClipboardTextFn = get_clipboard_text;
-    io.ClipboardUserData = window;
-
-    io.KeyMap[ImGuiKey_Tab] = GLFW_KEY_TAB;
-    io.KeyMap[ImGuiKey_LeftArrow] = GLFW_KEY_LEFT;
-    io.KeyMap[ImGuiKey_RightArrow] = GLFW_KEY_RIGHT;
-    io.KeyMap[ImGuiKey_UpArrow] = GLFW_KEY_UP;
-    io.KeyMap[ImGuiKey_DownArrow] = GLFW_KEY_DOWN;
-    io.KeyMap[ImGuiKey_PageUp] = GLFW_KEY_PAGE_UP;
-    io.KeyMap[ImGuiKey_PageDown] = GLFW_KEY_PAGE_DOWN;
-    io.KeyMap[ImGuiKey_Home] = GLFW_KEY_HOME;
-    io.KeyMap[ImGuiKey_End] = GLFW_KEY_END;
-    io.KeyMap[ImGuiKey_Insert] = GLFW_KEY_INSERT;
-    io.KeyMap[ImGuiKey_Delete] = GLFW_KEY_DELETE;
-    io.KeyMap[ImGuiKey_Backspace] = GLFW_KEY_BACKSPACE;
-    io.KeyMap[ImGuiKey_Space] = GLFW_KEY_SPACE;
-    io.KeyMap[ImGuiKey_Enter] = GLFW_KEY_ENTER;
-    io.KeyMap[ImGuiKey_KeyPadEnter] = GLFW_KEY_KP_ENTER;
-    io.KeyMap[ImGuiKey_A] = GLFW_KEY_A;
-    io.KeyMap[ImGuiKey_C] = GLFW_KEY_C;
-    io.KeyMap[ImGuiKey_V] = GLFW_KEY_V;
-    io.KeyMap[ImGuiKey_X] = GLFW_KEY_X;
-    io.KeyMap[ImGuiKey_Y] = GLFW_KEY_Y;
-    io.KeyMap[ImGuiKey_Z] = GLFW_KEY_Z;
-
-    mouse_cursors[ImGuiMouseCursor_Arrow] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-    mouse_cursors[ImGuiMouseCursor_TextInput] = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
-    mouse_cursors[ImGuiMouseCursor_ResizeNS] = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
-    mouse_cursors[ImGuiMouseCursor_ResizeEW] = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
-    mouse_cursors[ImGuiMouseCursor_Hand] = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
-    mouse_cursors[ImGuiMouseCursor_ResizeAll] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-    mouse_cursors[ImGuiMouseCursor_ResizeNESW] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-    mouse_cursors[ImGuiMouseCursor_ResizeNWSE] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-    mouse_cursors[ImGuiMouseCursor_NotAllowed] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-
-    prev_mouse_button_callback = glfwSetMouseButtonCallback(window, mouse_button_callback);
-    prev_scroll_callback = glfwSetScrollCallback(window, scroll_callback);
-    prev_key_callback = glfwSetKeyCallback(window, key_callback);
-    prev_char_callback = glfwSetCharCallback(window, char_callback);
+    ImGui_ImplGlfw_InitForVulkan(window, true);
 
     create_font_texture();
 
@@ -184,33 +61,13 @@ DebugUI::DebugUI(render::SarahRenderer& renderer_in) : renderer{renderer_in} {
 #endif
 }
 
+DebugUI::~DebugUI() {
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+}
+
 void DebugUI::draw() {
-    auto& io = ImGui::GetIO();
-    IM_ASSERT(
-        io.Fonts->IsBuilt() &&
-        "Font atlas not built! It is generally built by the renderer back-end. Missing call to renderer _NewFrame() function? e.g. ImGui_ImplOpenGL3_NewFrame()."
-    );
-
-    // Setup display size (every frame to accommodate for window resizing)
-    int w, h;
-    int display_w, display_h;
-    glfwGetWindowSize(window, &w, &h);
-    glfwGetFramebufferSize(window, &display_w, &display_h);
-    io.DisplaySize = ImVec2(static_cast<float>(w), static_cast<float>(h));
-    if(w > 0 && h > 0) {
-        io.DisplayFramebufferScale = ImVec2(
-            static_cast<float>(display_w) / static_cast<float>(w),
-            static_cast<float>(display_h) / static_cast<float>(h)
-        );
-    }
-
-    // Setup time step
-    const auto current_time = glfwGetTime();
-    io.DeltaTime = last_start_time > 0.0 ? static_cast<float>(current_time - last_start_time) : 1.0f / 60.0f;
-    last_start_time = current_time;
-
-    update_mouse_pos_and_buttons();
-    update_mouse_cursor();
+    ImGui_ImplGlfw_NewFrame();
 
     ImGui::NewFrame();
 
@@ -240,7 +97,7 @@ void DebugUI::create_font_texture() {
     font_atlas_handle = allocator.create_texture(
         "Dear ImGUI Font Atlas",
         {VK_FORMAT_R8_UNORM, {width, height}, 1, render::TextureUsage::StaticImage}
-    );
+        );
 
     auto& upload_queue = backend.get_upload_queue();
     upload_queue.enqueue(
@@ -248,12 +105,12 @@ void DebugUI::create_font_texture() {
             .destination = font_atlas_handle, .mip = 0,
             .data = eastl::vector<uint8_t>(pixels, pixels + static_cast<ptrdiff_t>(width * height))
         }
-    );
+        );
 
     font_atlas_descriptor_set = *render::vkutil::DescriptorBuilder::begin(
                                      backend,
                                      backend.get_persistent_descriptor_allocator()
-                                 )
+                                     )
                                  .bind_image(
                                      0,
                                      {
@@ -263,56 +120,10 @@ void DebugUI::create_font_texture() {
                                      },
                                      VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                                      VK_SHADER_STAGE_FRAGMENT_BIT
-                                 )
+                                     )
                                  .build();
 
     io.Fonts->TexID = reinterpret_cast<ImTextureID>(font_atlas_descriptor_set);
-}
-
-void DebugUI::update_mouse_pos_and_buttons() const {
-    // Update buttons
-    auto& io = ImGui::GetIO();
-    for(auto i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++) {
-        // If a mouse press event came, always pass it as "mouse held this frame", so we don't miss click-release events that are
-        // shorter than 1 frame.
-        io.MouseDown[i] = g_MouseJustPressed[i] || glfwGetMouseButton(window, i) != 0;
-        g_MouseJustPressed[i] = false;
-    }
-
-    // Update mouse position
-    const auto mouse_pos_backup = io.MousePos;
-    io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX);
-
-    if(glfwGetWindowAttrib(window, GLFW_FOCUSED) != 0) {
-        if(io.WantSetMousePos) {
-            glfwSetCursorPos(window, static_cast<double>(mouse_pos_backup.x), static_cast<double>(mouse_pos_backup.y));
-        } else {
-            double mouse_x, mouse_y;
-            glfwGetCursorPos(window, &mouse_x, &mouse_y);
-            io.MousePos = ImVec2(static_cast<float>(mouse_x), static_cast<float>(mouse_y));
-        }
-    }
-}
-
-void DebugUI::update_mouse_cursor() const {
-    const auto& io = ImGui::GetIO();
-    if((io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange) || glfwGetInputMode(window, GLFW_CURSOR) ==
-        GLFW_CURSOR_DISABLED) {
-        return;
-    }
-
-    const auto imgui_cursor = ImGui::GetMouseCursor();
-    if(imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor) {
-        // Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-    } else {
-        // Show OS mouse cursor
-        glfwSetCursor(
-            window,
-            mouse_cursors[imgui_cursor] ? mouse_cursors[imgui_cursor] : mouse_cursors[ImGuiMouseCursor_Arrow]
-        );
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-    }
 }
 
 void DebugUI::draw_fps_info() {
@@ -461,9 +272,9 @@ void DebugUI::draw_taa_menu() {
 
         } else
 #endif
-        {
-            CVarSystem::Get()->SetIntCVar("r.AntiAliasing", static_cast<int32_t>(render::AntiAliasingType::None));
-        }
+    {
+        CVarSystem::Get()->SetIntCVar("r.AntiAliasing", static_cast<int32_t>(render::AntiAliasingType::None));
+    }
 
     ImGui::Separator();
 }
@@ -506,11 +317,70 @@ void DebugUI::draw_scene_outline() {
 
         const auto& roots = scene.get_top_level_entities();
         for(const auto root : roots) {
-            draw_entity(root, registry);
+            auto object_name = std::to_string(static_cast<uint32_t>(root));
+            if(const auto* game_object = registry.try_get<GameObjectComponent>(root)) {
+                object_name = game_object->game_object->name.c_str();
+            }
+
+            if(ImGui::Button(object_name.c_str())) {
+                selected_entity = root;
+                show_entity_editor = true;
+            }
         }
     }
 
     ImGui::End();
+}
+
+void DebugUI::draw_entity_editor() {
+    if(show_entity_editor && ImGui::Begin("Entity Editor")) {
+        ImGui::PushID(static_cast<int>(selected_entity));
+
+        auto& registry = Engine::get().get_scene().get_registry();
+
+        // Iterate over all the components in the registry
+        for(int i = 0; auto&& [id, storage] : registry.storage()) {
+            if(!storage.contains(selected_entity)) {
+                continue;
+            }
+
+            const auto storage_name = std::string{storage.type().name()};
+            ImGui::SeparatorText(storage_name.c_str());
+
+            if(auto meta = entt::resolve(id)) {
+                draw_component_helper(meta.from_void(storage.value(selected_entity)), meta.custom(), i);
+            }
+        }
+
+        ImGui::PopID();
+    }
+
+    ImGui::End();
+}
+
+void DebugUI::draw_component_helper(entt::meta_any instance, const entt::meta_custom& custom, int& gui_id) {
+    using namespace entt;
+
+    auto meta = instance.type();
+
+    // if we have a bespoke draw_editor function, use that. Otherwise, use the data members
+    if(auto func = meta.func("draw_editor"_hs)) {
+        PropertiesMap map{};
+        if(auto* mp = static_cast<const PropertiesMap*>(custom)) {
+            map = *mp;
+        }
+        func.invoke(instance, map);
+
+    } else {
+        for(auto [id, data] : meta.data()) {
+            if(data.traits<Traits>() & Traits::Editor) {
+                ImGui::PushID(gui_id);
+                gui_id++;
+                draw_component_helper(data.get(instance), data.custom(), gui_id);
+                ImGui::PopID();
+            }
+        }
+    }
 }
 
 void DebugUI::draw_entity(entt::entity entity, const entt::registry& registry, const eastl::string& prefix) {
@@ -573,7 +443,6 @@ void DebugUI::draw_entity(entt::entity entity, const entt::registry& registry, c
         }
     }
 }
-
 
 void DebugUI::draw_combo_box(const std::string& name, eastl::span<const std::string> items, int& selected_item) {
     if(ImGui::BeginCombo(name.c_str(), items[selected_item].c_str(), ImGuiComboFlags_None)) {

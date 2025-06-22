@@ -50,7 +50,7 @@ namespace godot {
 
         ~GodotScene() override = default;
 
-        entt::handle add_to_scene(Scene& scene_in, const eastl::optional<entt::entity>& parent_node) const override;
+        entt::handle add_to_scene(Scene& scene_in, const eastl::optional<entt::handle>& parent_node) const override;
 
         /**
          * Finds the node with the specified path

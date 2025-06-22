@@ -71,7 +71,7 @@ namespace render {
         auto vertices_bytes_offset = 0u;
 
         for (const auto* imgui_command_list : eastl::span{
-                imgui_draw_data->CmdLists, static_cast<size_t>(imgui_draw_data->CmdListsCount)
+                imgui_draw_data->CmdLists.begin(), static_cast<size_t>(imgui_draw_data->CmdLists.size())
             }) {
             queue.upload_to_buffer(
                 index_buffer,
@@ -151,7 +151,7 @@ namespace render {
         auto first_index = 0u;
 
         for (const auto* imgui_command_list : eastl::span{
-                imgui_draw_data->CmdLists, static_cast<size_t>(imgui_draw_data->CmdListsCount)
+                imgui_draw_data->CmdLists.begin(), static_cast<size_t>(imgui_draw_data->CmdLists.size())
             }) {
             const auto display_pos = glm::vec2{ imgui_draw_data->DisplayPos.x, imgui_draw_data->DisplayPos.y };
 
@@ -160,8 +160,8 @@ namespace render {
                 const auto scissor_end = glm::vec2{ cmd.ClipRect.z, cmd.ClipRect.w } - display_pos;
                 commands.set_scissor_rect(scissor_start, scissor_end);
 
-                if (cmd.GetTexID() != nullptr) {
-                    commands.bind_descriptor_set(0, static_cast<VkDescriptorSet>(cmd.GetTexID()));
+                if (cmd.GetTexID() != 0) {
+                    commands.bind_descriptor_set(0, reinterpret_cast<VkDescriptorSet>(static_cast<intptr_t>(cmd.GetTexID())));
                     commands.set_push_constant(2, 1u);
                 }
                 else {

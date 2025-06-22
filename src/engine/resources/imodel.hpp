@@ -19,5 +19,5 @@ public:
     /**
      * Adds this model to the provided scene, optionally parenting it to the provided entity
      */
-    virtual entt::handle add_to_scene(Scene& scene_in, const eastl::optional<entt::entity>& parent_node) const = 0;
+    virtual entt::handle add_to_scene(Scene& scene_in, const eastl::optional<entt::handle>& parent_node) const = 0;
 };

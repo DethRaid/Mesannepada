@@ -92,7 +92,7 @@ entt::handle Engine::add_model_to_scene(
 
     const auto& imported_model = resource_loader.get_model(scene_path);
 
-    const auto model_root = imported_model->add_to_scene(scene, parent_node->entity());
+    const auto model_root = imported_model->add_to_scene(scene, parent_node);
 
     logger->info("Loaded scene {}", scene_path.string());
 
@@ -211,7 +211,7 @@ void Engine::give_player_full_control() {
             });
     }
 
-    scene.add_top_level_entities(eastl::array{player.entity()});
+    scene.add_top_level_entities(eastl::array{player});
 
     set_player_controller_enabled(true);
 }

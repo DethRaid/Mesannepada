@@ -14,7 +14,7 @@ UrEnvironmentGameObject::UrEnvironmentGameObject(const entt::handle entity) : Ga
     level_scene = loader.get_model("data/game/environments/Ur.tscn");
 
     auto& scene = engine.get_scene();
-    level_entity = level_scene->add_to_scene(scene, root_entity.entity());
+    level_entity = level_scene->add_to_scene(scene, root_entity);
 
     const auto* level_godot_scene = static_cast<const godot::GodotScene*>(level_scene.get());
     const auto gltf_node_idx = level_godot_scene->find_node("SM_UrEnvironment");

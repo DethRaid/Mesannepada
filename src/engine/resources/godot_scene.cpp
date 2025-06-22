@@ -57,7 +57,7 @@ namespace godot {
         return eastl::move(scene);
     }
 
-    entt::handle GodotScene::add_to_scene(Scene &scene_in, const eastl::optional<entt::entity> &parent_node) const {
+    entt::handle GodotScene::add_to_scene(Scene &scene_in, const eastl::optional<entt::handle> &parent_node) const {
         // Traverse the node tree, creating EnTT entities for each node. Hook up parent/child relationships as we go.
         // Save a map from node index to node entity for future use. Load external models
         eastl::vector<entt::handle> node_entities;
@@ -67,7 +67,7 @@ namespace godot {
         root_entity.emplace<ImportedModelComponent>(node_entities);
 
         if (!parent_node) {
-            scene_in.add_top_level_entities(eastl::array{root_entity.entity()});
+            scene_in.add_top_level_entities(eastl::array{root_entity});
         } else {
             scene_in.parent_entity_to_entity(root_entity, *parent_node);
         }
@@ -295,7 +295,7 @@ namespace godot {
             full_resource_path.make_preferred();
             auto &resources = Engine::get().get_resource_loader();
             const auto instanced_model = resources.get_model(full_resource_path);
-            instanced_model->add_to_scene(scene, entity.entity());
+            instanced_model->add_to_scene(scene, entity);
         }
 
         for (const auto &child_node: node.children) {

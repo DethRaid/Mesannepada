@@ -271,7 +271,7 @@ endif()
 FetchContent_Declare(
         fetch_imgui
         GIT_REPOSITORY  https://github.com/ocornut/imgui.git
-        GIT_TAG         e13913ed572dbd95dedf840a94db5f27a1fdf2a5
+        GIT_TAG         v1.91.9b
 )
 FetchContent_GetProperties(fetch_imgui)
 if(fetch_imgui_POPULATED)
@@ -285,10 +285,12 @@ else()
             ${fetch_imgui_SOURCE_DIR}/imgui_tables.cpp
             ${fetch_imgui_SOURCE_DIR}/imgui_widgets.cpp
             ${fetch_imgui_SOURCE_DIR}/misc/cpp/imgui_stdlib.cpp
+            ${fetch_imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
             )
     target_include_directories(imgui PUBLIC
             ${fetch_imgui_SOURCE_DIR}
             ${fetch_imgui_SOURCE_DIR}/misc/cpp
+            ${fetch_imgui_SOURCE_DIR}/backends
             )
 endif()
 
