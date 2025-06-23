@@ -194,7 +194,7 @@ void Engine::give_player_full_control() {
 
             fp_player.set_worldspace_location(transform.location);
 
-            fp_player.set_pitch_and_yaw(pitch(transform.rotation), PI - yaw(transform.rotation));
+            fp_player.set_pitch_and_yaw(0, PI - yaw(transform.rotation));
 
             fp_player.enabled = true;
         });

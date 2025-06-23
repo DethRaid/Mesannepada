@@ -9,7 +9,7 @@
 struct TransformComponent {
     float3 location{};
 
-    glm::quat rotation{};
+    glm::quat rotation{1.f, 0.f, 0.f, 0.f};
 
     float3 scale{1.f};
 

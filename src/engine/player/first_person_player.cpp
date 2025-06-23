@@ -25,7 +25,7 @@ FirstPersonPlayer::FirstPersonPlayer(const entt::handle entity) :
         new JPH::CapsuleShape(0.5f * player_height_crouching, player_radius_crouching)).Create().Get();
 
     auto* physics_system = engine.get_physics_scene().get_physics_system();
-    JPH::Ref player_settings = new JPH::CharacterVirtualSettings{};
+    const JPH::Ref player_settings = new JPH::CharacterVirtualSettings{};
     player_settings->mShape = standing_shape;
     player_settings->mSupportingVolume = JPH::Plane{
         JPH::Vec3::sAxisY(), -0.5f * player_height_standing - player_radius_standing
@@ -56,7 +56,7 @@ FirstPersonPlayer::FirstPersonPlayer(const entt::handle entity) :
         });
     scene.parent_entity_to_entity(head_pivot_entity, root_entity);
 
-    auto camera_entity = scene.create_entity();
+    const auto camera_entity = scene.create_entity();
     camera_entity.emplace<TransformComponent>(
         TransformComponent{
             .location = float3{0, 0.1, 0.05},
@@ -144,9 +144,10 @@ void FirstPersonPlayer::handle_input(
     character->SetLinearVelocity(new_velocity);
 
     // Update head rotation
+    pitch += delta_pitch * player_rotation_speed * delta_time;
     head_pivot_entity.patch<TransformComponent>(
         [&](TransformComponent& transform) {
-            transform.rotation *= glm::quat{delta_pitch * player_rotation_speed * delta_time, float3{1, 0, 0}};
+            transform.rotation = glm::angleAxis(pitch, float3{1, 0, 0});
         });
 
     // TODO: Swap between crouched and standing shapes on crouch input

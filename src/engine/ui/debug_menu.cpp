@@ -472,7 +472,8 @@ void DebugUI::draw_entity(entt::entity entity, const entt::registry& registry, c
     }
     ImGui::Text("%sEntity %s", prefix.c_str(), object_name.c_str());
 
-    if(ImGui::Button("Edit Entity")) {
+    ImGui::SameLine();
+    if(ImGui::Button("Edit")) {
         selected_entity = entity;
         show_entity_editor = true;
     }
