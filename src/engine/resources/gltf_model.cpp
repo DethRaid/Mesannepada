@@ -150,7 +150,7 @@ entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<e
 
     auto parent_matrix = float4x4{1.f};
     if(parent_node) {
-        parent_matrix = registry.get<TransformComponent>(*parent_node).local_to_parent;
+        parent_matrix = registry.get<TransformComponent>(*parent_node).get_local_to_parent();
     }
 
     // Traverse the nodes and create components.
@@ -167,7 +167,7 @@ entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<e
             registry.patch<TransformComponent>(
                 entity,
                 [&](TransformComponent& transform) {
-                    transform.local_to_parent = node_to_parent;
+                    transform.set_local_transform(node_to_parent);
                 });
 
             if(node.meshIndex) {

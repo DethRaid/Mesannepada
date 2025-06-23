@@ -144,7 +144,7 @@ void DebugUI::draw_debug_menu() {
     if(ImGui::Begin("Debug Menu", &is_debug_menu_open)) {
         if(ImGui::CollapsingHeader("Visualizers")) {
             auto selected_visualizer = renderer.get_active_visualizer();
-            for(auto visualizer : magic_enum::enum_values<render::RenderVisualization>()) {
+            for(const auto visualizer : magic_enum::enum_values<render::RenderVisualization>()) {
                 const auto name = to_string(visualizer);
                 if(ImGui::Selectable(name, selected_visualizer == visualizer)) {
                     selected_visualizer = visualizer;
@@ -163,7 +163,7 @@ void DebugUI::draw_debug_menu() {
         }
 
         if(ImGui::CollapsingHeader("cvars")) {
-            auto cvars = CVarSystem::Get();
+            const auto cvars = CVarSystem::Get();
             cvars->DrawImguiEditor();
         }
     }
@@ -317,21 +317,9 @@ void DebugUI::draw_scene_outline() {
         const auto& scene = application.get_scene();
         const auto& registry = scene.get_registry();
 
-        auto root_idx = 0u;
         const auto& roots = scene.get_top_level_entities();
         for(const auto root : roots) {
-            auto object_name = std::to_string(static_cast<uint32_t>(root));
-            if(const auto* game_object = registry.try_get<GameObjectComponent>(root)) {
-                object_name = game_object->game_object->name.c_str();
-            }
-
-            ImGui::PushID(root_idx);
-            root_idx++;
-            if(ImGui::Button(object_name.c_str())) {
-                selected_entity = root;
-                show_entity_editor = true;
-            }
-            ImGui::PopID();
+            draw_entity(root, registry);
         }
     }
 
@@ -345,7 +333,7 @@ void DebugUI::draw_entity_editor() {
         auto& registry = Engine::get().get_scene().get_registry();
 
         // Iterate over all the components in the registry
-        for(int i = 0; auto&& [id, storage] : registry.storage()) {
+        for(auto i = 0; auto&& [id, storage] : registry.storage()) {
             if(!storage.contains(selected_entity)) {
                 continue;
             }
@@ -354,7 +342,11 @@ void DebugUI::draw_entity_editor() {
             ImGui::SeparatorText(storage_name.c_str());
 
             if(auto meta = entt::resolve(id)) {
-                draw_component_helper(meta.from_void(storage.value(selected_entity)), meta.custom(), i);
+                draw_component_helper(selected_entity,
+                                      meta.from_void(storage.value(selected_entity)),
+                                      meta.custom(),
+                                      false,
+                                      i);
             }
         }
 
@@ -364,68 +356,128 @@ void DebugUI::draw_entity_editor() {
     ImGui::End();
 }
 
-void DebugUI::draw_component_helper(entt::meta_any instance, const entt::meta_custom& custom, int& gui_id) {
-    using namespace entt;
+bool DebugUI::draw_component_helper(
+    const entt::entity entity, entt::meta_any instance, const entt::meta_custom& custom, bool readonly, int& gui_id
+    ) {
+    using namespace entt::literals;
 
     auto meta = instance.type();
+    readonly = readonly || meta.traits<reflection::Traits>() & reflection::Traits::EditorReadOnly;
 
-    // if we have a bespoke draw_editor function, use that. Otherwise, use the data members
-    if(auto func = meta.func("draw_editor"_hs)) {
-        PropertiesMap map{};
-        if(auto* mp = static_cast<const PropertiesMap*>(custom)) {
-            map = *mp;
+    // If the type has a bespoke EditorWrite or EditorRead function, use that. Otherwise, recurse over data members.
+    reflection::PropertiesMap properties = {};
+    if(auto* mp = static_cast<const reflection::PropertiesMap*>(custom)) {
+        properties = *mp;
+    }
+
+    auto changed = false;
+    if(auto editor_write = meta.func("editor_write"_hs); editor_write && !readonly) {
+        changed |= editor_write.invoke(instance, properties).cast<bool>();
+    } else if(auto editor_read = meta.func("editor_read"_hs)) {
+        editor_read.invoke(instance, properties);
+    } else if(meta.is_sequence_container()) {
+        auto is_open = false;
+        if(auto it = properties.find("name"_hs); it != properties.end()) {
+            is_open = ImGui::TreeNodeEx(instance.try_cast<void>(),
+                                       0,
+                                       "%s: %d",
+                                       it->second.cast<const char*>(),
+                                       static_cast<int>(instance.as_sequence_container().size()));
+        } else {
+            auto name = std::string{meta.info().name()};
+            is_open = ImGui::TreeNodeEx(instance.try_cast<void>(),
+                                       0,
+                                       "%s: %d",
+                                       name.c_str(),
+                                       static_cast<int>(instance.as_sequence_container().size()));
         }
-        func.invoke(instance, map);
+        if(is_open) {
+            for(auto element : instance.as_sequence_container()) {
+                auto eType = element.type();
+                ImGui::PushID(gui_id++);
+                changed |= draw_component_helper(entity, element.as_ref(), eType.custom(), readonly, gui_id);
+                ImGui::PopID();
+            }
+            ImGui::TreePop();
+        }
+    } else if(meta.is_associative_container()) {
+        ImGui::Text("TODO: associative containers");
+        // TODO: Make two-column table.
+        for(auto element : instance.as_associative_container()) {
+            // auto eType = element.second.type();
+            // if (auto traits = eType.traits<Traits>(); traits & Traits::EDITOR || traits & Traits::EDITOR_READ)
+            //{
+            //   ImGui::PushID(guiId++);
+            //   ImGui::Indent();
+            //   DrawComponentHelper(element.second.get(eType.id()), eType.custom(), readonly || traits & Traits::EDITOR_READ, guiId);
+            //   ImGui::Unindent();
+            //   ImGui::PopID();
+            // }
+        }
+    } else if(meta.is_enum()) {
+        auto is_open = false;
+        if(auto it = properties.find("name"_hs); it != properties.end()) {
+            is_open = ImGui::TreeNodeEx(instance.try_cast<void>(), 0, "%s", it->second.cast<const char*>());
+        } else {
+            auto name = std::string{meta.info().name()};
+            is_open = ImGui::TreeNodeEx(instance.try_cast<void>(), 0, "%s", name.c_str());
+        }
+        if(is_open) {
+            for(auto [id, data] : meta.data()) {
+                reflection::PropertiesMap data_props = {};
+                if(auto* mp = static_cast<const reflection::PropertiesMap*>(data.custom())) {
+                    data_props = *mp;
+                }
 
+                if(auto it = data_props.find("name"_hs); it != data_props.end()) {
+                    ImGui::PushID(gui_id++);
+                    auto name = it->second.cast<const char*>();
+                    if(ImGui::Selectable(name,
+                                         instance == data.get({}),
+                                         readonly ? ImGuiSelectableFlags_Disabled : 0)) {
+                        instance.assign(data.get({}));
+                        changed = true;
+                    }
+                    ImGui::PopID();
+                }
+            }
+            ImGui::TreePop();
+        }
     } else {
         for(auto [id, data] : meta.data()) {
-            if(data.traits<Traits>() & Traits::Editor) {
-                ImGui::PushID(gui_id);
-                gui_id++;
-                draw_component_helper(data.get(instance), data.custom(), gui_id);
+            if(const auto traits = data.traits<reflection::Traits>(); !(traits & reflection::Traits::NoEditor)) {
+                ImGui::PushID(gui_id++);
+                ImGui::Indent();
+                changed |= draw_component_helper(
+                    entity,
+                    data.get(instance),
+                    data.custom(),
+                    readonly || traits & reflection::Traits::EditorReadOnly,
+                    gui_id);
+                ImGui::Unindent();
                 ImGui::PopID();
             }
         }
     }
+
+    return changed;
 }
 
 void DebugUI::draw_entity(entt::entity entity, const entt::registry& registry, const eastl::string& prefix) {
+    ImGui::PushID(static_cast<int32_t>(entity));
+
     auto object_name = std::to_string(static_cast<uint32_t>(entity));
     if(const auto* game_object = registry.try_get<GameObjectComponent>(entity)) {
         object_name = game_object->game_object->name.c_str();
     }
     ImGui::Text("%sEntity %s", prefix.c_str(), object_name.c_str());
+
+    if(ImGui::Button("Edit Entity")) {
+        selected_entity = entity;
+        show_entity_editor = true;
+    }
+
     const auto& transform = registry.get<TransformComponent>(entity);
-    const auto local_to_world = transform.cached_parent_to_world * transform.local_to_parent;
-    ImGui::Text(
-        "%s\tLocation: %.1f, %.1f, %.1f",
-        prefix.c_str(),
-        local_to_world[3][0],
-        local_to_world[3][1],
-        local_to_world[3][2]);
-
-    if(registry.all_of<render::StaticMeshComponent>(entity)) {
-        const auto& mesh = registry.get<render::StaticMeshComponent>(entity);
-        for(const auto& primitive : mesh.primitives) {
-            ImGui::Text("%s\tStaticMeshPrimitive %u", prefix.c_str(), primitive.proxy.index);
-        }
-    }
-
-    if(registry.all_of<render::SkeletalMeshComponent>(entity)) {
-        const auto& mesh = registry.get<render::SkeletalMeshComponent>(entity);
-        for(const auto& primitive : mesh.primitives) {
-            ImGui::Text("%s\tSkeletalMeshPrimitive %u", prefix.c_str(), primitive.proxy.index);
-        }
-    }
-
-    if(registry.all_of<CameraComponent>(entity)) {
-        ImGui::Text("%s\tCameraComponent", prefix.c_str());
-    }
-
-    if(registry.all_of<physics::CollisionComponent>(entity)) {
-        const auto& collision = registry.get<physics::CollisionComponent>(entity);
-        ImGui::Text("%s\tCollisionComponent Body=%d", prefix.c_str(), collision.body_id.GetIndexAndSequenceNumber());
-    }
 
     auto& children_expanded = expansion_map[static_cast<uint32_t>(entity)];
 
@@ -448,9 +500,11 @@ void DebugUI::draw_entity(entt::entity entity, const entt::registry& registry, c
             draw_entity(child, registry, "\t" + prefix);
         }
     }
+
+    ImGui::PopID();
 }
 
-void DebugUI::draw_combo_box(const std::string& name, eastl::span<const std::string> items, int& selected_item) {
+void DebugUI::draw_combo_box(const std::string& name, const eastl::span<const std::string> items, int& selected_item) {
     if(ImGui::BeginCombo(name.c_str(), items[selected_item].c_str(), ImGuiComboFlags_None)) {
         for(auto i = 0; i < items.size(); i++) {
             const auto selected = selected_item == i;

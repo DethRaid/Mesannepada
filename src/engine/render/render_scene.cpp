@@ -86,7 +86,7 @@ namespace render {
         // Set the camera's location to the location of the camera entity (if any)
         registry.view<TransformComponent, CameraComponent>().each(
             [this](const TransformComponent& transform) {
-                const auto inverse_view_matrix = transform.cached_parent_to_world * transform.local_to_parent;
+                const auto inverse_view_matrix = transform.get_local_to_world();
                 player_view.set_view_matrix(glm::inverse(inverse_view_matrix));
             });
 
@@ -591,7 +591,7 @@ namespace render {
         auto [transform, mesh] = registry.get<TransformComponent, StaticMeshComponent>(entity);
         for(auto& primitive : mesh.primitives) {
             primitive.proxy = create_mesh_proxy(
-                transform.cached_parent_to_world * transform.local_to_parent,
+                transform.get_local_to_world(),
                 primitive.mesh,
                 primitive.material,
                 primitive.visible_to_ray_tracing);
@@ -616,7 +616,7 @@ namespace render {
         const auto& transform = registry.get<TransformComponent>(entity);
         for(auto& primitive : mesh.primitives) {
             primitive.proxy = create_skeletal_mesh_proxy(
-                transform.cached_parent_to_world * transform.local_to_parent,
+                transform.get_local_to_world(),
                 primitive,
                 mesh.bone_matrices_buffer
                 );
@@ -636,8 +636,7 @@ namespace render {
 
     void RenderScene::on_construct_light(entt::registry& registry, const entt::entity entity) {
         const auto& transform = registry.get<TransformComponent>(entity);
-        const auto matrix = transform.cached_parent_to_world * transform.local_to_parent;
-        const auto location = float3{matrix[3]};
+        const auto location = transform.location;
 
         // Create a proxy based on what kind of light we have
 

@@ -86,7 +86,7 @@ void Scene::propagate_transforms(float delta_time) {
         eastl::fixed_vector<entt::entity, 4> invalid_entities;
         for(const auto child : transform.children) {
             if(registry.valid(child)) {
-                propagate_transform(child, transform.local_to_parent);
+                propagate_transform(child, transform.get_local_to_world());
             } else {
                 invalid_entities.emplace_back(child);
             }

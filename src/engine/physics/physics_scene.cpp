@@ -123,7 +123,7 @@ namespace physics {
                 registry.patch<TransformComponent>(
                     entity,
                     [&](TransformComponent& trans) {
-                        trans.local_to_parent = inverse_parent * new_matrix;
+                        trans.set_local_transform(inverse_parent * new_matrix);
                     });
 
             });
@@ -306,7 +306,7 @@ namespace physics {
 
             auto& body_interface = get_body_interface();
 
-            const auto matrix = transform.cached_parent_to_world * transform.local_to_parent;
+            const auto matrix = transform.get_local_to_world();
 
             glm::vec3 scale;
             glm::quat orientation;

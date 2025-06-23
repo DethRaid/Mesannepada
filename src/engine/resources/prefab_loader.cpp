@@ -53,7 +53,7 @@ entt::handle PrefabLoader::load_prefab(const std::filesystem::path& prefab_file,
     }
 
     entity.patch<TransformComponent>([&](auto& transform_comp) {
-        transform_comp.local_to_parent = transform;
+        transform_comp.set_local_transform(transform);
     });
 
     scene.add_top_level_entities(eastl::array{entity});

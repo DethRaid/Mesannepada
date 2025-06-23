@@ -10,7 +10,6 @@
 #include <vulkan/vulkan.h>
 
 #include "render/backend/handles.hpp"
-#include "render/visualizers/visualizer_type.hpp"
 
 namespace render {
     class SarahRenderer;
@@ -67,7 +66,9 @@ private:
 
     void draw_entity_editor();
 
-    void draw_component_helper(entt::meta_any instance, const entt::meta_custom& custom, int& gui_id);
+    static bool draw_component_helper(
+        entt::entity entity, entt::meta_any instance, const entt::meta_custom& custom, bool readonly, int& gui_id
+        );
 
     /**
      * Map from entity ID to whether its children are expanded

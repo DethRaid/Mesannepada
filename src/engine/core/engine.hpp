@@ -7,7 +7,6 @@
 
 #include "animation/animation_system.hpp"
 #include "audio/audio_controller.hpp"
-#include "behavior/game_object.hpp"
 #include "game_framework/game_instance.hpp"
 #include "input/player_input_manager.hpp"
 #include "render/sarah_renderer.hpp"
@@ -18,7 +17,6 @@
 #include "physics/physics_scene.hpp"
 #include "resources/prefab_loader.hpp"
 #include "resources/resource_loader.hpp"
-#include "scene/game_object_component.hpp"
 #include "scene/scene.hpp"
 
 class SystemInterface;

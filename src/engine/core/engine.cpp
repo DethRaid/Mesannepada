@@ -9,6 +9,7 @@
 #include "core/system_interface.hpp"
 #include "glm/gtx/matrix_decompose.hpp"
 #include "player/first_person_player.hpp"
+#include "reflection/reflection_subsystem.hpp"
 #include "resources/gltf_model.hpp"
 #include "scene/game_object_component.hpp"
 #include "scene/transform_component.hpp"
@@ -38,6 +39,8 @@ Engine::Engine() :
     logger->set_level(spdlog::level::debug);
 
     application_start_time = std::chrono::high_resolution_clock::now();
+
+    reflection::ReflectionSubsystem::register_types();
 
     SystemInterface::get().set_input_manager(player_input);
 
@@ -181,7 +184,7 @@ void Engine::give_player_full_control() {
 
             const auto local_to_world = transform.get_local_to_world();
             transform.cached_parent_to_world = float4x4{1.f};
-            transform.local_to_parent = local_to_world;
+            transform.set_local_transform(local_to_world);
         });
     registry.patch<GameObjectComponent>(
         player,
@@ -189,16 +192,9 @@ void Engine::give_player_full_control() {
             auto& fp_player = static_cast<FirstPersonPlayer&>(*comp.game_object);
             const auto& transform = registry.get<TransformComponent>(player);
 
-            float3 scale;
-            glm::quat orientation;
-            float3 translation;
-            float3 skew;
-            float4 perspective;
-            glm::decompose(transform.local_to_parent, scale, orientation, translation, skew, perspective);
+            fp_player.set_worldspace_location(transform.location);
 
-            fp_player.set_worldspace_location(float3{translation});
-
-            fp_player.set_pitch_and_yaw(pitch(orientation), PI - yaw(orientation));
+            fp_player.set_pitch_and_yaw(pitch(transform.rotation), PI - yaw(transform.rotation));
 
             fp_player.enabled = true;
         });

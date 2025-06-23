@@ -33,7 +33,7 @@ void AnimationSystem::tick(float delta_time) {
                 registry.patch<TransformComponent>(
                     entity,
                     [&](TransformComponent& trans) {
-                        trans.local_to_parent = animator.animator.sample(current_time);
+                        trans.set_local_transform(animator.animator.sample(current_time));
                     });
             }
         });

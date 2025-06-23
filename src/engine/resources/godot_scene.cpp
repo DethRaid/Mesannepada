@@ -276,7 +276,7 @@ namespace godot {
         const auto entity = scene.create_game_object(node.name);
         entity.patch<TransformComponent>(
             [&](TransformComponent &transform) {
-                transform.local_to_parent = node.transform;
+                transform.set_local_transform(node.transform);
             });
 
         if (node_entities.size() <= node_index) {

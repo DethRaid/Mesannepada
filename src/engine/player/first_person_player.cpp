@@ -9,7 +9,8 @@
 #include "scene/camera_component.hpp"
 #include "scene/transform_component.hpp"
 
-FirstPersonPlayer::FirstPersonPlayer(const entt::handle entity) : GameObject{entity} {
+FirstPersonPlayer::FirstPersonPlayer(const entt::handle entity) :
+    GameObject{entity} {
     name = "FirstPersonPlayer";
     auto& engine = Engine::get();
     auto& scene = engine.get_scene();
@@ -51,14 +52,14 @@ FirstPersonPlayer::FirstPersonPlayer(const entt::handle entity) : GameObject{ent
     head_pivot_entity = scene.create_entity();
     head_pivot_entity.emplace<TransformComponent>(
         TransformComponent{
-            .local_to_parent = glm::translate(float4x4{1.f}, float3{0, rig_height_standing, 0}),
+            .location = float3{0, rig_height_standing, 0},
         });
     scene.parent_entity_to_entity(head_pivot_entity, root_entity);
 
     auto camera_entity = scene.create_entity();
     camera_entity.emplace<TransformComponent>(
         TransformComponent{
-            .local_to_parent = glm::translate(float4x4{1.f}, float3{0, 0.1, 0.05}),
+            .location = float3{0, 0.1, 0.05},
         });
     camera_entity.emplace<CameraComponent>();
     scene.parent_entity_to_entity(camera_entity, head_pivot_entity);
@@ -66,7 +67,7 @@ FirstPersonPlayer::FirstPersonPlayer(const entt::handle entity) : GameObject{ent
     hold_target = scene.create_entity();
     hold_target.emplace<TransformComponent>(
         TransformComponent{
-            .local_to_parent = glm::translate(float4x4{1.f}, float3{-0.411, -0.451, 1.415}),
+            .location = float3{-0.411, -0.451, 1.415},
         });
     scene.parent_entity_to_entity(hold_target, root_entity);
 
@@ -86,13 +87,14 @@ void FirstPersonPlayer::set_pitch_and_yaw(const float pitch_in, const float yaw_
 void FirstPersonPlayer::handle_input(
     const float delta_time, const float3 player_movement_input, const float delta_pitch, const float delta_yaw,
     const bool jump
-) {
+    ) {
     const auto player_controls_horizontal_velocity = control_movement_during_jump || character->IsSupported();
     if(player_controls_horizontal_velocity) {
         // Smooth the player input
         desired_velocity = enable_character_inertia
-            ? 0.25f * to_jolt(player_movement_input) * player_movement_speed + 0.75f * desired_velocity
-            : to_jolt(player_movement_input) * player_movement_speed;
+                               ? 0.25f * to_jolt(player_movement_input) * player_movement_speed + 0.75f *
+                                 desired_velocity
+                               : to_jolt(player_movement_input) * player_movement_speed;
 
         // True if the player intended to move
         allow_sliding = length(player_movement_input) >= eastl::numeric_limits<float>::epsilon();
@@ -113,9 +115,9 @@ void FirstPersonPlayer::handle_input(
 
     const auto moving_towards_ground = (current_vertical_velocity.GetY() - ground_velocity.GetY()) < 0.1f;
     if(character->GetGroundState() == JPH::CharacterVirtual::EGroundState::OnGround &&
-        enable_character_inertia
-        ? moving_towards_ground
-        : !character->IsSlopeTooSteep(character->GetGroundNormal())) {
+       enable_character_inertia
+           ? moving_towards_ground
+           : !character->IsSlopeTooSteep(character->GetGroundNormal())) {
         // If we're on the ground and moving towards the ground, assume the ground's velocity
         new_velocity = ground_velocity;
 
@@ -144,10 +146,7 @@ void FirstPersonPlayer::handle_input(
     // Update head rotation
     head_pivot_entity.patch<TransformComponent>(
         [&](TransformComponent& transform) {
-            transform.local_to_parent = glm::rotate(
-                transform.local_to_parent,
-                delta_pitch * player_rotation_speed * delta_time,
-                float3{1, 0, 0});
+            transform.rotation *= glm::quat{delta_pitch * player_rotation_speed * delta_time, float3{1, 0, 0}};
         });
 
     // TODO: Swap between crouched and standing shapes on crouch input
@@ -171,7 +170,7 @@ void FirstPersonPlayer::tick(const float delta_time, Scene& scene) {
         {},
         {},
         physics.get_temp_allocator()
-    );
+        );
 
     // Sync transform so the rest of the system knows about it
 
@@ -179,6 +178,7 @@ void FirstPersonPlayer::tick(const float delta_time, Scene& scene) {
         [&](TransformComponent& transform) {
             const auto location = to_glm(character->GetPosition());
             const auto rotation = to_glm(character->GetRotation());
-            transform.local_to_parent = glm::translate(float4x4{1.f}, location) * glm::mat4{rotation};
+            transform.location = location;
+            transform.rotation = rotation;
         });
 }
