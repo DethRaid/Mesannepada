@@ -11,6 +11,7 @@
 #include "render/components/light_component.hpp"
 #include "resources/model_components.hpp"
 #include "scene/camera_component.hpp"
+#include "scene/entity_info_component.hpp"
 #include "scene/game_object_component.hpp"
 #include "scene/transform_component.hpp"
 
@@ -114,5 +115,8 @@ namespace reflection {
 
         REFLECT_COMPONENT(GameObjectComponent)
             DATA(GameObjectComponent, game_object);
+
+        REFLECT_COMPONENT(EntityInfoComponent)
+            DATA(EntityInfoComponent, name);
     }
 }

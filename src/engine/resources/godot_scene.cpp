@@ -5,10 +5,11 @@
 
 #include "core/engine.hpp"
 #include "core/issue_breakpoint.hpp"
-#include "core/spawn_gameobject_component.hpp"
+#include "../scene/spawn_gameobject_component.hpp"
 #include "core/string_utils.hpp"
 #include "core/system_interface.hpp"
 #include "resources/model_components.hpp"
+#include "scene/entity_info_component.hpp"
 #include "scene/game_object_component.hpp"
 #include "scene/scene.hpp"
 #include "scene/transform_component.hpp"
@@ -273,11 +274,9 @@ namespace godot {
     ) const {
         const auto &node = nodes.at(node_index);
         // Create this node
-        const auto entity = scene.create_game_object(node.name);
-        entity.patch<TransformComponent>(
-            [&](TransformComponent &transform) {
-                transform.set_local_transform(node.transform);
-            });
+        const auto entity = scene.create_entity();
+        entity.emplace<EntityInfoComponent>(node.name);
+        entity.emplace<TransformComponent>().set_local_transform(node.transform);
 
         if (node_entities.size() <= node_index) {
             node_entities.resize(node_index + 1);

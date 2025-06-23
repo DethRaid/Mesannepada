@@ -5,12 +5,13 @@
 #include <tracy/Tracy.hpp>
 
 #include "../render/components/skeletal_mesh_component.hpp"
-#include "core/spawn_gameobject_component.hpp"
+#include "../scene/spawn_gameobject_component.hpp"
 #include "core/system_interface.hpp"
 #include "glm/gtx/matrix_decompose.hpp"
 #include "player/first_person_player.hpp"
 #include "reflection/reflection_subsystem.hpp"
 #include "resources/gltf_model.hpp"
+#include "scene/entity_info_component.hpp"
 #include "scene/game_object_component.hpp"
 #include "scene/transform_component.hpp"
 #include "ui/ui_controller.hpp"
@@ -273,13 +274,22 @@ void Engine::spawn_new_game_objects() {
         [&](const entt::entity entity, const SpwanPrefabComponent& spawn_prefab_comp
         ) {
             const auto transform = registry.get<TransformComponent>(entity);
-            const auto game_object = registry.get<GameObjectComponent>(entity);
             // Replace this node with the prefab
             const auto instance = prefab_loader.load_prefab(spawn_prefab_comp.prefab_path.c_str(),
                                       scene,
                                       transform.get_local_to_world());
 
-            instance.get<GameObjectComponent>()->name = game_object->name;
+            eastl::string name = "Spawned Entity";
+            const auto* entity_info = registry.try_get<EntityInfoComponent>(entity);
+            if(entity_info != nullptr) {
+                name = entity_info->name;
+            } else {
+                const auto* game_object = registry.try_get<GameObjectComponent>(entity);
+                if(game_object != nullptr) {
+                    name = (*game_object)->name;
+                }
+            }
+            instance.emplace_or_replace<EntityInfoComponent>(EntityInfoComponent{.name = name});
 
             scene.destroy_entity(entity);
         });

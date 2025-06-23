@@ -30,6 +30,8 @@
 
 #include <GLFW/glfw3.h>
 
+#include "scene/entity_info_component.hpp"
+
 DebugUI::DebugUI(render::SarahRenderer& renderer_in) :
     renderer{renderer_in} {
     const auto& system_interface = SystemInterface::get();
@@ -466,9 +468,11 @@ bool DebugUI::draw_component_helper(
 void DebugUI::draw_entity(entt::entity entity, const entt::registry& registry, const eastl::string& prefix) {
     ImGui::PushID(static_cast<int32_t>(entity));
 
-    auto object_name = std::to_string(static_cast<uint32_t>(entity));
-    if(const auto* game_object = registry.try_get<GameObjectComponent>(entity)) {
-        object_name = game_object->game_object->name.c_str();
+    auto object_name = eastl::string{eastl::string::CtorSprintf{}, "%d", static_cast<uint32_t>(entity)};
+    if(const auto* entity_info = registry.try_get<EntityInfoComponent>(entity)) {
+        object_name = entity_info->name;
+    } else if(const auto* game_object = registry.try_get<GameObjectComponent>(entity)) {
+        object_name = game_object->game_object->name;
     }
     ImGui::Text("%sEntity %s", prefix.c_str(), object_name.c_str());
 

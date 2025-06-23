@@ -34,6 +34,7 @@
 #include "render/components/static_mesh_component.hpp"
 #include "resources/gltf_animations.hpp"
 #include "resources/model_components.hpp"
+#include "scene/entity_info_component.hpp"
 #include "scene/scene.hpp"
 #include "scene/transform_component.hpp"
 
@@ -145,7 +146,10 @@ entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<e
     scene_entities.reserve(asset.nodes.size());
     // Spawn one entity per node, indexed by node ID
     for(const auto& node : asset.nodes) {
-        scene_entities.emplace_back(scene.create_game_object(node.name.c_str()));
+        const auto node_entity = scene.create_entity();
+        node_entity.emplace<TransformComponent>();
+        node_entity.emplace<EntityInfoComponent>(node.name.c_str());
+        scene_entities.emplace_back(node_entity);
     }
 
     auto parent_matrix = float4x4{1.f};
