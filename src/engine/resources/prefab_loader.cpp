@@ -10,6 +10,8 @@
 
 static std::shared_ptr<spdlog::logger> logger;
 
+using namespace entt::literals;
+
 entt::handle PrefabLoader::load_prefab(const std::filesystem::path& prefab_file, Scene& scene,
                                        const float4x4& transform) {
     if(logger == nullptr) {
@@ -35,6 +37,8 @@ entt::handle PrefabLoader::load_prefab(const std::filesystem::path& prefab_file,
         entity.emplace<TransformComponent>();
     }
 
+    // TODO: Generic component deserializer
+
     auto components = prefab["components"];
     for(auto component_definition : components) {
         auto type = component_definition["type"];
@@ -46,6 +50,15 @@ entt::handle PrefabLoader::load_prefab(const std::filesystem::path& prefab_file,
         if(auto itr = component_creators.find(type_name); itr != component_creators.end()) {
             itr->second(entity, component_definition);
         } else {
+            const auto component_type_id = entt::id_type{entt::hashed_string{type_name_view.begin(), type_name_view.size()}};
+            auto meta = entt::resolve(component_type_id);
+            auto value = meta.construct();
+            assert(value && "Component does not have a default constructor!");
+
+            if(auto emplace_move = meta.func("emplace_move"_hs)) {
+                emplace_move.invoke({}, entity.registry(), entity.entity(), value.as_ref());
+            }
+
             logger->warn(
                     "Prefab {} wants a {} component, but no factory was registered for that component type! Skipping unknown component",
                     prefab_file.string(), type_name.c_str());

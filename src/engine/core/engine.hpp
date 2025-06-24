@@ -117,13 +117,6 @@ private:
 
     entt::handle player = {};
 
-    /**
-     * Registers all the components with the EnTT reflector
-     *
-     * TODO: Codegen or macros?
-     */
-    void register_components();
-
     void update_time();
 
     /**

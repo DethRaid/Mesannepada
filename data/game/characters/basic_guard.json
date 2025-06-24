@@ -3,6 +3,10 @@
     "components": [
         {
             "type": "ai::BehaviorTreeComponent"
+        },
+        {
+            "type": "AnimationEventComponent",
+            "animation_to_play": "ANIM_walkcycle"
         }
     ]
 }

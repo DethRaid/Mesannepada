@@ -6,6 +6,7 @@
 
 #include "../render/components/skeletal_mesh_component.hpp"
 #include "../scene/spawn_gameobject_component.hpp"
+#include "animation/animation_event_component.hpp"
 #include "core/system_interface.hpp"
 #include "glm/gtx/matrix_decompose.hpp"
 #include "player/first_person_player.hpp"
@@ -75,8 +76,6 @@ Engine::Engine() :
     debug_menu = eastl::make_unique<DebugUI>(*renderer);
 
     update_resolution();
-
-    register_components();
 
     logger->info("HELLO HUMAN");
 }
@@ -237,21 +236,6 @@ entt::handle Engine::get_player() const {
     return player;
 }
 
-void Engine::register_components() {
-    prefab_loader.register_component_creator(
-        "TransformComponent",
-        [](const entt::handle entity, simdjson::simdjson_result<simdjson::ondemand::value> json) {
-            entity.emplace<TransformComponent>();
-        });
-
-    prefab_loader.register_component_creator(
-        "GameObjectComponent",
-        [&](const entt::handle entity, simdjson::simdjson_result<simdjson::ondemand::value> json) {
-            std::string_view game_object_name;
-            json["game_object"].get_string(game_object_name);
-        });
-}
-
 void Engine::update_time() {
     const auto frame_start_time = std::chrono::high_resolution_clock::now();
     const auto last_frame_duration = frame_start_time - last_frame_start_time;
@@ -276,8 +260,8 @@ void Engine::spawn_new_game_objects() {
             const auto transform = registry.get<TransformComponent>(entity);
             // Replace this node with the prefab
             const auto instance = prefab_loader.load_prefab(spawn_prefab_comp.prefab_path.c_str(),
-                                      scene,
-                                      transform.get_local_to_world());
+                                                            scene,
+                                                            transform.get_local_to_world());
 
             eastl::string name = "Spawned Entity";
             const auto* entity_info = registry.try_get<EntityInfoComponent>(entity);

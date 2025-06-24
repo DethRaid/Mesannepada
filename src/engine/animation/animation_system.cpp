@@ -68,6 +68,7 @@ void AnimationSystem::tick(float delta_time) {
 }
 
 void AnimationSystem::add_animation(SkeletonHandle skeleton, const eastl::string& name, Animation&& animation) {
+    logger->info("Adding animation {}", name.c_str());
     if(animations.find(skeleton) == animations.end()) {
         animations.emplace(skeleton, AnimationMap{});
     }

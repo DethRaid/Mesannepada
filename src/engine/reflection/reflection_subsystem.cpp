@@ -2,6 +2,7 @@
 
 #include "ai/behavior_tree_component.hpp"
 #include "ai/waypoint_component.hpp"
+#include "animation/animation_event_component.hpp"
 #include "animation/animator_component.hpp"
 #include "behavior/game_object.hpp"
 #include "core/system_interface.hpp"
@@ -118,5 +119,8 @@ namespace reflection {
 
         REFLECT_COMPONENT(EntityInfoComponent)
             DATA(EntityInfoComponent, name);
+
+        REFLECT_COMPONENT(AnimationEventComponent)
+            DATA(AnimationEventComponent, animation_to_play);
     }
 }
