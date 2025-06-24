@@ -37,6 +37,8 @@ set(RMLUI_CUSTOM_RTTI ON CACHE BOOL "" FORCE)
 
 set(ENTT_INCLUDE_NATVIS ON CACHE BOOL "" FORCE)
 
+set(SHADER_OUTPUT_PATH "${SHADER_DIR}" CACHE STRING "")
+
 set(RECASTNAVIGATION_DEMO OFF CACHE BOOL "" FORCE)
 set(RECASTNAVIGATION_TESTS OFF CACHE BOOL "" FORCE)
 set(RECASTNAVIGATION_EXAMPLES OFF CACHE BOOL "" FORCE)
@@ -92,6 +94,11 @@ FetchContent_Declare(
         GIT_REPOSITORY  https://github.com/Neargye/magic_enum.git
         GIT_SHALLOW     ON
         GIT_TAG         v0.9.5
+)
+FetchContent_Declare(
+        NRD 
+        GIT_REPOSITORY  https://github.com/NVIDIA-RTX/NRD.git
+        GIT_TAG         v4.15.0 
 )
 FetchContent_Declare(
         recast
@@ -177,6 +184,7 @@ FetchContent_MakeAvailable(
         glm
         JoltPhysics
         fetch_magic_enum
+        NRD
         recast
         rmlui
         spdlog

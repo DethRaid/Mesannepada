@@ -85,6 +85,9 @@ target_link_libraries(SahCore PUBLIC
         imgui
         Jolt
         magic_enum::magic_enum
+        NRIFramework
+        NRD
+        NRDIntegration
         plf_colony
         RecastNavigation::DebugUtils
         RecastNavigation::Detour
