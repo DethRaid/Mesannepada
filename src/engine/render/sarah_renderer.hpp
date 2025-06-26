@@ -147,8 +147,6 @@ namespace render {
 
         RayTracingDebugPhase rt_debug_phase;
 
-        eastl::unique_ptr<NvidiaRealtimeDenoiser> denoiser;
-
         eastl::unique_ptr<VRSAA> vrsaa;
 
         UiPhase ui_phase;

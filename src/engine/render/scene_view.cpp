@@ -137,6 +137,10 @@ namespace render {
         return gpu_data.view;
     }
 
+    const float4x4& SceneView::get_last_frame_view() const {
+        return gpu_data.last_frame_view;
+    }
+
     float SceneView::get_min_log_luminance() const {
         return static_cast<float>(log2(cvar_min_luminance.Get()));
     }

@@ -1,12 +1,12 @@
 #pragma once
 
 #include <filesystem>
-#include <EASTL/vector.h>
-#include <cstdint>
-#include <EASTL/unordered_map.h>
-#include <EASTL/string.h>
-#include <EASTL/optional.h>
 
+#include <EASTL/optional.h>
+#include <EASTL/span.h>
+#include <EASTL/string.h>
+#include <EASTL/unordered_map.h>
+#include <EASTL/vector.h>
 #include <volk.h>
 
 #include "render/backend/graphics_pipeline.hpp"
@@ -23,7 +23,7 @@ namespace render {
     class RenderBackend;
 
     bool collect_bindings(
-        const eastl::vector<std::byte>& shader_instructions,
+        eastl::span<const std::byte> shader_instructions,
         std::string_view shader_name,
         VkShaderStageFlags shader_stage,
         eastl::fixed_vector<DescriptorSetInfo, 8>& descriptor_sets,

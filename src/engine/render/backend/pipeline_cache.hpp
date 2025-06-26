@@ -23,6 +23,8 @@ namespace render {
 
         ComputePipelineHandle create_pipeline(const std::filesystem::path& shader_file_path);
 
+        ComputePipelineHandle create_pipeline(std::string_view pipeline_name, eastl::span<const std::byte> instructions);
+
         GraphicsPipelineHandle create_pipeline_group(eastl::span<GraphicsPipelineHandle> pipelines_in);
 
         VkPipeline get_pipeline(

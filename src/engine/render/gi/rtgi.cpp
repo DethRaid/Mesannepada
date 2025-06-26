@@ -8,16 +8,19 @@
 #include "render/backend/render_backend.hpp"
 
 namespace render {
-    static AutoCVar_Int cvar_num_bounces{ "r.GI.NumBounces", "Number of times light can bounce in GI. 0 = no GI", 1 };
+    static auto cvar_num_bounces = AutoCVar_Int{
+        "r.GI.NumBounces", "Number of times light can bounce in GI. 0 = no GI", 1};
 
-    static AutoCVar_Int cvar_num_reconstruction_rays{
+    static auto cvar_num_reconstruction_rays = AutoCVar_Int{
         "r.GI.Reconstruction.NumSamples",
         "Number of extra rays to use in the screen-space reconstruction filter, DLSS likes 8, FSR likes 32", 0
     };
 
-    static AutoCVar_Float cvar_reconstruction_size{
+    static auto cvar_reconstruction_size = AutoCVar_Float{
         "r.GI.Reconstruction.Size", "Size in pixels of the screenspace reconstruction filter", 16
     };
+
+    static auto cvar_nrd_enable = AutoCVar_Int{"r.NRD.Enable", "Use Nvidia's Realtime Denoiser for denoising", 1};
 
 #if SAH_USE_IRRADIANCE_CACHE
     static AutoCVar_Int cvar_gi_cache{ "r.GI.Cache.Enabled", "Whether to enable the GI irradiance cache", false };
@@ -31,22 +34,35 @@ namespace render {
 
     RayTracedGlobalIllumination::RayTracedGlobalIllumination() {
         auto& backend = RenderBackend::get();
-        if (overlay_pso == nullptr) {
+        if(overlay_pso == nullptr) {
             overlay_pso = backend.begin_building_pipeline("rtgi_application")
-                .set_vertex_shader("shaders/common/fullscreen.vert.spv")
-                .set_fragment_shader("shaders/gi/rtgi/overlay.frag.spv")
-                .set_depth_state(
-                    {
-                        .enable_depth_write = false,
-                        .compare_op = VK_COMPARE_OP_LESS
-                    })
-                .set_blend_mode(BlendMode::Additive)
-                .build();
+                                 .set_vertex_shader("shaders/common/fullscreen.vert.spv")
+                                 .set_fragment_shader("shaders/gi/rtgi/overlay.frag.spv")
+                                 .set_depth_state(
+                                 {
+                                     .enable_depth_write = false,
+                                     .compare_op = VK_COMPARE_OP_LESS
+                                 })
+                                 .set_blend_mode(BlendMode::Additive)
+                                 .build();
+        }
+
+        if(filter_pso == nullptr) {
+            overlay_pso = backend.begin_building_pipeline("rtgi_application")
+                                 .set_vertex_shader("shaders/common/fullscreen.vert.spv")
+                                 .set_fragment_shader("shaders/gi/rtgi/spatial_filter.frag.spv")
+                                 .set_depth_state(
+                                 {
+                                     .enable_depth_write = false,
+                                     .compare_op = VK_COMPARE_OP_LESS
+                                 })
+                                 .set_blend_mode(BlendMode::Additive)
+                                 .build();
         }
     }
 
     RayTracedGlobalIllumination::~RayTracedGlobalIllumination() {
-        auto& backend = RenderBackend::get();
+        const auto& backend = RenderBackend::get();
         auto& allocator = backend.get_global_allocator();
 
         allocator.destroy_texture(ray_texture);
@@ -55,8 +71,14 @@ namespace render {
 
     void RayTracedGlobalIllumination::pre_render(
         RenderGraph& graph, const SceneView& view, const RenderScene& scene, const TextureHandle noise_tex
-    ) {
+        ) {
         ZoneScoped;
+
+        if(cvar_nrd_enable.Get() != 0 && denoiser == nullptr) {
+            denoiser = eastl::make_unique<NvidiaRealtimeDenoiser>();
+        } else if(cvar_nrd_enable.Get() == 0) {
+            denoiser = nullptr;
+        }
 
 #if SAH_USE_IRRADIANCE_CACHE
         if (cvar_gi_cache.Get() == 0) {
@@ -75,12 +97,12 @@ namespace render {
     void RayTracedGlobalIllumination::post_render(
         RenderGraph& graph, const SceneView& view, const RenderScene& scene, const GBuffer& gbuffer,
         const TextureHandle noise_tex
-    ) {
-        if (!should_render()
+        ) {
+        if(!should_render()
 #if SAH_USE_IRRADIANCE_CACHE
             && irradiance_cache == nullptr
 #endif
-            ) {
+        ) {
             return;
         }
 
@@ -89,7 +111,7 @@ namespace render {
 
         const auto render_resolution = gbuffer.depth->get_resolution();
 
-        if (ray_texture == nullptr || ray_texture->get_resolution() != render_resolution) {
+        if(ray_texture == nullptr || ray_texture->get_resolution() != render_resolution) {
             allocator.destroy_texture(ray_texture);
             ray_texture = allocator.create_texture(
                 "rtgi_params",
@@ -99,7 +121,7 @@ namespace render {
                     .usage = TextureUsage::StorageImage
                 });
         }
-        if (ray_irradiance == nullptr || ray_irradiance->get_resolution() != render_resolution) {
+        if(ray_irradiance == nullptr || ray_irradiance->get_resolution() != render_resolution) {
             allocator.destroy_texture(ray_irradiance);
             ray_irradiance = allocator.create_texture(
                 "rtgi_irradiance",
@@ -109,57 +131,78 @@ namespace render {
                     .usage = TextureUsage::StorageImage
                 });
         }
-        if (rtgi_pipeline == nullptr) {
+        if(denoised_irradiance == nullptr || denoised_irradiance->get_resolution() != render_resolution) {
+            allocator.destroy_texture(denoised_irradiance);
+            denoised_irradiance = allocator.create_texture(
+                "denoised_irradiance",
+                {
+                    .format = VK_FORMAT_R16G16B16A16_SFLOAT,
+                    .resolution = render_resolution,
+                    .usage = TextureUsage::StorageImage
+                });
+        }
+        if(rtgi_pipeline == nullptr) {
             rtgi_pipeline = backend.get_pipeline_cache()
-                .create_ray_tracing_pipeline("shaders/gi/rtgi/rtgi.rt.spv");
+                                   .create_ray_tracing_pipeline("shaders/gi/rtgi/rtgi.rt.spv");
+        }
+
+        if(denoiser) {
+            denoiser->set_constants(view, render_resolution);
         }
 
         const auto sun_buffer = scene.get_sun_light().get_constant_buffer();
 
         auto& sky = scene.get_sky();
         const auto set = backend.get_transient_descriptor_allocator()
-            .build_set(rtgi_pipeline, 0)
-            .bind(scene.get_primitive_buffer())
-            .bind(sun_buffer)
-            .bind(view.get_buffer())
-            .bind(scene.get_raytracing_scene().get_acceleration_structure())
-            .bind(gbuffer.normals)
-            .bind(gbuffer.depth)
-            .bind(noise_tex)
-            .bind(ray_texture)
-            .bind(ray_irradiance)
-            .bind(sky.get_sky_view_lut(), sky.get_sampler())
-            .bind(sky.get_transmittance_lut(), sky.get_sampler())
-            .build();
+                                .build_set(rtgi_pipeline, 0)
+                                .bind(scene.get_primitive_buffer())
+                                .bind(sun_buffer)
+                                .bind(view.get_buffer())
+                                .bind(scene.get_raytracing_scene().get_acceleration_structure())
+                                .bind(gbuffer.normals)
+                                .bind(gbuffer.depth)
+                                .bind(noise_tex)
+                                .bind(ray_texture)
+                                .bind(ray_irradiance)
+                                .bind(sky.get_sky_view_lut(), sky.get_sampler())
+                                .bind(sky.get_transmittance_lut(), sky.get_sampler())
+                                .build();
 
         graph.add_pass(
-            {
-                .name = "ray_traced_global_illumination",
-                .descriptor_sets = {set},
-                .execute = [&](CommandBuffer& commands) {
-                    commands.bind_pipeline(rtgi_pipeline);
+        {
+            .name = "ray_traced_global_illumination",
+            .descriptor_sets = {set},
+            .execute = [&](CommandBuffer& commands) {
+                commands.bind_pipeline(rtgi_pipeline);
 
-                    commands.bind_descriptor_set(0, set);
-                    commands.bind_descriptor_set(1, backend.get_texture_descriptor_pool().get_descriptor_set());
+                commands.bind_descriptor_set(0, set);
+                commands.bind_descriptor_set(1, backend.get_texture_descriptor_pool().get_descriptor_set());
 
-                    commands.set_push_constant(0, static_cast<uint32_t>(cvar_num_bounces.Get()));
+                commands.set_push_constant(0, static_cast<uint32_t>(cvar_num_bounces.Get()));
 
-                    commands.dispatch_rays(render_resolution);
+                commands.dispatch_rays(render_resolution);
 
-                    commands.clear_descriptor_set(0);
-                    commands.clear_descriptor_set(1);
-                }
-            });
+                commands.clear_descriptor_set(0);
+                commands.clear_descriptor_set(1);
+            }
+        });
+
+        if(denoiser) {
+            denoiser->do_denoising(graph, gbuffer, ray_irradiance, denoised_irradiance);
+        } else {
+            graph.add_copy_pass(ImageCopyPass{.name = "copy_noisy_gi", .dst = denoised_irradiance,
+                                              .src = ray_irradiance});
+        }
     }
 
     void RayTracedGlobalIllumination::get_lighting_resource_usages(
         TextureUsageList& textures, BufferUsageList& buffers
-    ) const {
-        if (!should_render()
+        ) const {
+        if(!should_render()
 #if SAH_USE_IRRADIANCE_CACHE
             && irradiance_cache == nullptr
 #endif
-            ) {
+        ) {
             return;
         }
 
@@ -184,12 +227,12 @@ namespace render {
     void RayTracedGlobalIllumination::render_to_lit_scene(
         CommandBuffer& commands, const BufferHandle view_buffer, BufferHandle sun_buffer, TextureHandle ao_tex,
         const TextureHandle noise_texture
-    ) const {
-        if (!should_render()
+        ) const {
+        if(!should_render()
 #if SAH_USE_IRRADIANCE_CACHE
             && irradiance_cache == nullptr
 #endif
-            ) {
+        ) {
             return;
         }
 
@@ -199,23 +242,39 @@ namespace render {
         }
         else
 #endif
-        {
-            auto set = RenderBackend::get().get_transient_descriptor_allocator()
-                .build_set(overlay_pso, 1)
-                .bind(view_buffer)
-                .bind(noise_texture)
-                .bind(ray_texture)
-                .bind(ray_irradiance)
-                .build();
+        if(denoiser == nullptr) {
+            const auto set = RenderBackend::get().get_transient_descriptor_allocator()
+                                                 .build_set(filter_pso, 1)
+                                                 .bind(view_buffer)
+                                                 .bind(noise_texture)
+                                                 .bind(ray_texture)
+                                                 .bind(ray_irradiance)
+                                                 .build();
+
+            commands.set_cull_mode(VK_CULL_MODE_NONE);
+
+            commands.bind_pipeline(filter_pso);
+
+            commands.bind_descriptor_set(1, set);
+
+            commands.set_push_constant(0, static_cast<uint32_t>(cvar_num_reconstruction_rays.Get()));
+            commands.set_push_constant(1, cvar_reconstruction_size.GetFloat());
+
+            commands.draw_triangle();
+
+            commands.clear_descriptor_set(1);
+        } else {
+            // Simple copy thing?
+            const auto set = RenderBackend::get().get_transient_descriptor_allocator()
+                                                 .build_set(overlay_pso, 1)
+                                                 .bind(denoised_irradiance)
+                                                 .build();
 
             commands.set_cull_mode(VK_CULL_MODE_NONE);
 
             commands.bind_pipeline(overlay_pso);
 
             commands.bind_descriptor_set(1, set);
-
-            commands.set_push_constant(0, static_cast<uint32_t>(cvar_num_reconstruction_rays.Get()));
-            commands.set_push_constant(1, static_cast<float>(cvar_reconstruction_size.Get()));
 
             commands.draw_triangle();
 
@@ -226,12 +285,12 @@ namespace render {
     void RayTracedGlobalIllumination::render_volumetrics(
         RenderGraph& render_graph, const SceneView& player_view, const RenderScene& scene, const GBuffer& gbuffer,
         TextureHandle lit_scene_handle
-    ) {
-        if (!should_render()
+        ) {
+        if(!should_render()
 #if SAH_USE_IRRADIANCE_CACHE
             && irradiance_cache == nullptr
 #endif
-            ) {
+        ) {
             return;
         }
 
@@ -240,7 +299,7 @@ namespace render {
 
     void RayTracedGlobalIllumination::draw_debug_overlays(
         RenderGraph& graph, const SceneView& view, const GBuffer& gbuffer, TextureHandle lit_scene_texture
-    ) {
+        ) {
 #if SAH_USE_IRRADIANCE_CACHE
         if (cvar_gi_cache_debug.Get() != 0 && irradiance_cache) {
             irradiance_cache->draw_debug_overlays(graph, view, gbuffer, lit_scene_texture);

@@ -206,20 +206,20 @@ namespace render {
             }
             break;
 #endif
-        case AntiAliasingType::FSR3:
 #if SAH_USE_FFX
+        case AntiAliasingType::FSR3:
             if (cached_aa != AntiAliasingType::FSR3) {
                 upscaler = eastl::make_unique<FidelityFSSuperResolution3>();
             }
-#endif
             break;
-        case AntiAliasingType::XeSS:
+#endif
 #if SAH_USE_XESS
+        case AntiAliasingType::XeSS:
             if (cached_aa != AntiAliasingType::XeSS) {
                 upscaler = eastl::make_unique<XeSSAdapter>();
             }
-#endif
             break;
+#endif
 
         case AntiAliasingType::None:
             [[fallthrough]];

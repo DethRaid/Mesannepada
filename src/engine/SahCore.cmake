@@ -85,9 +85,7 @@ target_link_libraries(SahCore PUBLIC
         imgui
         Jolt
         magic_enum::magic_enum
-        NRIFramework
         NRD
-        NRDIntegration
         plf_colony
         RecastNavigation::DebugUtils
         RecastNavigation::Detour
@@ -113,6 +111,7 @@ elseif(LINUX)
     target_compile_options(SahCore PUBLIC
         "-fms-extensions"
         "-Wno-nullability-completeness"
+        "-Wno-deprecated-literal-operator"
         "-fno-rtti")
 endif()
 
@@ -135,7 +134,7 @@ if(SAH_USE_FFX)
         "${fidelityfx_SOURCE_DIR}/sdk/bin/ffx_sdk/ffx_fsr3_x64d.dll"
         ${SAH_OUTPUT_DIR})
 endif()
-if(WIN32 AND SAH_USE_STREAMLINE)
+if(SAH_USE_STREAMLINE)
     message(STATUS "Including Streamline")
     target_link_libraries(SahCore PUBLIC
             streamline

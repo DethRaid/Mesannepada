@@ -3,12 +3,12 @@
 #include <algorithm>
 
 #include <imgui.h>
-#include <spdlog/spdlog.h>
 #include <spirv_reflect.h>
-#include <tracy/Tracy.hpp>
-#include <vulkan/vk_enum_string_helper.h>
 #include <EASTL/span.h>
 #include <RmlUi/Core/Vertex.h>
+#include <spdlog/spdlog.h>
+#include <tracy/Tracy.hpp>
+#include <vulkan/vk_enum_string_helper.h>
 
 #include "pipeline_cache.hpp"
 #include "console/cvars.hpp"
@@ -558,7 +558,7 @@ namespace render {
     }
 
     bool collect_bindings(
-        const eastl::vector<std::byte>& shader_instructions, const std::string_view shader_name,
+        eastl::span<const std::byte> shader_instructions, const std::string_view shader_name,
         const VkShaderStageFlags shader_stage,
         eastl::fixed_vector<DescriptorSetInfo, 8>& descriptor_sets,
         eastl::fixed_vector<VkPushConstantRange, 4>& push_constants

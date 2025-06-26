@@ -209,7 +209,7 @@ if(SAH_USE_STREAMLINE)
     FetchContent_Declare(
             streamline
             GIT_REPOSITORY      https://github.com/NVIDIAGameWorks/Streamline.git
-            GIT_TAG             v2.7.2
+            GIT_TAG             v2.8.0
     )
     FetchContent_MakeAvailable(streamline)
 endif()

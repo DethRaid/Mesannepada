@@ -57,6 +57,8 @@ namespace render {
 
         const float4x4& get_view() const;
 
+        const float4x4& get_last_frame_view() const;
+
         float get_min_log_luminance() const;
 
         float get_max_log_luminance() const;

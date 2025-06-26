@@ -1,13 +1,15 @@
 #pragma once
 
-#include <EASTL/vector.h>
 #include <EASTL/memory.h>
+#include <EASTL/unique_ptr.h>
+#include <EASTL/vector.h>
 
-#include "render/gi/global_illuminator.hpp"
-#include "render/gi/irradiance_cache.hpp"
 #include "render/backend/buffer_usage_token.hpp"
 #include "render/backend/handles.hpp"
 #include "render/backend/texture_usage_token.hpp"
+#include "render/denoiser/nvidia_realtime_denoiser.hpp"
+#include "render/gi/global_illuminator.hpp"
+#include "render/gi/irradiance_cache.hpp"
 
 namespace render {
     class ProceduralSky;
@@ -21,7 +23,7 @@ namespace render {
     /**
      * Uses ray tracing to calculate global illumination
      */
-    class RayTracedGlobalIllumination : public IGlobalIlluminator {
+    class RayTracedGlobalIllumination final : public IGlobalIlluminator {
     public:
         static bool should_render();
 
@@ -72,15 +74,26 @@ namespace render {
 
         /**
          * Per-pixel irradiance, calculated by ray tracing
+         *
+         * RGB = irradiance, A = ray distance
          */
         TextureHandle ray_irradiance = nullptr;
+
+        /**
+         * Irradiance but denoised!
+         */
+        TextureHandle denoised_irradiance = nullptr;
 
 #if SAH_USE_IRRADIANCE_CACHE
         eastl::unique_ptr<IrradianceCache> irradiance_cache = nullptr;
 #endif
 
+        eastl::unique_ptr<NvidiaRealtimeDenoiser> denoiser;
+
         static inline RayTracingPipelineHandle rtgi_pipeline = nullptr;
 
         static inline GraphicsPipelineHandle overlay_pso = nullptr;
+
+        static inline GraphicsPipelineHandle filter_pso = nullptr;
     };
 }

@@ -69,6 +69,10 @@ namespace render {
 
         const auto instructions = *SystemInterface::get().load_file(shader_file_path);
 
+        return create_pipeline(shader_file_path.string(), instructions);
+    }
+
+    ComputePipelineHandle PipelineCache::create_pipeline(const std::string_view pipeline_name, eastl::span<const std::byte> instructions) {
         const auto module_create_info = VkShaderModuleCreateInfo{
             .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
             .codeSize = instructions.size(),
@@ -77,11 +81,11 @@ namespace render {
 
         VkShaderModule module;
         vkCreateShaderModule(backend.get_device(), &module_create_info, nullptr, &module);
-        backend.set_object_name(module, fmt::format("{} VkShaderModule", shader_file_path.string()));
+        backend.set_object_name(module, fmt::format("{} VkShaderModule", pipeline_name));
 
         auto pipeline = ComputePipeline{};
 
-        pipeline.name = shader_file_path.string();
+        pipeline.name = pipeline_name;
         pipeline.push_constant_stages = VK_SHADER_STAGE_COMPUTE_BIT;
 
         eastl::fixed_vector<VkPushConstantRange, 4> push_constants;
@@ -121,13 +125,13 @@ namespace render {
             nullptr,
             &pipeline.pipeline);
         if (result != VK_SUCCESS) {
-            logger->error("Could not create pipeline {}: Vulkan error {}", shader_file_path.string(), string_VkResult(result));
+            logger->error("Could not create pipeline {}: Vulkan error {}", pipeline_name, string_VkResult(result));
             return {};
         }
 
         logger->trace("Created pipeline");
 
-        const auto layout_name = fmt::format("{} Layout", shader_file_path.string());
+        const auto layout_name = fmt::format("{} Layout", pipeline_name);
 
         backend.set_object_name(pipeline.pipeline, pipeline.name);
         backend.set_object_name(pipeline.layout, layout_name);
