@@ -202,14 +202,15 @@ namespace render {
 
     nrd::Resource get_nrd_resource(const TextureHandle texture, const bool is_output) {
         return nrd::Resource{
-            .vk.image = reinterpret_cast<VKNonDispatchableHandle>(texture->image),
-            .vk.format = texture->create_info.format,
-            .userArg = texture,
+            .vk = {
+                .image = reinterpret_cast<VKNonDispatchableHandle>(texture->image),
+                .format = texture->create_info.format
+            },
             .state = nri::AccessLayoutStage{
                 .access = nri::AccessBits::SHADER_RESOURCE,
                 .layout = is_output ? nri::Layout::SHADER_RESOURCE_STORAGE : nri::Layout::SHADER_RESOURCE,
-                .stages = nri::StageBits::COMPUTE_SHADER
-            },
+                .stages = nri::StageBits::COMPUTE_SHADER},
+            .userArg = texture,
         };
     }
 } // render

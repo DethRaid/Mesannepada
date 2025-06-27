@@ -50,7 +50,7 @@ entt::handle PrefabLoader::load_prefab(const std::filesystem::path& prefab_file,
         if(auto itr = component_creators.find(type_name); itr != component_creators.end()) {
             itr->second(entity, component_definition);
         } else {
-            const auto component_type_id = entt::id_type{entt::hashed_string{type_name_view.begin(), type_name_view.size()}};
+            const auto component_type_id = entt::id_type{entt::hashed_string{type_name_view.data(), type_name_view.size()}};
             auto meta = entt::resolve(component_type_id);
             auto value = meta.construct();
             assert(value && "Component does not have a default constructor!");
