@@ -5,6 +5,9 @@
 #include "common/srgb_conversions.slangi"
 #include "gi/rtgi/rtgi_payload.slangi"
 
+#include "NRDEncoding.hlsli"
+#include "NRD.hlsli"
+
 // Generates rays for the sun shadow. Uses ray tracing pipelines to get pretty shadows
 // The primitive data buffer is bound at 0.0, the other bindings in this file work around it. Check out
 // gltf_basic_pbr.slang for other resources we use
@@ -29,6 +32,9 @@ RWTexture2D<float4> ray_buffer;
 [vk::binding(8, 0)]
 RWTexture2D<float4> ray_irradiance;
 
+[vk::binding(9, 0)]
+RWTexture2D<float4> denoiser_data;
+
 float3 get_worldspace_location(const uint2 pixel) {
     const float depth = gbuffer_depth[pixel];
     const float2 texcoord = ((float2)pixel + 0.5) / view_data.render_resolution.xy;
@@ -51,6 +57,7 @@ float2 r0(uint n) {
 [[vk::push_constant]]
 cbuffer Constants {
     uint num_bounces;
+    uint denoiser_format;   // 0 = none, 1 = NRD, 2 = DLSS-RR
 };
 
 [shader("raygen")]
@@ -102,6 +109,13 @@ void main_raygen() {
     }
 
     ray_buffer[thread_id] = float4(ray_direction, payload.ray_distance);
-    ray_irradiance[thread_id] = float4(payload.irradiance * view_data.exposure, 0);
+
+    if(denoiser_format == 1) {
+        ray_irradiance[thread_id] = RELAX_FrontEnd_PackRadianceAndHitDist(payload.irradiance * view_data.exposure, payload.ray_distance, false);
+        denoiser_data[thread_id] = NRD_FrontEnd_PackNormalAndRoughness(normal, gbuffer_normals[thread_id].a, 0);
+    } else {
+        ray_irradiance[thread_id] = float4(payload.irradiance * view_data.exposure, 0);
+        denoiser_data[thread_id] = 0;
+    }
 }
 

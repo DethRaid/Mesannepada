@@ -39,6 +39,7 @@ target_compile_definitions(SahCore PUBLIC
         UTF_CPP_CPLUSPLUS=202002
         EASTL_EASTDC_VSNPRINTF=0
         SAH_USE_IRRADIANCE_CACHE=0
+        NRI_WRAPPER_VK
         )
 
 if(WIN32)
@@ -86,6 +87,8 @@ target_link_libraries(SahCore PUBLIC
         Jolt
         magic_enum::magic_enum
         NRD
+        NRDIntegration
+        NRI
         plf_colony
         RecastNavigation::DebugUtils
         RecastNavigation::Detour

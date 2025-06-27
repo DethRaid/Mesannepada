@@ -133,6 +133,10 @@ namespace render {
         return frame_count;
     }
 
+    uint2 SceneView::get_render_resolution() const {
+        return uint2{gpu_data.render_resolution};
+    }
+
     const float4x4& SceneView::get_view() const {
         return gpu_data.view;
     }

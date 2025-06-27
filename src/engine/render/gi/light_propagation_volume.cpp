@@ -230,7 +230,7 @@ namespace render {
 
     void LightPropagationVolume::post_render(
         RenderGraph& graph, const SceneView& view, const RenderScene& scene, const GBuffer& gbuffer,
-        TextureHandle noise_tex
+         const TextureHandle motion_vectors, const TextureHandle noise_tex
     ) {
         if(cvar_lpv_build_gv_mode.get() == GvBuildMode::DepthBuffers) {
             build_geometry_volume_from_scene_view(

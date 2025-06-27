@@ -55,6 +55,8 @@ namespace render {
 
         uint32_t get_frame_count() const;
 
+        uint2 get_render_resolution() const;
+
         const float4x4& get_view() const;
 
         const float4x4& get_last_frame_view() const;

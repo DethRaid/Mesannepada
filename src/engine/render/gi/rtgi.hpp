@@ -37,7 +37,7 @@ namespace render {
 
         void post_render(
             RenderGraph& graph, const SceneView& view, const RenderScene& scene, const GBuffer& gbuffer,
-            TextureHandle noise_tex
+             TextureHandle motion_vectors, TextureHandle noise_tex
         ) override;
 
         /**
@@ -89,6 +89,7 @@ namespace render {
 #endif
 
         eastl::unique_ptr<NvidiaRealtimeDenoiser> denoiser;
+        TextureHandle denoiser_data = nullptr;
 
         static inline RayTracingPipelineHandle rtgi_pipeline = nullptr;
 

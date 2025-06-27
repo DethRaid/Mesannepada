@@ -143,6 +143,7 @@ namespace render {
                         noise_2d);
                 }
 
+                commands.bind_descriptor_set(0, gbuffers_descriptor_set);
                 add_emissive_lighting(commands);
 
                 scene.get_sky().render_sky(commands, view.get_buffer(), sun.get_constant_buffer(), gbuffer.depth);

@@ -1,55 +1,53 @@
 #include "nvidia_realtime_denoiser.hpp"
 
 #include <EASTL/array.h>
-#include <EASTL/span.h>
 #include <EASTL/string.h>
+
+#include <NRI.h>
+#include <Extensions/NRIRayTracing.h>
+#include <Extensions/NRIWrapperVK.h>
+
+#include <Extensions/NRIHelper.h>
+#ifndef NRI_HELPER
+#define NRI_HELPER 1
+#endif
+#include <NRDIntegration.hpp>
 
 #include "console/cvars.hpp"
 #include "core/system_interface.hpp"
+#include "render/gbuffer.hpp"
 #include "render/backend/render_graph.hpp"
 
 namespace render {
     static auto cvar_nrd_split_screen = AutoCVar_Int{"r.NRD.SplitScreen",
                                                      "Whether to show the split noisy/denoised view", 0};
     static auto cvar_nrd_validation = AutoCVar_Int{"r.NRD.Validation",
-                                                   "Whether to enable NRD validation", 1};
+                                                   "Whether to enable NRD validation", 0};
 
     static std::shared_ptr<spdlog::logger> logger;
 
-    NvidiaRealtimeDenoiser::NvidiaRealtimeDenoiser() {
+    static nrd::Resource get_nrd_resource(TextureHandle texture, bool is_output = false);
+
+    NvidiaRealtimeDenoiser::NvidiaRealtimeDenoiser(const uint2 resolution) :
+        instance{eastl::make_unique<nrd::Integration>()} {
         if(logger == nullptr) {
             logger = SystemInterface::get().get_logger("NvidiaRealtimeDenoiser");
         }
-        constexpr auto denoiser_descs = eastl::array{
-            // ReLAX
-            nrd::DenoiserDesc{
-                .identifier = static_cast<nrd::Identifier>(nrd::Denoiser::RELAX_DIFFUSE),
-                .denoiser = nrd::Denoiser::RELAX_DIFFUSE
-            },
-            // TODO: Reflections denoiser - combine with RELAX_DIFFUSE?
-        };
 
-        const auto instance_create_descs = nrd::InstanceCreationDesc{
-            .denoisers = denoiser_descs.data(),
-            .denoisersNum = static_cast<uint32_t>(denoiser_descs.size())
-        };
-
-        const auto result = nrd::CreateInstance(instance_create_descs, instance);
-        if(result != nrd::Result::SUCCESS) {
-            logger->error("Could not create NRD: {}", static_cast<uint32_t>(result));
-            instance = nullptr;
-        }
-
-        create_nrd_resources();
+        recreate_instance(resolution);
     }
 
     NvidiaRealtimeDenoiser::~NvidiaRealtimeDenoiser() {
-        if(instance) {
-            nrd::DestroyInstance(*instance);
-        }
+        instance->Destroy();
     }
 
     void NvidiaRealtimeDenoiser::set_constants(const SceneView& scene_view, const uint2 render_resolution) {
+        if(cached_resolution != render_resolution) {
+            recreate_instance(render_resolution);
+        }
+
+        instance->NewFrame();
+
         const auto& view_data = scene_view.get_gpu_data();
         cached_resolution = render_resolution;
 
@@ -80,106 +78,138 @@ namespace render {
         const auto world_to_view_prev = scene_view.get_last_frame_view();
         memcpy(common_settings.worldToViewMatrixPrev, &world_to_view_prev, sizeof(float4x4));
 
-        nrd::SetCommonSettings(*instance, common_settings);
+        instance->SetCommonSettings(common_settings);
 
         // TODO: Play with the settings?
         auto relax_settings = nrd::RelaxSettings{};
 
-        nrd::SetDenoiserSettings(*instance,
-                                 static_cast<nrd::Identifier>(nrd::Denoiser::RELAX_DIFFUSE),
-                                 &relax_settings);
+        instance->SetDenoiserSettings(static_cast<nrd::Identifier>(nrd::Denoiser::RELAX_DIFFUSE), &relax_settings);
     }
 
     void NvidiaRealtimeDenoiser::do_denoising(
-        RenderGraph& graph, const GBuffer& gbuffer, TextureHandle noisy_diffuse, TextureHandle denoised_diffuse
+        RenderGraph& graph, const TextureHandle gbuffer_depth, const TextureHandle motion_vectors,
+        const TextureHandle noisy_diffuse, const TextureHandle packed_normals_roughness,
+        const TextureHandle denoised_diffuse
         ) {
-        /*
-         * NRD gives us a list of dispatches. We need to... dispatch them
-         *
-         * It also gives us some shader blobs, we can like hash them and recompile compute shaders if needed? But I suspect they're not needed
-         */
+        graph.add_pass({
+            .name = "evaluate_nrd",
+            .textures = {
+                {
+                    .texture = motion_vectors,
+                    .stage = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
+                    .access = VK_ACCESS_2_SHADER_READ_BIT,
+                    .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                },
+                {
+                    .texture = packed_normals_roughness,
+                    .stage = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
+                    .access = VK_ACCESS_2_SHADER_READ_BIT,
+                    .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                },
+                {
+                    .texture = gbuffer_depth,
+                    .stage = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
+                    .access = VK_ACCESS_2_SHADER_READ_BIT,
+                    .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                },
+                {
+                    .texture = noisy_diffuse,
+                    .stage = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
+                    .access = VK_ACCESS_2_SHADER_READ_BIT,
+                    .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                },
+                {
+                    .texture = denoised_diffuse,
+                    .stage = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
+                    .access = VK_ACCESS_2_SHADER_WRITE_BIT,
+                    .layout = VK_IMAGE_LAYOUT_GENERAL,
+                },
+            },
+            .execute = [&](const CommandBuffer& commands) {
+                // Fill resource snapshot
+                nrd::ResourceSnapshot resource_snapshot = {};
+                // Common
+                resource_snapshot.SetResource(nrd::ResourceType::IN_MV, get_nrd_resource(motion_vectors));
+                resource_snapshot.SetResource(nrd::ResourceType::IN_NORMAL_ROUGHNESS,
+                                              get_nrd_resource(packed_normals_roughness));
+                resource_snapshot.SetResource(nrd::ResourceType::IN_VIEWZ, get_nrd_resource(gbuffer_depth));
 
-        constexpr auto nrd_ids = eastl::array{static_cast<nrd::Identifier>(nrd::Denoiser::RELAX_DIFFUSE)};
-        const nrd::DispatchDesc* dispatches_ptr;
-        uint32_t num_dispatches;
-        nrd::GetComputeDispatches(*instance,
-                                  nrd_ids.data(),
-                                  static_cast<uint32_t>(nrd_ids.size()),
-                                  dispatches_ptr,
-                                  num_dispatches);
+                // Denoiser specific
+                resource_snapshot.SetResource(nrd::ResourceType::IN_DIFF_RADIANCE_HITDIST,
+                                              get_nrd_resource(noisy_diffuse));
+                resource_snapshot.SetResource(nrd::ResourceType::OUT_DIFF_RADIANCE_HITDIST,
+                                              get_nrd_resource(denoised_diffuse, true));
 
-        const auto dispatches = eastl::span{dispatches_ptr, num_dispatches};
-        auto cur_dispatch_idx = 0;
-        for(const auto& dispatch : dispatches) {
-            auto name = eastl::string{dispatch.name};
-            if(name.empty()) {
-                name = eastl::string{eastl::string::CtorSprintf{}, "NRD Dispatch %d", cur_dispatch_idx};
+                // Denoise
+                const auto command_buffer_desc = nri::CommandBufferVKDesc{
+                    .vkCommandBuffer = commands.get_vk_commands(),
+                    .queueType = nri::QueueType::GRAPHICS,
+                };
+
+                instance->DenoiseVK(&denoiser_descs[0].identifier, 1, command_buffer_desc, resource_snapshot);
             }
-
-            graph.add_pass({
-                .name = name.c_str(),
-                .textures = {},
-                .buffers = {},
-                .descriptor_sets = {},
-                .execute = {}
-            });
-
-            cur_dispatch_idx++;
-        }
+        });
     }
 
-    void NvidiaRealtimeDenoiser::create_nrd_resources() {
-        const auto instance_desc = nrd::GetInstanceDesc(*instance);
-
-        // Create the resources that the instance gave us
+    void NvidiaRealtimeDenoiser::recreate_instance(const uint2 resolution) {
         const auto& backend = RenderBackend::get();
-        auto& allocator = backend.get_global_allocator();
+        const auto vk_queue_desc = nri::QueueFamilyVKDesc{
+            .queueNum = 0,
+            .queueType = nri::QueueType::GRAPHICS,
+            .familyIndex = backend.get_graphics_queue_family_index()
+        };
 
-        constant_buffer = allocator.create_buffer("NRD Constant Buffer",
-                                                  instance_desc.constantBufferMaxDataSize,
-                                                  BufferUsage::UniformBuffer);
-        if(constant_buffer) {
-            logger->debug("Created NRD constant buffer");
+        const auto device_extensions = eastl::array{
+            VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
+            VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME
+        };
+
+        const auto device_desc = nri::DeviceCreationVKDesc{
+            .vkExtensions = {
+                .deviceExtensions = device_extensions.data(),
+                .deviceExtensionNum = static_cast<uint32_t>(device_extensions.size())
+            },
+            .vkInstance = backend.get_instance(),
+            .vkDevice = backend.get_device(),
+            .vkPhysicalDevice = backend.get_physical_device(),
+            .queueFamilies = &vk_queue_desc,
+            .queueFamilyNum = 1,
+            .minorVersion = 3,
+            .enableNRIValidation = true
+        };
+
+        const auto instance_create_desc = nrd::InstanceCreationDesc{
+            .denoisers = denoiser_descs.data(),
+            .denoisersNum = static_cast<uint32_t>(denoiser_descs.size())
+        };
+
+        const auto integration_desc = nrd::IntegrationCreationDesc{
+            .name = "NRD",
+            .resourceWidth = static_cast<uint16_t>(resolution.x),
+            .resourceHeight = static_cast<uint16_t>(resolution.y),
+            .queuedFrameNum = 2,
+            .enableWholeLifetimeDescriptorCaching = false,
+            .autoWaitForIdle = false,
+        };
+
+        const auto result = instance->RecreateVK(integration_desc, instance_create_desc, device_desc);
+        if(result != nrd::Result::SUCCESS) {
+            throw std::runtime_error{"Could not create NRD!"};
         }
 
-        const auto nrd_samplers = eastl::span{instance_desc.samplers, instance_desc.samplersNum};
-        samplers.reserve(nrd_samplers.size());
-        for(const auto nrd_sampler : nrd_samplers) {
-            auto filter_mode = VK_FILTER_NEAREST;
-            constexpr auto wrap_mode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-            if(nrd_sampler == nrd::Sampler::LINEAR_CLAMP) {
-                filter_mode = VK_FILTER_LINEAR;
-            }
-            samplers.emplace_back(allocator.get_sampler({
-                .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-                .magFilter = filter_mode,
-                .minFilter = filter_mode,
-                .addressModeU = wrap_mode,
-                .addressModeV = wrap_mode,
-                .addressModeW = wrap_mode,
-                .maxLod = VK_LOD_CLAMP_NONE,
-            }));
-        }
-        if(samplers.size() == nrd_samplers.size()) {
-            logger->debug("Created NRD samplers");
-        }
+        cached_resolution = resolution;
+    }
 
-        const auto nrd_pipelines = eastl::span{instance_desc.pipelines, instance_desc.pipelinesNum};
-        pipelines.reserve(nrd_pipelines.size());
-        for(const auto& nrd_pipeline : nrd_pipelines) {
-            const auto pipeline = backend.get_pipeline_cache().create_pipeline(
-                nrd_pipeline.shaderFileName,
-                eastl::span{static_cast<const std::byte*>(nrd_pipeline.computeShaderSPIRV.bytecode),
-                            nrd_pipeline.computeShaderSPIRV.size});
-
-            if(!pipeline) {
-                logger->error("Could not create NRD pipeline {}!", nrd_pipeline.shaderFileName);
-            } else {
-                pipelines.emplace_back(pipeline);
-            }
-        }
-        if(pipelines.size() == nrd_pipelines.size()) {
-            logger->debug("Created NRD pipelines");
-        }
+    nrd::Resource get_nrd_resource(const TextureHandle texture, const bool is_output) {
+        return nrd::Resource{
+            .vk.image = reinterpret_cast<VKNonDispatchableHandle>(texture->image),
+            .vk.format = texture->create_info.format,
+            .userArg = texture,
+            .state = nri::AccessLayoutStage{
+                .access = nri::AccessBits::SHADER_RESOURCE,
+                .layout = is_output ? nri::Layout::SHADER_RESOURCE_STORAGE : nri::Layout::SHADER_RESOURCE,
+                .stages = nri::StageBits::COMPUTE_SHADER
+            },
+        };
     }
 } // render

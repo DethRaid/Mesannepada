@@ -264,6 +264,7 @@ namespace render {
         case GIMode::RT:
             if (cached_gi_mode != GIMode::RT) {
                 gi = eastl::make_unique<RayTracedGlobalIllumination>();
+                needs_motion_vectors = true;
             }
             break;
         }
@@ -435,6 +436,7 @@ namespace render {
                 player_view,
                 *scene,
                 gbuffer,
+                motion_vectors_phase.get_motion_vectors(),
                 stbn_3d_unitvec.layers[frame_count % stbn_3d_unitvec.num_layers]);
         }
 

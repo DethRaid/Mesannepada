@@ -48,16 +48,16 @@ namespace render {
         }
 
         if(filter_pso == nullptr) {
-            overlay_pso = backend.begin_building_pipeline("rtgi_application")
-                                 .set_vertex_shader("shaders/common/fullscreen.vert.spv")
-                                 .set_fragment_shader("shaders/gi/rtgi/spatial_filter.frag.spv")
-                                 .set_depth_state(
-                                 {
-                                     .enable_depth_write = false,
-                                     .compare_op = VK_COMPARE_OP_LESS
-                                 })
-                                 .set_blend_mode(BlendMode::Additive)
-                                 .build();
+            filter_pso = backend.begin_building_pipeline("rtgi_spatial_filter")
+                                .set_vertex_shader("shaders/common/fullscreen.vert.spv")
+                                .set_fragment_shader("shaders/gi/rtgi/spatial_filter.frag.spv")
+                                .set_depth_state(
+                                {
+                                    .enable_depth_write = false,
+                                    .compare_op = VK_COMPARE_OP_LESS
+                                })
+                                .set_blend_mode(BlendMode::Additive)
+                                .build();
         }
     }
 
@@ -75,7 +75,7 @@ namespace render {
         ZoneScoped;
 
         if(cvar_nrd_enable.Get() != 0 && denoiser == nullptr) {
-            denoiser = eastl::make_unique<NvidiaRealtimeDenoiser>();
+            denoiser = eastl::make_unique<NvidiaRealtimeDenoiser>(view.get_render_resolution());
         } else if(cvar_nrd_enable.Get() == 0) {
             denoiser = nullptr;
         }
@@ -96,7 +96,7 @@ namespace render {
 
     void RayTracedGlobalIllumination::post_render(
         RenderGraph& graph, const SceneView& view, const RenderScene& scene, const GBuffer& gbuffer,
-        const TextureHandle noise_tex
+        const TextureHandle motion_vectors, const TextureHandle noise_tex
         ) {
         if(!should_render()
 #if SAH_USE_IRRADIANCE_CACHE
@@ -141,6 +141,16 @@ namespace render {
                     .usage = TextureUsage::StorageImage
                 });
         }
+        if(denoiser_data == nullptr || denoiser_data->get_resolution() != render_resolution) {
+            allocator.destroy_texture(denoiser_data);
+            denoiser_data = allocator.create_texture(
+                "denoiser_data",
+                {
+                    .format = VK_FORMAT_R16G16B16A16_SNORM,
+                    .resolution = render_resolution,
+                    .usage = TextureUsage::StorageImage
+                });
+        }
         if(rtgi_pipeline == nullptr) {
             rtgi_pipeline = backend.get_pipeline_cache()
                                    .create_ray_tracing_pipeline("shaders/gi/rtgi/rtgi.rt.spv");
@@ -164,6 +174,7 @@ namespace render {
                                 .bind(noise_tex)
                                 .bind(ray_texture)
                                 .bind(ray_irradiance)
+                                .bind(denoiser_data)
                                 .bind(sky.get_sky_view_lut(), sky.get_sampler())
                                 .bind(sky.get_transmittance_lut(), sky.get_sampler())
                                 .build();
@@ -179,6 +190,7 @@ namespace render {
                 commands.bind_descriptor_set(1, backend.get_texture_descriptor_pool().get_descriptor_set());
 
                 commands.set_push_constant(0, static_cast<uint32_t>(cvar_num_bounces.Get()));
+                commands.set_push_constant(1, denoiser == nullptr ? 0u : 1u);
 
                 commands.dispatch_rays(render_resolution);
 
@@ -188,7 +200,12 @@ namespace render {
         });
 
         if(denoiser) {
-            denoiser->do_denoising(graph, gbuffer, ray_irradiance, denoised_irradiance);
+            denoiser->do_denoising(graph,
+                                   gbuffer.depth,
+                                   motion_vectors,
+                                   ray_irradiance,
+                                   denoiser_data,
+                                   denoised_irradiance);
         } else {
             graph.add_copy_pass(ImageCopyPass{.name = "copy_noisy_gi", .dst = denoised_irradiance,
                                               .src = ray_irradiance});
@@ -212,7 +229,7 @@ namespace render {
             VK_ACCESS_2_SHADER_READ_BIT,
             VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         textures.emplace_back(
-            ray_irradiance,
+            denoised_irradiance,
             VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT,
             VK_ACCESS_2_SHADER_READ_BIT,
             VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
@@ -248,7 +265,7 @@ namespace render {
                                                  .bind(view_buffer)
                                                  .bind(noise_texture)
                                                  .bind(ray_texture)
-                                                 .bind(ray_irradiance)
+                                                 .bind(denoised_irradiance)
                                                  .build();
 
             commands.set_cull_mode(VK_CULL_MODE_NONE);
@@ -266,7 +283,7 @@ namespace render {
         } else {
             // Simple copy thing?
             const auto set = RenderBackend::get().get_transient_descriptor_allocator()
-                                                 .build_set(overlay_pso, 1)
+                                                 .build_set(overlay_pso, 0)
                                                  .bind(denoised_irradiance)
                                                  .build();
 
@@ -274,11 +291,11 @@ namespace render {
 
             commands.bind_pipeline(overlay_pso);
 
-            commands.bind_descriptor_set(1, set);
+            commands.bind_descriptor_set(0, set);
 
             commands.draw_triangle();
 
-            commands.clear_descriptor_set(1);
+            commands.clear_descriptor_set(0);
         }
     }
 

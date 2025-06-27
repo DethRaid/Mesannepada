@@ -49,7 +49,7 @@ set(SHADER_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/../engine)
 set(EXTERN_DIR ${SHADER_INCLUDE_DIR}/extern)
 
 add_custom_target(compile_shaders
-    python ${SAH_TOOLS_DIR}/compile_shaders.py ${SAH_SHADER_DIR} ${SAH_OUTPUT_DIR}/shaders ${EXTERN_DIR}
+    python ${SAH_TOOLS_DIR}/compile_shaders.py ${SAH_SHADER_DIR} ${SAH_OUTPUT_DIR}/shaders ${EXTERN_DIR} ${NRD_SOURCE_DIR}/Shaders/Include
 )
 add_dependencies(mesannepada compile_shaders)
 

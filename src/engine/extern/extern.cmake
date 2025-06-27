@@ -31,6 +31,8 @@ set(STREAMLINE_FEATURE_DLSS_RR ON CACHE BOOL "" FORCE)
 
 set(CAULDRON_VK ON CACHE BOOL "" FORCE)
 
+set(NRD_NORMAL_ENCODING "4" CACHE STRING "" FORCE)
+
 set(RMLUI_BACKEND GLFW_VK CACHE STRING "" FORCE)
 set(RMLUI_TRACY_PROFILING OFF CACHE BOOL "" FORCE)
 set(RMLUI_CUSTOM_RTTI ON CACHE BOOL "" FORCE)
@@ -99,6 +101,11 @@ FetchContent_Declare(
         NRD 
         GIT_REPOSITORY  https://github.com/NVIDIA-RTX/NRD.git
         GIT_TAG         v4.15.0 
+)
+FetchContent_Declare(
+        NRI
+        GIT_REPOSITORY  https://github.com/NVIDIA-RTX/NRI.git
+        GIT_TAG         v171
 )
 FetchContent_Declare(
         recast
@@ -185,6 +192,7 @@ FetchContent_MakeAvailable(
         JoltPhysics
         fetch_magic_enum
         NRD
+        NRI
         recast
         rmlui
         spdlog

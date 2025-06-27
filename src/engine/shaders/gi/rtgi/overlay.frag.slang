@@ -1,4 +1,4 @@
-[vk::binding(0, 1)]
+[vk::binding(0, 0)]
 Texture2D<half4> ray_irradiance;
 
 [shader("fragment")]

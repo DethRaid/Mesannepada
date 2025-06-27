@@ -996,6 +996,7 @@ namespace render {
     }
 
     void RenderBackend::deinit() {
+        vkDeviceWaitIdle(device);
         pipeline_cache->destroy_all_pipelines();
     }
 

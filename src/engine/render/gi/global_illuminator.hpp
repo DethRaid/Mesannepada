@@ -25,7 +25,7 @@ namespace render {
 
         virtual void post_render(
             RenderGraph& graph, const SceneView& view, const RenderScene& scene, const GBuffer& gbuffer,
-            TextureHandle noise_tex
+             TextureHandle motion_vectors, TextureHandle noise_tex
         ) = 0;
 
         virtual void get_lighting_resource_usages(
