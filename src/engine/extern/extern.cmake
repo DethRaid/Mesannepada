@@ -313,6 +313,8 @@ else()
             ${fetch_imgui_SOURCE_DIR}/misc/cpp
             ${fetch_imgui_SOURCE_DIR}/backends
             )
+    target_link_libraries(imgui PUBLIC
+        glfw)
 endif()
 
 FetchContent_Declare(
@@ -344,17 +346,6 @@ else()
     add_library(stb INTERFACE)
     target_include_directories(stb INTERFACE ${fetch_stb_SOURCE_DIR})
 endif()
-
-# We only use GLFW on Windows
-if(WIN32)
-    FetchContent_Declare(
-            fetch_glfw
-            GIT_REPOSITORY  https://github.com/glfw/glfw.git
-            GIT_TAG         3.3.8
-    )
-    FetchContent_MakeAvailable(fetch_glfw)
-endif()
-
 
 set(SAH_EXTERNAL_NATVIS_FILES
         "${FETCHCONTENT_BASE_DIR}/eastl-src/doc/EASTL.natvis"
