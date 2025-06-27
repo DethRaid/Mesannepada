@@ -231,7 +231,7 @@ if(SAH_USE_FFX)
     FetchContent_Declare(
             fidelityfx
             DOWNLOAD_EXTRACT_TIMESTAMP OFF
-            URL             https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/releases/download/v1.1.3/FidelityFX-SDK-v1.1.3.zip
+            URL             https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/releases/download/v1.1.4/FidelityFX-SDK-v1.1.4.zip
     )
     FetchContent_GetProperties(fidelityfx)
     if(fidelityfx_POPULATED)
