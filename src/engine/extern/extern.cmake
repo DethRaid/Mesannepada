@@ -221,8 +221,8 @@ endif()
 if(SAH_USE_STREAMLINE)
     FetchContent_Declare(
             streamline
-            GIT_REPOSITORY      https://github.com/NVIDIAGameWorks/Streamline.git
-            GIT_TAG             v2.8.0
+            DOWNLOAD_EXTRACT_TIMESTAMP OFF
+            URL     https://github.com/NVIDIA-RTX/Streamline/releases/download/v2.8.0/streamline-sdk-v2.8.0.zip
     )
     FetchContent_MakeAvailable(streamline)
 endif()
