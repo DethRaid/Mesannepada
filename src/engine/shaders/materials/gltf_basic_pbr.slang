@@ -201,8 +201,6 @@ main_fs(const VertexOutput vertex) {
 #if !SAH_DEPTH_ONLY
     gbuffer.base_color = tinted_base_color;
 
-    half roughness = 0.h;
-
 #if !SAH_RSM
     // Data
     Sampler2D data_texture = textures[material.data_texture_index];
@@ -210,7 +208,6 @@ main_fs(const VertexOutput vertex) {
     half4 tinted_data = data_sample * half4(0, (half)material.roughness_factor, (half)material.metalness_factor, 0);
 
     gbuffer.data = tinted_data;
-    roughness = tinted_data.y;
 
     // Emission
     Sampler2D emission_texture = textures[material.emission_texture_index];
@@ -221,21 +218,20 @@ main_fs(const VertexOutput vertex) {
 #endif  // !SAH_RSM
 
     // Normals
+    half3 normal = vertex.normal;
 #if SAH_MAIN_VIEW
     // float3x3 tbn = cotangent_frame(vertex.normal, vertex.viewspace_position, vertex.texcoord);
-    half3 bitangent = cross(vertex.normal, vertex.tangent.xyz) * vertex.tangent.w;
+    half3 bitangent = cross(normal, vertex.tangent.xyz) * vertex.tangent.w;
     half3x3 tbn = half3x3(
         vertex.tangent.xyz,
         bitangent,
-        vertex.normal
+        normal
     );
     Sampler2D normals_texture = textures[material.normal_texture_index];
     half3 normal_sample = (half3)normals_texture.SampleBias(vertex.texcoord, mip_bias).xyz * 2.h - 1.h;
-    half3 normal = mul(normal_sample, tbn);
-    gbuffer.normal = half4(normal, roughness);
-#else
-    gbuffer.normal = half4(vertex.normal, roughness);
+    normal = mul(normal_sample, tbn);
 #endif
+    gbuffer.normal = half4(normal, 1);
 
 #endif  // !SAH_DEPTH_ONLY
 
@@ -357,7 +353,7 @@ ConstantBuffer<SunLightConstants> sun_light;
 [vk::binding(3, 0)]
 RaytracingAccelerationStructure rtas;
 
-[vk::binding(6, 0)]
+[vk::binding(7, 0)]
 Texture2D<float3> noisetex;
 
 [shader("closesthit")]

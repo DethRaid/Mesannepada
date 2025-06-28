@@ -471,6 +471,7 @@ namespace render {
                           .bind(scene.get_player_view().get_buffer())
                           .bind(scene.get_raytracing_scene().get_acceleration_structure())
                           .bind(shadow_mask_texture)
+                          .bind(gbuffer.data)
                           .bind(gbuffer.depth)
                           .bind(noise)
                           .build();

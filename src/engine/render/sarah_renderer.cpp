@@ -507,7 +507,6 @@ namespace render {
                         .stage = VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT,
                         .access = VK_ACCESS_2_SHADER_READ_BIT,
                         .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-
                     },
                     {
                         .texture = bloomer.get_bloom_tex(),

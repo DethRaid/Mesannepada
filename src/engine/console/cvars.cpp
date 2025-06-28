@@ -387,7 +387,7 @@ AutoCVar_String::AutoCVar_String(const char* name, const char* description, cons
     index = cvar->arrayIndex;
 }
 
-const char* AutoCVar_String::Get() {
+const char* AutoCVar_String::get() {
     return GetCVarCurrentByIndex<CVarType>(index).c_str();
 };
 
