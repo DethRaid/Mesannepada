@@ -82,7 +82,8 @@ namespace reflection {
             DATA(TransformComponent, scale)
             DATA(TransformComponent, children);
 
-        REFLECT_COMPONENT(ai::BehaviorTreeComponent);
+        REFLECT_COMPONENT(ai::BehaviorTreeComponent)
+            DATA(ai::BehaviorTreeComponent, data);
 
         REFLECT_COMPONENT(ai::WaypointComponent)
             DATA(ai::WaypointComponent, next_waypoint);

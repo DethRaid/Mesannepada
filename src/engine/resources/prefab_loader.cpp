@@ -50,7 +50,7 @@ entt::handle PrefabLoader::load_prefab(const std::filesystem::path& prefab_file,
         if(auto itr = component_creators.find(type_name); itr != component_creators.end()) {
             itr->second(entity, component_definition);
         } else {
-            const auto component_type_id = entt::id_type{entt::hashed_string{type_name_view.data(), type_name_view.size()}};
+            const auto component_type_id = entt::id_type{entt::hashed_string{type_name.c_str()}};
             auto meta = entt::resolve(component_type_id);
             auto value = meta.construct();
             assert(value && "Component does not have a default constructor!");
@@ -58,10 +58,6 @@ entt::handle PrefabLoader::load_prefab(const std::filesystem::path& prefab_file,
             if(auto emplace_move = meta.func("emplace_move"_hs)) {
                 emplace_move.invoke({}, entity.registry(), entity.entity(), value.as_ref());
             }
-
-            logger->warn(
-                    "Prefab {} wants a {} component, but no factory was registered for that component type! Skipping unknown component",
-                    prefab_file.string(), type_name.c_str());
         }
     }
 

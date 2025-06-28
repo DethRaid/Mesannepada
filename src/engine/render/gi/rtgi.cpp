@@ -207,8 +207,10 @@ namespace render {
                                    denoiser_data,
                                    denoised_irradiance);
         } else {
-            graph.add_copy_pass(ImageCopyPass{.name = "copy_noisy_gi", .dst = denoised_irradiance,
-                                              .src = ray_irradiance});
+            graph.add_copy_pass(ImageCopyPass{
+                .name = "copy_noisy_gi",
+                .dst = denoised_irradiance,
+                .src = ray_irradiance});
         }
     }
 

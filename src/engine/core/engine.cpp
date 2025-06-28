@@ -4,8 +4,8 @@
 #include <magic_enum.hpp>
 #include <tracy/Tracy.hpp>
 
-#include "../render/components/skeletal_mesh_component.hpp"
-#include "../scene/spawn_gameobject_component.hpp"
+#include "render/components/skeletal_mesh_component.hpp"
+#include "scene/spawn_gameobject_component.hpp"
 #include "animation/animation_event_component.hpp"
 #include "core/system_interface.hpp"
 #include "glm/gtx/matrix_decompose.hpp"
