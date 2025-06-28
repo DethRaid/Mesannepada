@@ -467,7 +467,7 @@ namespace render {
         //     lit_scene_handle
         // );
 
-        if (cvar_enable_fog.Get() != 0) {
+        if (cvar_enable_fog.get() != 0) {
             if (gi) {
                 gi->render_volumetrics(render_graph, player_view, *scene, gbuffer, lit_scene_handle);
             }

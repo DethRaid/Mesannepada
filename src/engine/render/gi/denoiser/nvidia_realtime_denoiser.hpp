@@ -5,6 +5,7 @@
 #include <EASTL/unique_ptr.h>
 
 #include "render/scene_view.hpp"
+#include "render/gi/denoiser/denoiser_type.hpp"
 #include "shared/prelude.h"
 
 namespace nrd {
@@ -21,11 +22,11 @@ namespace render {
      */
     class NvidiaRealtimeDenoiser {
     public:
-        explicit NvidiaRealtimeDenoiser(uint2 resolution);
+        explicit NvidiaRealtimeDenoiser();
 
         ~NvidiaRealtimeDenoiser();
 
-        void set_constants(const SceneView& scene_view, uint2 render_resolution);
+        void set_constants(const SceneView& scene_view, DenoiserType type, uint2 render_resolution);
 
         void do_denoising(
             RenderGraph& graph, TextureHandle gbuffer_depth, TextureHandle motion_vectors, TextureHandle noisy_diffuse,
@@ -34,20 +35,15 @@ namespace render {
 
     private:
         uint2 cached_resolution = uint2{0};
+        DenoiserType cached_denoiser_type = DenoiserType::None;
+        nrd::Denoiser denoiser{};
 
-        static inline auto denoiser_descs = eastl::array{
-            // ReLAX
-            nrd::DenoiserDesc{
-                .identifier = static_cast<nrd::Identifier>(nrd::Denoiser::RELAX_DIFFUSE),
-                .denoiser = nrd::Denoiser::RELAX_DIFFUSE
-            },
-            // TODO: Reflections denoiser - combine with RELAX_DIFFUSE?
-        };
+        TextureHandle validation_texture = nullptr;
 
         eastl::unique_ptr<nrd::Integration> instance;
 
         static inline ComputePipelineHandle pack_nrd_inputs_pipeline = nullptr;
 
-        void recreate_instance(uint2 resolution);
+        void recreate_instance();
     };
 } // render

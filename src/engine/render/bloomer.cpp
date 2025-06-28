@@ -66,7 +66,7 @@ namespace render {
                     commands.bind_pipeline(downsample_shader);
 
                     // We gonna rock down to electric avenue
-                    for (auto pass = 0u; pass < cvar_num_bloom_mips.Get() - 1; pass++) {
+                    for (auto pass = 0u; pass < cvar_num_bloom_mips.get() - 1; pass++) {
                         dispatch_size /= glm::uvec2{2};
 
                         logger->trace("Bloom downsample pass {}", pass);
@@ -279,7 +279,7 @@ namespace render {
             {
                 create_info.format,
                 bloom_tex_resolution,
-                static_cast<uint32_t>(cvar_num_bloom_mips.Get()),
+                static_cast<uint32_t>(cvar_num_bloom_mips.get()),
                 TextureUsage::StorageImage
             }
         );

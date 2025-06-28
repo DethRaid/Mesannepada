@@ -59,7 +59,7 @@ namespace ui {
             logger->error("Could not initialize RmlUI context");
         }
 
-        if(cvar_enable_ui_debugger.Get()) {
+        if(cvar_enable_ui_debugger.get()) {
             result = Rml::Debugger::Initialise(context);
             if(!result) {
                 logger->error("Could not initialize RmlUI debugger");
@@ -86,7 +86,7 @@ namespace ui {
             screens.pop();
         }
 
-        if(cvar_enable_ui_debugger.Get()) {
+        if(cvar_enable_ui_debugger.get()) {
             Rml::Debugger::Shutdown();
         }
         Rml::RemoveContext(CONTEXT_NAME.c_str());
@@ -145,7 +145,7 @@ namespace ui {
                     break;
                 }
             }
-            if(glfw_key == GLFW_KEY_F8 && cvar_enable_ui_debugger.Get()) {
+            if(glfw_key == GLFW_KEY_F8 && cvar_enable_ui_debugger.get()) {
                 debugger_visible = !debugger_visible;
                 Rml::Debugger::SetVisible(debugger_visible);
                 break;

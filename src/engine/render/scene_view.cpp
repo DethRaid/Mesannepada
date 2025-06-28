@@ -146,11 +146,11 @@ namespace render {
     }
 
     float SceneView::get_min_log_luminance() const {
-        return static_cast<float>(log2(cvar_min_luminance.Get()));
+        return static_cast<float>(log2(cvar_min_luminance.get()));
     }
 
     float SceneView::get_max_log_luminance() const {
-        return static_cast<float>(log2(cvar_max_luminance.Get()));
+        return static_cast<float>(log2(cvar_max_luminance.get()));
     }
 
     void SceneView::set_view_matrix(const float4x4& view_matrix) {

@@ -57,7 +57,7 @@ float2 r0(uint n) {
 [[vk::push_constant]]
 cbuffer Constants {
     uint num_bounces;
-    uint denoiser_format;   // 0 = none, 1 = NRD, 2 = DLSS-RR
+    uint denoiser_type;   // see render::DenoiserType
 };
 
 [shader("raygen")]
@@ -110,10 +110,15 @@ void main_raygen() {
 
     ray_buffer[thread_id] = float4(ray_direction, payload.ray_distance);
 
-    if(denoiser_format == 1) {
+    if(denoiser_type == 1) {    // ReBLUR
+        ray_irradiance[thread_id] = REBLUR_FrontEnd_PackRadianceAndNormHitDist(payload.irradiance * view_data.exposure, payload.ray_distance, false);
+        denoiser_data[thread_id] = NRD_FrontEnd_PackNormalAndRoughness(normal, gbuffer_normals[thread_id].a, 0);
+
+    } else if(denoiser_type == 2) { // ReLAX
         ray_irradiance[thread_id] = RELAX_FrontEnd_PackRadianceAndHitDist(payload.irradiance * view_data.exposure, payload.ray_distance, false);
         denoiser_data[thread_id] = NRD_FrontEnd_PackNormalAndRoughness(normal, gbuffer_normals[thread_id].a, 0);
-    } else {
+    
+    } else { // None, or perhaps DLSS-RR
         ray_irradiance[thread_id] = float4(payload.irradiance * view_data.exposure, 0);
         denoiser_data[thread_id] = 0;
     }

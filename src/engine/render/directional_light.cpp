@@ -54,7 +54,7 @@ namespace render {
             );
         world_to_ndc_matrices_buffer = allocator.create_buffer(
             "sun_world_to_ndc_matrices",
-            sizeof(glm::mat4) * cvar_num_shadow_cascades.Get(),
+            sizeof(glm::mat4) * cvar_num_shadow_cascades.get(),
             BufferUsage::UniformBuffer);
 
         const auto& backend = RenderBackend::get();
@@ -97,7 +97,7 @@ namespace render {
             }
             );
 
-        for(auto i = 0; i < cvar_num_shadow_cascades.Get(); i++) {
+        for(auto i = 0; i < cvar_num_shadow_cascades.get(); i++) {
             constants.cascade_matrices[i] = float4x4{1};
             constants.cascade_inverse_matrices[i] = glm::inverse(constants.cascade_matrices[i]);
         }
@@ -115,9 +115,9 @@ namespace render {
             return;
         }
 
-        const auto num_cascades = static_cast<uint32_t>(cvar_num_shadow_cascades.Get());
-        const auto max_shadow_distance = static_cast<float>(cvar_max_shadow_distance.Get());
-        const auto cascade_split_lambda = static_cast<float>(cvar_shadow_cascade_split_lambda.Get());
+        const auto num_cascades = static_cast<uint32_t>(cvar_num_shadow_cascades.get());
+        const auto max_shadow_distance = static_cast<float>(cvar_max_shadow_distance.get());
+        const auto cascade_split_lambda = static_cast<float>(cvar_shadow_cascade_split_lambda.get());
 
         // Shadow frustum fitting code based on
         // https://github.com/SaschaWillems/Vulkan/blob/master/examples/shadowmappingcascade/shadowmappingcascade.cpp#L637,
@@ -140,7 +140,7 @@ namespace render {
         auto cascade_splits = eastl::fixed_vector<float, 4>{};
         cascade_splits.resize(num_cascades);
 
-        const auto texel_scale = 2.f / static_cast<float>(cvar_shadow_cascade_resolution.Get());
+        const auto texel_scale = 2.f / static_cast<float>(cvar_shadow_cascade_resolution.get());
         const auto inverse_texel_scale = 1.f / texel_scale;
 
         // Calculate split depths based on view camera frustum
@@ -232,7 +232,7 @@ namespace render {
             last_split_distance = cascade_splits[i];
         }
 
-        const auto csm_resolution = static_cast<uint32_t>(cvar_shadow_cascade_resolution.Get());
+        const auto csm_resolution = static_cast<uint32_t>(cvar_shadow_cascade_resolution.get());
         constants.csm_resolution.x = csm_resolution;
         constants.csm_resolution.y = csm_resolution;
 
@@ -267,7 +267,7 @@ namespace render {
             sun_buffer_dirty = true;
         }
 
-        const auto num_samples = static_cast<float>(cvar_shadow_samples.Get());
+        const auto num_samples = static_cast<float>(cvar_shadow_samples.get());
         if(constants.num_shadow_samples != num_samples) {
             constants.num_shadow_samples = num_samples;
             sun_buffer_dirty = true;
@@ -356,10 +356,10 @@ namespace render {
             shadowmap_handle = allocator.create_texture(
                 "Sun shadowmap",
                 {VK_FORMAT_D16_UNORM,
-                 glm::uvec2{cvar_shadow_cascade_resolution.Get(), cvar_shadow_cascade_resolution.Get()},
+                 glm::uvec2{cvar_shadow_cascade_resolution.get(), cvar_shadow_cascade_resolution.get()},
                  1,
                  TextureUsage::RenderTarget,
-                 static_cast<uint32_t>(cvar_num_shadow_cascades.Get())});
+                 static_cast<uint32_t>(cvar_num_shadow_cascades.get())});
         }
 
         const auto& pipelines = scene.get_material_storage().get_pipelines();

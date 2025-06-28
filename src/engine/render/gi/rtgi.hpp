@@ -7,7 +7,7 @@
 #include "render/backend/buffer_usage_token.hpp"
 #include "render/backend/handles.hpp"
 #include "render/backend/texture_usage_token.hpp"
-#include "render/denoiser/nvidia_realtime_denoiser.hpp"
+#include "render/gi/denoiser/nvidia_realtime_denoiser.hpp"
 #include "render/gi/global_illuminator.hpp"
 #include "render/gi/irradiance_cache.hpp"
 

@@ -12,7 +12,7 @@ namespace render {
     };
 
     bool MotionVectorsPhase::render_full_res() {
-        return cvar_full_res_motion_vectors.Get() == 1;
+        return cvar_full_res_motion_vectors.get() == 1;
     }
 
     MotionVectorsPhase::MotionVectorsPhase() {
@@ -47,7 +47,7 @@ namespace render {
         auto& backend = RenderBackend::get();
         auto& allocator = backend.get_global_allocator();
 
-        const auto mv_resolution = cvar_full_res_motion_vectors.Get() == 0 ? resolution : output_resolution;
+        const auto mv_resolution = cvar_full_res_motion_vectors.get() == 0 ? resolution : output_resolution;
 
         if (motion_vectors) {
             if (motion_vectors->create_info.extent.width != mv_resolution.x || motion_vectors->create_info.extent.height !=

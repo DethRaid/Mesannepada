@@ -6,6 +6,7 @@
 #include "render/scene_view.hpp"
 #include "render/backend/pipeline_cache.hpp"
 #include "render/backend/render_backend.hpp"
+#include "render/gi/denoiser/denoiser_type.hpp"
 
 namespace render {
     static auto cvar_num_bounces = AutoCVar_Int{
@@ -20,7 +21,7 @@ namespace render {
         "r.GI.Reconstruction.Size", "Size in pixels of the screenspace reconstruction filter", 16
     };
 
-    static auto cvar_nrd_enable = AutoCVar_Int{"r.NRD.Enable", "Use Nvidia's Realtime Denoiser for denoising", 1};
+    static auto cvar_denoiser = AutoCVar_Enum{"r.GI.Denoiser", "Which denoiser to use. 0 = none, 1 = ReBLUR, 2 = ReLAX", DenoiserType::ReBLUR};
 
 #if SAH_USE_IRRADIANCE_CACHE
     static AutoCVar_Int cvar_gi_cache{ "r.GI.Cache.Enabled", "Whether to enable the GI irradiance cache", false };
@@ -29,11 +30,11 @@ namespace render {
 #endif
 
     bool RayTracedGlobalIllumination::should_render() {
-        return cvar_num_bounces.Get() > 0;
+        return cvar_num_bounces.get() > 0;
     }
 
     RayTracedGlobalIllumination::RayTracedGlobalIllumination() {
-        auto& backend = RenderBackend::get();
+        const auto& backend = RenderBackend::get();
         if(overlay_pso == nullptr) {
             overlay_pso = backend.begin_building_pipeline("rtgi_application")
                                  .set_vertex_shader("shaders/common/fullscreen.vert.spv")
@@ -74,9 +75,10 @@ namespace render {
         ) {
         ZoneScoped;
 
-        if(cvar_nrd_enable.Get() != 0 && denoiser == nullptr) {
-            denoiser = eastl::make_unique<NvidiaRealtimeDenoiser>(view.get_render_resolution());
-        } else if(cvar_nrd_enable.Get() == 0) {
+        if(cvar_denoiser.get() != DenoiserType::None && denoiser == nullptr) {
+            denoiser = eastl::make_unique<NvidiaRealtimeDenoiser>();
+        } else if(cvar_denoiser.get() == DenoiserType::None && denoiser) {
+            RenderBackend::get().wait_for_idle();
             denoiser = nullptr;
         }
 
@@ -128,7 +130,8 @@ namespace render {
                 {
                     .format = VK_FORMAT_R16G16B16A16_SFLOAT,
                     .resolution = render_resolution,
-                    .usage = TextureUsage::StorageImage
+                    .usage = TextureUsage::StorageImage,
+                    .usage_flags = VK_IMAGE_USAGE_TRANSFER_SRC_BIT
                 });
         }
         if(denoised_irradiance == nullptr || denoised_irradiance->get_resolution() != render_resolution) {
@@ -138,7 +141,8 @@ namespace render {
                 {
                     .format = VK_FORMAT_R16G16B16A16_SFLOAT,
                     .resolution = render_resolution,
-                    .usage = TextureUsage::StorageImage
+                    .usage = TextureUsage::StorageImage,
+                    .usage_flags = VK_IMAGE_USAGE_TRANSFER_DST_BIT
                 });
         }
         if(denoiser_data == nullptr || denoiser_data->get_resolution() != render_resolution) {
@@ -157,7 +161,7 @@ namespace render {
         }
 
         if(denoiser) {
-            denoiser->set_constants(view, render_resolution);
+            denoiser->set_constants(view, cvar_denoiser.get(), render_resolution);
         }
 
         const auto sun_buffer = scene.get_sun_light().get_constant_buffer();
@@ -189,7 +193,7 @@ namespace render {
                 commands.bind_descriptor_set(0, set);
                 commands.bind_descriptor_set(1, backend.get_texture_descriptor_pool().get_descriptor_set());
 
-                commands.set_push_constant(0, static_cast<uint32_t>(cvar_num_bounces.Get()));
+                commands.set_push_constant(0, static_cast<uint32_t>(cvar_num_bounces.get()));
                 commands.set_push_constant(1, denoiser == nullptr ? 0u : 1u);
 
                 commands.dispatch_rays(render_resolution);
@@ -276,7 +280,7 @@ namespace render {
 
             commands.bind_descriptor_set(1, set);
 
-            commands.set_push_constant(0, static_cast<uint32_t>(cvar_num_reconstruction_rays.Get()));
+            commands.set_push_constant(0, static_cast<uint32_t>(cvar_num_reconstruction_rays.get()));
             commands.set_push_constant(1, cvar_reconstruction_size.GetFloat());
 
             commands.draw_triangle();

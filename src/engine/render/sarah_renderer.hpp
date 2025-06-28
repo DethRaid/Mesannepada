@@ -14,7 +14,6 @@
 #include "render/noise_texture.hpp"
 #include "render/procedural_sky.hpp"
 #include "render/texture_loader.hpp"
-#include "render/denoiser/nvidia_realtime_denoiser.hpp"
 #include "render/gi/light_propagation_volume.hpp"
 #include "render/phase/ambient_occlusion_phase.hpp"
 #include "render/phase/depth_culling_phase.hpp"

@@ -13,7 +13,7 @@ namespace render {
     TextureDescriptorPool::TextureDescriptorPool(RenderBackend& backend_in) : backend{ backend_in } {
         auto sampled_image_count = backend.get_physical_device().properties.limits.maxDescriptorSetSampledImages;
         cvar_sampled_image_count.Set(sampled_image_count > INT_MAX ? INT_MAX : static_cast<int32_t>(sampled_image_count / 2));
-        sampled_image_count = cvar_sampled_image_count.Get();
+        sampled_image_count = cvar_sampled_image_count.get();
 
         const auto& device = backend_in.get_device();
 

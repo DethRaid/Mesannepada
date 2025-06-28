@@ -22,36 +22,37 @@ namespace render {
     static auto cvar_nrd_split_screen = AutoCVar_Int{"r.NRD.SplitScreen",
                                                      "Whether to show the split noisy/denoised view", 0};
     static auto cvar_nrd_validation = AutoCVar_Int{"r.NRD.Validation",
-                                                   "Whether to enable NRD validation", 0};
+                                                   "Whether to enable NRD validation", 1};
 
     static std::shared_ptr<spdlog::logger> logger;
 
     static nrd::Resource get_nrd_resource(TextureHandle texture, bool is_output = false);
 
-    NvidiaRealtimeDenoiser::NvidiaRealtimeDenoiser(const uint2 resolution) :
+    NvidiaRealtimeDenoiser::NvidiaRealtimeDenoiser() :
         instance{eastl::make_unique<nrd::Integration>()} {
         if(logger == nullptr) {
             logger = SystemInterface::get().get_logger("NvidiaRealtimeDenoiser");
         }
-
-        recreate_instance(resolution);
     }
 
     NvidiaRealtimeDenoiser::~NvidiaRealtimeDenoiser() {
         instance->Destroy();
     }
 
-    void NvidiaRealtimeDenoiser::set_constants(const SceneView& scene_view, const uint2 render_resolution) {
-        if(cached_resolution != render_resolution) {
-            recreate_instance(render_resolution);
+    void NvidiaRealtimeDenoiser::set_constants(const SceneView& scene_view, DenoiserType type,
+                                               const uint2 render_resolution
+        ) {
+        if(cached_resolution != render_resolution || cached_denoiser_type != type) {
+            cached_resolution = render_resolution;
+            cached_denoiser_type = type;
+            recreate_instance();
         }
 
         instance->NewFrame();
 
         const auto& view_data = scene_view.get_gpu_data();
-        cached_resolution = render_resolution;
 
-        const auto smol_render_resolution = glm::u16vec2{render_resolution};
+        const auto smol_render_resolution = glm::u16vec2{cached_resolution};
 
         auto common_settings = nrd::CommonSettings{
             .cameraJitter = {view_data.jitter.x, view_data.jitter.y},
@@ -60,30 +61,38 @@ namespace render {
             .resourceSizePrev = {smol_render_resolution.x, smol_render_resolution.y},
             .rectSize = {smol_render_resolution.x, smol_render_resolution.y},
             .rectSizePrev = {smol_render_resolution.x, smol_render_resolution.y},
-            .splitScreen = static_cast<float>(cvar_nrd_split_screen.Get()),
+            .splitScreen = static_cast<float>(cvar_nrd_split_screen.get()),
             .frameIndex = scene_view.get_frame_count(),
-            .isBaseColorMetalnessAvailable = true,
-            .enableValidation = cvar_nrd_validation.Get() != 0
+            .isBaseColorMetalnessAvailable = false,
+            .enableValidation = cvar_nrd_validation.get() != 0
         };
 
-        const auto view_to_clip = scene_view.get_projection();
+        const auto view_to_clip = transpose(scene_view.get_projection());
         memcpy(common_settings.viewToClipMatrix, &view_to_clip, sizeof(float4x4));
 
-        const auto view_to_clip_prev = scene_view.get_last_frame_projection();
+        const auto view_to_clip_prev = transpose(scene_view.get_last_frame_projection());
         memcpy(common_settings.viewToClipMatrixPrev, &view_to_clip_prev, sizeof(float4x4));
 
-        const auto world_to_view = scene_view.get_view();
+        const auto world_to_view = transpose(scene_view.get_view());
         memcpy(common_settings.worldToViewMatrix, &world_to_view, sizeof(float4x4));
 
-        const auto world_to_view_prev = scene_view.get_last_frame_view();
+        const auto world_to_view_prev = transpose(scene_view.get_last_frame_view());
         memcpy(common_settings.worldToViewMatrixPrev, &world_to_view_prev, sizeof(float4x4));
 
         instance->SetCommonSettings(common_settings);
 
-        // TODO: Play with the settings?
-        auto relax_settings = nrd::RelaxSettings{};
+        if(cached_denoiser_type == DenoiserType::ReBLUR) {
+            auto reblur_settings = nrd::ReblurSettings{};
 
-        instance->SetDenoiserSettings(static_cast<nrd::Identifier>(nrd::Denoiser::RELAX_DIFFUSE), &relax_settings);
+            instance->SetDenoiserSettings(static_cast<nrd::Identifier>(nrd::Denoiser::REBLUR_DIFFUSE),
+                                          &reblur_settings);
+
+        } else if(cached_denoiser_type == DenoiserType::ReLAX) {
+            // TODO: Play with the settings?
+            auto relax_settings = nrd::RelaxSettings{};
+
+            instance->SetDenoiserSettings(static_cast<nrd::Identifier>(nrd::Denoiser::RELAX_DIFFUSE), &relax_settings);
+        }
     }
 
     void NvidiaRealtimeDenoiser::do_denoising(
@@ -91,40 +100,60 @@ namespace render {
         const TextureHandle noisy_diffuse, const TextureHandle packed_normals_roughness,
         const TextureHandle denoised_diffuse
         ) {
+        auto& allocator = RenderBackend::get().get_global_allocator();
+        if(cvar_nrd_validation.get() != 0 && validation_texture == nullptr) {
+            validation_texture = allocator.create_texture("nrd_validation",
+                                                          {
+                                                              .format = VK_FORMAT_R8G8B8A8_UNORM,
+                                                              .resolution = denoised_diffuse->get_resolution(),
+                                                              .usage = TextureUsage::StorageImage,
+                                                          });
+        } else if(cvar_nrd_validation.get() == 0) {
+            allocator.destroy_texture(validation_texture);
+            validation_texture = nullptr;
+        }
+
+        auto texture_usages = TextureUsageList{
+            {
+                .texture = motion_vectors,
+                .stage = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,
+                .access = VK_ACCESS_2_SHADER_READ_BIT,
+                .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            },
+            {
+                .texture = packed_normals_roughness,
+                .stage = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,
+                .access = VK_ACCESS_2_SHADER_READ_BIT,
+                .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            },
+            {
+                .texture = gbuffer_depth,
+                .stage = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,
+                .access = VK_ACCESS_2_SHADER_READ_BIT,
+                .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            },
+            {
+                .texture = noisy_diffuse,
+                .stage = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,
+                .access = VK_ACCESS_2_SHADER_READ_BIT,
+                .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            },
+            {
+                .texture = denoised_diffuse,
+                .stage = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,
+                .access = VK_ACCESS_2_SHADER_READ_BIT | VK_ACCESS_2_SHADER_WRITE_BIT,
+                .layout = VK_IMAGE_LAYOUT_GENERAL,
+            },
+        };
+        if(cvar_nrd_validation.get() != 0) {
+            texture_usages.emplace_back(validation_texture,
+                                        VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,
+                                        VK_ACCESS_2_SHADER_READ_BIT | VK_ACCESS_2_SHADER_WRITE_BIT,
+                                        VK_IMAGE_LAYOUT_GENERAL);
+        }
         graph.add_pass({
             .name = "evaluate_nrd",
-            .textures = {
-                {
-                    .texture = motion_vectors,
-                    .stage = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
-                    .access = VK_ACCESS_2_SHADER_READ_BIT,
-                    .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                },
-                {
-                    .texture = packed_normals_roughness,
-                    .stage = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
-                    .access = VK_ACCESS_2_SHADER_READ_BIT,
-                    .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                },
-                {
-                    .texture = gbuffer_depth,
-                    .stage = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
-                    .access = VK_ACCESS_2_SHADER_READ_BIT,
-                    .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                },
-                {
-                    .texture = noisy_diffuse,
-                    .stage = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
-                    .access = VK_ACCESS_2_SHADER_READ_BIT,
-                    .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                },
-                {
-                    .texture = denoised_diffuse,
-                    .stage = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
-                    .access = VK_ACCESS_2_SHADER_WRITE_BIT,
-                    .layout = VK_IMAGE_LAYOUT_GENERAL,
-                },
-            },
+            .textures = texture_usages,
             .execute = [&](const CommandBuffer& commands) {
                 // Fill resource snapshot
                 nrd::ResourceSnapshot resource_snapshot = {};
@@ -139,6 +168,10 @@ namespace render {
                                               get_nrd_resource(noisy_diffuse));
                 resource_snapshot.SetResource(nrd::ResourceType::OUT_DIFF_RADIANCE_HITDIST,
                                               get_nrd_resource(denoised_diffuse, true));
+                if(cvar_nrd_validation.get() != 0) {
+                    resource_snapshot.SetResource(nrd::ResourceType::OUT_VALIDATION,
+                                                  get_nrd_resource(validation_texture, true));
+                }
 
                 // Denoise
                 const auto command_buffer_desc = nri::CommandBufferVKDesc{
@@ -146,12 +179,14 @@ namespace render {
                     .queueType = nri::QueueType::GRAPHICS,
                 };
 
-                instance->DenoiseVK(&denoiser_descs[0].identifier, 1, command_buffer_desc, resource_snapshot);
+                const auto identifier = static_cast<nrd::Identifier>(denoiser);
+
+                instance->DenoiseVK(&identifier, 1, command_buffer_desc, resource_snapshot);
             }
         });
     }
 
-    void NvidiaRealtimeDenoiser::recreate_instance(const uint2 resolution) {
+    void NvidiaRealtimeDenoiser::recreate_instance() {
         const auto& backend = RenderBackend::get();
         const auto vk_queue_desc = nri::QueueFamilyVKDesc{
             .queueNum = 0,
@@ -178,15 +213,25 @@ namespace render {
             .enableNRIValidation = true
         };
 
+        if(cached_denoiser_type == DenoiserType::ReBLUR) {
+            denoiser = nrd::Denoiser::REBLUR_DIFFUSE;
+        } else if(cached_denoiser_type == DenoiserType::ReLAX) {
+            denoiser = nrd::Denoiser::RELAX_DIFFUSE;
+        }
+
+        const auto denoiser_desc = nrd::DenoiserDesc{
+                .identifier = static_cast<nrd::Identifier>(denoiser),
+                .denoiser = denoiser
+        };
         const auto instance_create_desc = nrd::InstanceCreationDesc{
-            .denoisers = denoiser_descs.data(),
-            .denoisersNum = static_cast<uint32_t>(denoiser_descs.size())
+            .denoisers = &denoiser_desc,
+            .denoisersNum = 1
         };
 
         const auto integration_desc = nrd::IntegrationCreationDesc{
             .name = "NRD",
-            .resourceWidth = static_cast<uint16_t>(resolution.x),
-            .resourceHeight = static_cast<uint16_t>(resolution.y),
+            .resourceWidth = static_cast<uint16_t>(cached_resolution.x),
+            .resourceHeight = static_cast<uint16_t>(cached_resolution.y),
             .queuedFrameNum = 2,
             .enableWholeLifetimeDescriptorCaching = false,
             .autoWaitForIdle = false,
@@ -196,8 +241,6 @@ namespace render {
         if(result != nrd::Result::SUCCESS) {
             throw std::runtime_error{"Could not create NRD!"};
         }
-
-        cached_resolution = resolution;
     }
 
     nrd::Resource get_nrd_resource(const TextureHandle texture, const bool is_output) {

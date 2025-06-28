@@ -112,7 +112,7 @@ namespace render {
 
         rsm_generate_vpls_pipeline = pipeline_cache.create_pipeline("shaders/gi/lpv/rsm_generate_vpls.comp.spv");
 
-        if(cvar_lpv_use_compute_vpl_injection.Get() == 0) {
+        if(cvar_lpv_use_compute_vpl_injection.get() == 0) {
             vpl_injection_pipeline = backend.begin_building_pipeline("VPL Injection")
                                             .set_topology(VK_PRIMITIVE_TOPOLOGY_POINT_LIST)
                                             .set_vertex_shader("shaders/gi/lpv/vpl_injection.vert.spv")
@@ -288,8 +288,8 @@ namespace render {
 
         commands.bind_pipeline(lpv_render_shader);
 
-        commands.set_push_constant(0, static_cast<uint32_t>(cvar_lpv_num_cascades.Get()));
-        commands.set_push_constant(1, static_cast<float>(cvar_lpv_exposure.Get()));
+        commands.set_push_constant(0, static_cast<uint32_t>(cvar_lpv_num_cascades.get()));
+        commands.set_push_constant(1, static_cast<float>(cvar_lpv_exposure.get()));
 
         commands.draw_triangle();
 
@@ -342,7 +342,7 @@ namespace render {
     void LightPropagationVolume::draw_debug_overlays(
         RenderGraph& graph, const SceneView& view, const GBuffer& gbuffer, const TextureHandle lit_scene_texture
     ) {
-        switch(cvar_lpv_debug_mode.Get()) {
+        switch(cvar_lpv_debug_mode.get()) {
         case 0:
             visualize_geometry_volume(graph, view, lit_scene_texture, gbuffer.depth);
             break;
@@ -355,8 +355,8 @@ namespace render {
     void LightPropagationVolume::init_resources(ResourceAllocator& allocator) {
         ZoneScoped;
 
-        const auto size = cvar_lpv_resolution.Get();
-        const auto num_cascades = static_cast<uint32_t>(cvar_lpv_num_cascades.Get());
+        const auto size = cvar_lpv_resolution.get();
+        const auto num_cascades = static_cast<uint32_t>(cvar_lpv_num_cascades.get());
 
         const auto texture_resolution = glm::uvec3{size * num_cascades, size, size};
 
@@ -422,7 +422,7 @@ namespace render {
             sizeof(glm::mat4) * num_cascades,
             BufferUsage::UniformBuffer);
 
-        const auto num_vpls = cvar_lpv_rsm_resolution.Get() * cvar_lpv_rsm_resolution.Get() / 4;
+        const auto num_vpls = cvar_lpv_rsm_resolution.get() * cvar_lpv_rsm_resolution.get() / 4;
 
         auto& backend = RenderBackend::get();
         auto& upload_queue = backend.get_upload_queue();
@@ -453,7 +453,7 @@ namespace render {
             cascade_index++;
         }
 
-        const auto resolution = glm::uvec2{static_cast<uint32_t>(cvar_lpv_rsm_resolution.Get())};
+        const auto resolution = glm::uvec2{static_cast<uint32_t>(cvar_lpv_rsm_resolution.get())};
         rsm_flux_target = allocator.create_texture(
             "RSM Flux",
             {
@@ -489,18 +489,18 @@ namespace render {
     void LightPropagationVolume::update_cascade_transforms(const SceneView& view, const DirectionalLight& light) {
         ZoneScoped;
 
-        const auto num_cells = cvar_lpv_resolution.Get();
+        const auto num_cells = cvar_lpv_resolution.get();
         const auto base_cell_size = cvar_lpv_cell_size.GetFloat();
 
         const auto& view_position = view.get_position();
 
         // Position the LPV slightly in front of the view. We want some of the LPV to be behind it for reflections and such
 
-        const auto num_cascades = cvar_lpv_num_cascades.Get();
+        const auto num_cascades = cvar_lpv_num_cascades.get();
 
         const auto offset_distance_scale = 0.5f - cvar_lpv_behind_camera_percent.GetFloat();
 
-        const auto texel_scale = 4.f / static_cast<float>(cvar_lpv_rsm_resolution.Get());
+        const auto texel_scale = 4.f / static_cast<float>(cvar_lpv_rsm_resolution.get());
         const auto inverse_texel_scale = 1.f / texel_scale;
 
         auto make_rsm_matrix = [&](const float3 center, const float pullback_distance, const float half_size) {
@@ -705,7 +705,7 @@ namespace render {
                 float lpv_cell_size;
             };
 
-            const auto resolution = glm::uvec2{static_cast<uint32_t>(cvar_lpv_rsm_resolution.Get())};
+            const auto resolution = glm::uvec2{static_cast<uint32_t>(cvar_lpv_rsm_resolution.get())};
             const auto dispatch_size = resolution / glm::uvec2{2};
             // Each thread selects one VPL from a 2x2 filter on the RSM
 
@@ -732,7 +732,7 @@ namespace render {
                         .vpl_buffer_address = cascade.vpl_buffer->address,
                         .cascade_index = static_cast<int32_t>(cascade_index),
                         .rsm_resolution = resolution.x,
-                        .lpv_cell_size = static_cast<float>(cvar_lpv_cell_size.Get())
+                        .lpv_cell_size = static_cast<float>(cvar_lpv_cell_size.get())
                     },
                     .num_workgroups = {(dispatch_size + glm::uvec2{7}) / glm::uvec2{8}, 1},
                     .compute_shader = rsm_generate_vpls_pipeline
@@ -768,9 +768,9 @@ namespace render {
                                      .bind(cascade.vpl_buffer)
                                      .build();
 
-        const auto num_vpls = cvar_lpv_rsm_resolution.Get() * cvar_lpv_rsm_resolution.Get() / 2;
+        const auto num_vpls = cvar_lpv_rsm_resolution.get() * cvar_lpv_rsm_resolution.get() / 2;
 
-        if(cvar_lpv_use_compute_vpl_injection.Get() == 0) {
+        if(cvar_lpv_use_compute_vpl_injection.get() == 0) {
             graph.add_render_pass(
                 DynamicRenderingPass{
                     .name = "VPL Injection",
@@ -807,7 +807,7 @@ namespace render {
                         commands.bind_descriptor_set(0, descriptor_set);
 
                         commands.set_push_constant(0, cascade_index);
-                        commands.set_push_constant(1, static_cast<uint32_t>(cvar_lpv_num_cascades.Get()));
+                        commands.set_push_constant(1, static_cast<uint32_t>(cvar_lpv_num_cascades.get()));
 
                         commands.bind_pipeline(vpl_injection_pipeline);
 
@@ -834,7 +834,7 @@ namespace render {
                     .push_constants = VplInjectionConstants{
                         cascade.vpl_buffer->address,
                         cascade_index,
-                        static_cast<uint32_t>(cvar_lpv_num_cascades.Get())
+                        static_cast<uint32_t>(cvar_lpv_num_cascades.get())
                     },
                     .num_workgroups = {(num_vpls + 63) / 64, 1, 1},
                     .compute_shader = vpl_injection_compute_pipeline
@@ -924,7 +924,7 @@ namespace render {
 
                     commands.bind_pipeline(clear_lpv_shader);
 
-                    commands.dispatch(cvar_lpv_num_cascades.Get(), 32, 32);
+                    commands.dispatch(cvar_lpv_num_cascades.get(), 32, 32);
 
                     commands.clear_descriptor_set(0);
                 }
@@ -963,7 +963,7 @@ namespace render {
 
                     commands.set_push_constant(0, effective_resolution.x);
                     commands.set_push_constant(1, effective_resolution.y);
-                    commands.set_push_constant(2, static_cast<uint32_t>(cvar_lpv_num_cascades.Get()));
+                    commands.set_push_constant(2, static_cast<uint32_t>(cvar_lpv_num_cascades.get()));
 
                     commands.bind_pipeline(inject_scene_depth_into_gv_pipeline);
 
@@ -1004,8 +1004,8 @@ namespace render {
                                 .bind(geometry_volume_handle, linear_sampler)
                                 .build();
 
-        const auto num_cells = static_cast<uint32_t>(cvar_lpv_resolution.Get());
-        const auto num_cascades = static_cast<uint32_t>(cvar_lpv_num_cascades.Get());
+        const auto num_cells = static_cast<uint32_t>(cvar_lpv_resolution.get());
+        const auto num_cascades = static_cast<uint32_t>(cvar_lpv_num_cascades.get());
         const auto dispatch_size = glm::uvec3{num_cells * num_cascades, num_cells, num_cells} / glm::uvec3{4, 4, 4};
 
         struct PropagationConstants {
@@ -1020,7 +1020,7 @@ namespace render {
             .num_cells = num_cells
         };
 
-        for(auto step_index = 0; step_index < cvar_lpv_num_propagation_steps.Get(); step_index += 2) {
+        for(auto step_index = 0; step_index < cvar_lpv_num_propagation_steps.get(); step_index += 2) {
             render_graph.add_compute_dispatch<PropagationConstants>(
                 ComputeDispatch<PropagationConstants>{
                     .name = "Propagate lighting cascade",
@@ -1100,7 +1100,7 @@ namespace render {
             }
         );
 
-        const auto rsm_resolution = glm::uvec2{static_cast<uint32_t>(cvar_lpv_rsm_resolution.Get())};
+        const auto rsm_resolution = glm::uvec2{static_cast<uint32_t>(cvar_lpv_rsm_resolution.get())};
 
         const auto sampler = backend.get_default_sampler();
         const auto set = backend.get_transient_descriptor_allocator().build_set(inject_rsm_depth_into_gv_pipeline, 0)
@@ -1212,7 +1212,7 @@ namespace render {
                     commands.bind_descriptor_set(0, view_descriptor_set);
                     for(const auto& cascade : cascades) {
                         commands.bind_buffer_reference(0, cascade.vpl_buffer);
-                        commands.set_push_constant(2, static_cast<float>(cvar_lpv_vpl_visualization_size.Get() / 2.0));
+                        commands.set_push_constant(2, static_cast<float>(cvar_lpv_vpl_visualization_size.get() / 2.0));
                         commands.draw_indirect(cascade.vpl_count_buffer);
                     }
                 }

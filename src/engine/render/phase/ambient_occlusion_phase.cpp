@@ -95,8 +95,8 @@ namespace render {
             .name = "Ray traced ambient occlusion",
                 .descriptor_sets = { set },
                 .push_constants = Constants{
-                    .samples_per_pixel = static_cast<uint32_t>(cvar_rtao_samples.Get()),
-                    .max_ray_distance = static_cast<float>(cvar_ao_radius.Get()),
+                    .samples_per_pixel = static_cast<uint32_t>(cvar_rtao_samples.get()),
+                    .max_ray_distance = static_cast<float>(cvar_ao_radius.get()),
                     .output_resolution = {resolution},
                     .noise_tex_resolution = {noise.resolution}
             },
