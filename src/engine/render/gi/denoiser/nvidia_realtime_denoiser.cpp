@@ -67,16 +67,16 @@ namespace render {
             .enableValidation = cvar_nrd_validation.get() != 0
         };
 
-        const auto view_to_clip = transpose(scene_view.get_projection());
+        const auto view_to_clip = scene_view.get_projection();
         memcpy(common_settings.viewToClipMatrix, &view_to_clip, sizeof(float4x4));
 
-        const auto view_to_clip_prev = transpose(scene_view.get_last_frame_projection());
+        const auto view_to_clip_prev = scene_view.get_last_frame_projection();
         memcpy(common_settings.viewToClipMatrixPrev, &view_to_clip_prev, sizeof(float4x4));
 
-        const auto world_to_view = transpose(scene_view.get_view());
+        const auto world_to_view = scene_view.get_view();
         memcpy(common_settings.worldToViewMatrix, &world_to_view, sizeof(float4x4));
 
-        const auto world_to_view_prev = transpose(scene_view.get_last_frame_view());
+        const auto world_to_view_prev = scene_view.get_last_frame_view();
         memcpy(common_settings.worldToViewMatrixPrev, &world_to_view_prev, sizeof(float4x4));
 
         instance->SetCommonSettings(common_settings);
@@ -96,9 +96,9 @@ namespace render {
     }
 
     void NvidiaRealtimeDenoiser::do_denoising(
-        RenderGraph& graph, const TextureHandle gbuffer_depth, const TextureHandle motion_vectors,
-        const TextureHandle noisy_diffuse, const TextureHandle packed_normals_roughness,
-        const TextureHandle denoised_diffuse
+        RenderGraph& graph, const BufferHandle view_buffer, const TextureHandle gbuffer_depth,
+        const TextureHandle motion_vectors, const TextureHandle noisy_diffuse,
+        const TextureHandle packed_normals_roughness, const TextureHandle denoised_diffuse
         ) {
         auto& allocator = RenderBackend::get().get_global_allocator();
         if(cvar_nrd_validation.get() != 0 && validation_texture == nullptr) {
@@ -112,6 +112,34 @@ namespace render {
             allocator.destroy_texture(validation_texture);
             validation_texture = nullptr;
         }
+
+        if(linearize_depth_shader == nullptr) {
+            linearize_depth_shader = RenderBackend::get().get_pipeline_cache()
+                                                         .create_pipeline("shaders/gi/rtgi/linearize_depth.comp.spv");
+        }
+
+        if(linear_depth_texture == nullptr) {
+            linear_depth_texture = allocator.create_texture("nrd_linear_depth",
+                                                            {
+                                                                .format = VK_FORMAT_R16_SFLOAT,
+                                                                .resolution = gbuffer_depth->get_resolution(),
+                                                                .usage = TextureUsage::StorageImage,
+                                                            });
+        }
+
+        const auto set = RenderBackend::get().get_transient_descriptor_allocator()
+                                             .build_set(linearize_depth_shader, 0)
+                                             .bind(view_buffer)
+                                             .bind(gbuffer_depth)
+                                             .bind(linear_depth_texture)
+                                             .build();
+        graph.add_compute_dispatch(ComputeDispatch<uint32_t>{
+            .name = "linearize_depth",
+            .descriptor_sets = {set},
+            .push_constants = static_cast<uint32_t>(cached_denoiser_type),
+            .num_workgroups = uint3{linear_depth_texture->get_resolution() + uint2{7} / uint2{8}, 1},
+            .compute_shader = linearize_depth_shader
+        });
 
         auto texture_usages = TextureUsageList{
             {
@@ -127,7 +155,7 @@ namespace render {
                 .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
             },
             {
-                .texture = gbuffer_depth,
+                .texture = linear_depth_texture,
                 .stage = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,
                 .access = VK_ACCESS_2_SHADER_READ_BIT,
                 .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
@@ -161,7 +189,7 @@ namespace render {
                 resource_snapshot.SetResource(nrd::ResourceType::IN_MV, get_nrd_resource(motion_vectors));
                 resource_snapshot.SetResource(nrd::ResourceType::IN_NORMAL_ROUGHNESS,
                                               get_nrd_resource(packed_normals_roughness));
-                resource_snapshot.SetResource(nrd::ResourceType::IN_VIEWZ, get_nrd_resource(gbuffer_depth));
+                resource_snapshot.SetResource(nrd::ResourceType::IN_VIEWZ, get_nrd_resource(linear_depth_texture));
 
                 // Denoiser specific
                 resource_snapshot.SetResource(nrd::ResourceType::IN_DIFF_RADIANCE_HITDIST,
@@ -183,6 +211,37 @@ namespace render {
 
                 instance->DenoiseVK(&identifier, 1, command_buffer_desc, resource_snapshot);
             }
+        });
+    }
+
+    TextureHandle NvidiaRealtimeDenoiser::get_validation_texture() const {
+        return validation_texture;
+    }
+
+    void NvidiaRealtimeDenoiser::draw_validation_overlay(RenderGraph& graph, const TextureHandle lit_scene_texture
+        ) const {
+        if(validation_texture == nullptr) {
+            return;
+        }
+
+        if(validation_overlay_shader == nullptr) {
+            validation_overlay_shader = RenderBackend::get()
+                                        .get_pipeline_cache()
+                                        .create_pipeline("shaders/gi/rtgi/nrd_validation_overlay.comp.spv");
+        }
+
+        const auto set = validation_overlay_shader->begin_building_set(0)
+                                                  .bind(validation_texture)
+                                                  .bind(lit_scene_texture)
+                                                  .build();
+
+        const auto resolution = lit_scene_texture->get_resolution();
+        graph.add_compute_dispatch(ComputeDispatch<uint2>{
+            .name = "nrd_validation_overlay",
+            .descriptor_sets = {set},
+            .push_constants = resolution,
+            .num_workgroups = uint3{resolution + uint2{7} / uint2{8}, 1},
+            .compute_shader = validation_overlay_shader
         });
     }
 
@@ -220,8 +279,8 @@ namespace render {
         }
 
         const auto denoiser_desc = nrd::DenoiserDesc{
-                .identifier = static_cast<nrd::Identifier>(denoiser),
-                .denoiser = denoiser
+            .identifier = static_cast<nrd::Identifier>(denoiser),
+            .denoiser = denoiser
         };
         const auto instance_create_desc = nrd::InstanceCreationDesc{
             .denoisers = &denoiser_desc,

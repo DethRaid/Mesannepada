@@ -13,7 +13,7 @@ float4 main(float4 sv_position : SV_Position) {
     float4 irradiance = ray_irradiance[(int2)sv_position.xy];
     if(denoiser_type == 1) { // ReBLUR
         irradiance = REBLUR_BackEnd_UnpackRadianceAndNormHitDist(irradiance);
-    } else if(denoiser_type == 1) { // ReLAX
+    } else if(denoiser_type == 2) { // ReLAX
         irradiance = RELAX_BackEnd_UnpackRadiance(irradiance);
     } 
 

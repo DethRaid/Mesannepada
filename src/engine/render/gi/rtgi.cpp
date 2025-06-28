@@ -21,7 +21,8 @@ namespace render {
         "r.GI.Reconstruction.Size", "Size in pixels of the screenspace reconstruction filter", 16
     };
 
-    static auto cvar_denoiser = AutoCVar_Enum{"r.GI.Denoiser", "Which denoiser to use. 0 = none, 1 = ReBLUR, 2 = ReLAX", DenoiserType::ReBLUR};
+    static auto cvar_denoiser = AutoCVar_Enum{"r.GI.Denoiser", "Which denoiser to use. 0 = none, 1 = ReBLUR, 2 = ReLAX",
+                                              DenoiserType::ReBLUR};
 
 #if SAH_USE_IRRADIANCE_CACHE
     static AutoCVar_Int cvar_gi_cache{ "r.GI.Cache.Enabled", "Whether to enable the GI irradiance cache", false };
@@ -205,6 +206,7 @@ namespace render {
 
         if(denoiser) {
             denoiser->do_denoising(graph,
+                                   view.get_buffer(),
                                    gbuffer.depth,
                                    motion_vectors,
                                    ray_irradiance,
@@ -328,5 +330,9 @@ namespace render {
             irradiance_cache->draw_debug_overlays(graph, view, gbuffer, lit_scene_texture);
         }
 #endif
+
+        if(denoiser) {
+            denoiser->draw_validation_overlay(graph, lit_scene_texture);
+        }
     }
 }

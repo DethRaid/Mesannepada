@@ -29,9 +29,16 @@ namespace render {
         void set_constants(const SceneView& scene_view, DenoiserType type, uint2 render_resolution);
 
         void do_denoising(
-            RenderGraph& graph, TextureHandle gbuffer_depth, TextureHandle motion_vectors, TextureHandle noisy_diffuse,
-            TextureHandle packed_normals_roughness, TextureHandle denoised_diffuse
+            RenderGraph& graph, BufferHandle view_buffer, TextureHandle gbuffer_depth, TextureHandle motion_vectors,
+            TextureHandle noisy_diffuse, TextureHandle packed_normals_roughness, TextureHandle denoised_diffuse
             );
+
+        TextureHandle get_validation_texture() const;
+
+        /**
+         * Overlay the validation texture for debugging purposes
+         */
+        void draw_validation_overlay(RenderGraph& graph, TextureHandle lit_scene_texture) const;
 
     private:
         uint2 cached_resolution = uint2{0};
@@ -42,7 +49,11 @@ namespace render {
 
         eastl::unique_ptr<nrd::Integration> instance;
 
-        static inline ComputePipelineHandle pack_nrd_inputs_pipeline = nullptr;
+        TextureHandle linear_depth_texture = nullptr;
+
+        static inline ComputePipelineHandle linearize_depth_shader = nullptr;
+
+        static inline ComputePipelineHandle validation_overlay_shader = nullptr;
 
         void recreate_instance();
     };

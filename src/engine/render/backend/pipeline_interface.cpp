@@ -105,4 +105,8 @@ namespace render {
             backend.set_object_name(layout, name);
         }
     }
+
+    DescriptorSetBuilder PipelineBase::begin_building_set(const uint32_t set_index) const {
+        return RenderBackend::get().get_transient_descriptor_allocator().build_set(this,  set_index);
+    }
 }
