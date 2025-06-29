@@ -182,7 +182,7 @@ namespace render {
 
         logger->trace("Beginning frame");
 
-        auto needs_motion_vectors = false;
+        auto needs_motion_vectors = true;
 
         switch (cvar_anti_aliasing.get()) {
         case AntiAliasingType::VRSAA:

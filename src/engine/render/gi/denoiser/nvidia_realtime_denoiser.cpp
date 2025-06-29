@@ -55,12 +55,14 @@ namespace render {
         const auto smol_render_resolution = glm::u16vec2{cached_resolution};
 
         auto common_settings = nrd::CommonSettings{
+            .motionVectorScale = {1.f / view_data.render_resolution.x, 1.f / view_data.render_resolution.y, 0},
             .cameraJitter = {view_data.jitter.x, view_data.jitter.y},
             .cameraJitterPrev = {view_data.previous_jitter.x, view_data.previous_jitter.y},
             .resourceSize = {smol_render_resolution.x, smol_render_resolution.y},
             .resourceSizePrev = {smol_render_resolution.x, smol_render_resolution.y},
             .rectSize = {smol_render_resolution.x, smol_render_resolution.y},
             .rectSizePrev = {smol_render_resolution.x, smol_render_resolution.y},
+            .denoisingRange = 10000.f,
             .splitScreen = static_cast<float>(cvar_nrd_split_screen.get()),
             .frameIndex = scene_view.get_frame_count(),
             .isBaseColorMetalnessAvailable = false,
@@ -68,16 +70,16 @@ namespace render {
         };
 
         const auto view_to_clip = scene_view.get_projection();
-        memcpy(common_settings.viewToClipMatrix, &view_to_clip, sizeof(float4x4));
+        memcpy(common_settings.viewToClipMatrix, &view_to_clip[0][0], sizeof(float4x4));
 
         const auto view_to_clip_prev = scene_view.get_last_frame_projection();
-        memcpy(common_settings.viewToClipMatrixPrev, &view_to_clip_prev, sizeof(float4x4));
+        memcpy(common_settings.viewToClipMatrixPrev, &view_to_clip_prev[0][0], sizeof(float4x4));
 
         const auto world_to_view = scene_view.get_view();
-        memcpy(common_settings.worldToViewMatrix, &world_to_view, sizeof(float4x4));
+        memcpy(common_settings.worldToViewMatrix, &world_to_view[0][0], sizeof(float4x4));
 
         const auto world_to_view_prev = scene_view.get_last_frame_view();
-        memcpy(common_settings.worldToViewMatrixPrev, &world_to_view_prev, sizeof(float4x4));
+        memcpy(common_settings.worldToViewMatrixPrev, &world_to_view_prev[0][0], sizeof(float4x4));
 
         instance->SetCommonSettings(common_settings);
 
@@ -89,7 +91,9 @@ namespace render {
 
         } else if(cached_denoiser_type == DenoiserType::ReLAX) {
             // TODO: Play with the settings?
-            auto relax_settings = nrd::RelaxSettings{};
+            auto relax_settings = nrd::RelaxSettings{
+                .depthThreshold = 0.0001f,
+            };
 
             instance->SetDenoiserSettings(static_cast<nrd::Identifier>(nrd::Denoiser::RELAX_DIFFUSE), &relax_settings);
         }
@@ -121,7 +125,7 @@ namespace render {
         if(linear_depth_texture == nullptr) {
             linear_depth_texture = allocator.create_texture("nrd_linear_depth",
                                                             {
-                                                                .format = VK_FORMAT_R16_SFLOAT,
+                                                                .format = VK_FORMAT_R32_SFLOAT,
                                                                 .resolution = gbuffer_depth->get_resolution(),
                                                                 .usage = TextureUsage::StorageImage,
                                                             });
@@ -253,16 +257,7 @@ namespace render {
             .familyIndex = backend.get_graphics_queue_family_index()
         };
 
-        const auto device_extensions = eastl::array{
-            VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
-            VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME
-        };
-
         const auto device_desc = nri::DeviceCreationVKDesc{
-            .vkExtensions = {
-                .deviceExtensions = device_extensions.data(),
-                .deviceExtensionNum = static_cast<uint32_t>(device_extensions.size())
-            },
             .vkInstance = backend.get_instance(),
             .vkDevice = backend.get_device(),
             .vkPhysicalDevice = backend.get_physical_device(),

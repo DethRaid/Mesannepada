@@ -26,9 +26,10 @@ namespace render {
         TextureHandle get_motion_vectors() const;
 
     private:
-        GraphicsPipelineHandle motion_vectors_pso = {};
+        GraphicsPipelineHandle motion_vectors_opaque_pso = {};
         GraphicsPipelineHandle motion_vectors_masked_pso = {};
 
         TextureHandle motion_vectors = nullptr;
+        ComputePipelineHandle motion_vectors_pso;
     };
 }

@@ -18,5 +18,5 @@ void main(uint2 thread_id : SV_DispatchThreadID) {
 
     const float4 src = src_tex[src_pixel];
     const float4 dst = dst_tex[thread_id];
-    dst_tex[thread_id] = lerp(dst, src, src.a);
+    dst_tex[thread_id] = lerp(dst, src * 0.5, src.a);
 }
