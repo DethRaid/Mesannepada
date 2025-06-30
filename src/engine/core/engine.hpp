@@ -7,6 +7,7 @@
 
 #include "animation/animation_system.hpp"
 #include "audio/audio_controller.hpp"
+#include "core/performance_tracker.hpp"
 #include "game_framework/game_instance.hpp"
 #include "input/player_input_manager.hpp"
 #include "render/sarah_renderer.hpp"
@@ -80,6 +81,8 @@ public:
 
     entt::handle get_player() const;
 
+    const PerformanceTracker& get_perf_tracker() const;
+
 private:
     std::chrono::high_resolution_clock::time_point application_start_time;
 
@@ -118,6 +121,10 @@ private:
     entt::handle player = {};
 
     void update_time();
+
+    PerformanceTracker perf_tracker;
+
+    void update_perf_tracker();
 
     /**
      * Spawns new GameObjects from SpawnGameObject components

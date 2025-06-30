@@ -84,6 +84,7 @@ target_link_libraries(SahCore PUBLIC
         glfw
         GPUOpen::VulkanMemoryAllocator
         imgui
+        imguizmo
         Jolt
         magic_enum::magic_enum
         NRD

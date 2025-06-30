@@ -7,6 +7,5 @@ namespace reflection {
     class ReflectionSubsystem {
     public:
         static void register_types();
-
     };
 }

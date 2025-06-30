@@ -33,7 +33,8 @@
 #include "scene/entity_info_component.hpp"
 
 DebugUI::DebugUI(render::SarahRenderer& renderer_in) :
-    renderer{renderer_in} {
+    renderer{renderer_in},
+    frame_time_samples(300) {
     const auto& system_interface = SystemInterface::get();
     window = system_interface.get_glfw_window();
 
@@ -73,17 +74,25 @@ void DebugUI::draw() {
 
     ImGui::NewFrame();
 
-    if(show_demo) {
-        ImGui::ShowDemoWindow(&imgui_demo_open);
+    if(ImGui::IsKeyChordPressed(ImGuiKey_D | ImGuiMod_Alt)) {
+        are_tools_visible = !are_tools_visible;
     }
 
-    draw_fps_info();
+    if(are_tools_visible) {
+        if(show_demo) {
+            ImGui::ShowDemoWindow(&show_demo);
+        }
 
-    draw_scene_outline();
+        draw_editor_menu();
 
-    draw_debug_menu();
+        draw_perf_info_window();
 
-    draw_entity_editor();
+        draw_scene_outline_window();
+
+        draw_debug_window();
+
+        draw_entity_editor_window();
+    }
 
     ImGui::Render();
 }
@@ -130,19 +139,46 @@ void DebugUI::create_font_texture() {
     io.Fonts->TexID = reinterpret_cast<ImTextureID>(font_atlas_descriptor_set);
 }
 
-void DebugUI::draw_fps_info() {
-    const auto& application = Engine::get();
+void DebugUI::draw_editor_menu() {
+    if(ImGui::BeginMainMenuBar()) {
+        if(ImGui::BeginMenu("World")) {
+            if(ImGui::MenuItem("Save", "CTRL+S")) {
+                // save_world();
+            }
+            if(ImGui::MenuItem("Open", "CTRL+O")) {
+                // open_world();
+            }
 
-    const auto frame_time = application.get_frame_time();
+            ImGui::EndMenu();
+        }
+        if(ImGui::BeginMenu("Add Prefab")) {
+            // Show a menu that lets us select a prefab. We can put all the prefabs in data/game/prefabs/ to make life
+            // easier. We'll send a ray from the player's camera and spawn the prefab at whatever it intersects with
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMainMenuBar();
+    }
+}
+
+void DebugUI::draw_perf_info_window() {
+    const auto& engine = Engine::get();
+
+    const auto perf = engine.get_perf_tracker();
 
     if(ImGui::Begin("Stats")) {
-        ImGui::Text("Frame time: %.1f ms (%.0f FPS)", frame_time * 1000, 1.f / frame_time);
+        const auto average_frame_time = perf.get_average_frame_time();
+        ImGui::Text("Frame time: %.1f ms (%.0f FPS)", average_frame_time * 1000, 1.f / average_frame_time);
+
+        const auto average_gpu_memory = perf.get_average_gpu_memory();
+        ImGui::Text("GPU memory: %d bytes", average_gpu_memory);
     }
 
     ImGui::End();
 }
 
-void DebugUI::draw_debug_menu() {
+void DebugUI::draw_debug_window() {
     if(ImGui::Begin("Debug Menu", &is_debug_menu_open)) {
         if(ImGui::CollapsingHeader("Visualizers")) {
             auto selected_visualizer = renderer.get_active_visualizer();
@@ -313,7 +349,7 @@ void DebugUI::draw_gi_menu() {
     }
 }
 
-void DebugUI::draw_scene_outline() {
+void DebugUI::draw_scene_outline_window() {
     if(ImGui::Begin("Scene Outline")) {
         const auto& application = Engine::get();
         const auto& scene = application.get_scene();
@@ -328,7 +364,7 @@ void DebugUI::draw_scene_outline() {
     ImGui::End();
 }
 
-void DebugUI::draw_entity_editor() {
+void DebugUI::draw_entity_editor_window() {
     if(ImGui::Begin("Entity Editor")) {
         ImGui::PushID(static_cast<int>(selected_entity));
 

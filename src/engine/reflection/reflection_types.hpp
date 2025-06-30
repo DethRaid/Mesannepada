@@ -10,10 +10,9 @@ namespace reflection {
      */
     enum Traits : uint16_t {
         Trivial = 1 << 0, // Trivial type, like a float
-        Serialize = 1 << 1, // Does not contain derived data
-        EditorReadOnly = 1 << 2, // Can't be changed manually
-        NoEditor = 1 << 3, // Don't show in the editor
-        Component = 1 << 4, // This is a component type
+        EditorReadOnly = 1 << 1, // Can't be changed manually
+        NoEditor = 1 << 2, // Don't show in the editor
+        Component = 1 << 3, // This is a component type
     };
 
     using PropertiesMap = eastl::unordered_map<entt::id_type, entt::meta_any>;

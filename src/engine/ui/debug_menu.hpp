@@ -9,6 +9,7 @@
 #include <entt/entt.hpp>
 #include <vulkan/vulkan.h>
 
+#include "EASTL/bonus/fixed_ring_buffer.h"
 #include "render/backend/handles.hpp"
 
 namespace render {
@@ -28,12 +29,13 @@ private:
 
     render::SarahRenderer& renderer;
 
+    bool are_tools_visible = true;
+
     bool is_debug_menu_open = true;
 
     render::TextureHandle font_atlas_handle;
 
     bool show_demo = false;
-    bool imgui_demo_open = false;
 
     VkDescriptorSet font_atlas_descriptor_set;
 
@@ -51,20 +53,24 @@ private:
 
     void create_font_texture();
 
-    static void draw_fps_info();
+    void draw_editor_menu();
 
-    void draw_debug_menu();
+    eastl::ring_buffer<float> frame_time_samples;
+
+    static void draw_perf_info_window();
+
+    void draw_debug_window();
 
     void draw_taa_menu();
 
     void draw_gi_menu();
 
-    void draw_scene_outline();
+    void draw_scene_outline_window();
 
     entt::entity selected_entity = {};
     bool show_entity_editor = false;
 
-    void draw_entity_editor();
+    void draw_entity_editor_window();
 
     static bool draw_component_helper(
         entt::entity entity, entt::meta_any instance, const entt::meta_custom& custom, bool readonly, int& gui_id

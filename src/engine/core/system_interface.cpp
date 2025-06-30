@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #endif
 
+#include "core/engine.hpp"
 #include "input/player_input_manager.hpp"
 #include "render/backend/render_backend.hpp"
 #include "ui/ui_controller.hpp"
@@ -363,13 +364,8 @@ void SystemInterface::on_glfw_key(
         }
 
         if(key == GLFW_KEY_GRAVE_ACCENT && action == GLFW_PRESS) {
-            if(cursor_disabled) {
-                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-                cursor_disabled = false;
-            } else {
-                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-                cursor_disabled = true;
-            }
+            set_cursor_hidden(!cursor_disabled);
+            Engine::get().set_player_controller_enabled(cursor_disabled);
         }
     }
 }

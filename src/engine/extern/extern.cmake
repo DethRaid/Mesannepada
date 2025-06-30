@@ -321,6 +321,33 @@ else()
 endif()
 
 FetchContent_Declare(
+        imguizmo
+        GIT_REPOSITORY  https://github.com/CedricGuillemet/ImGuizmo.git
+        GIT_TAG         2310acda820d7383d4c4884b7945ada92cd16a47
+)
+FetchContent_GetProperties(imguizmo)
+if(imguizmo_POPULATED)
+    message("ImGuizmo automatically populated")
+else()
+    FetchContent_MakeAvailable(imguizmo)
+    add_library(imguizmo STATIC 
+        ${imguizmo_SOURCE_DIR}/GraphEditor.cpp
+        ${imguizmo_SOURCE_DIR}/ImCurveEdit.cpp
+        ${imguizmo_SOURCE_DIR}/ImGradient.cpp
+        ${imguizmo_SOURCE_DIR}/ImSequencer.cpp
+        ${imguizmo_SOURCE_DIR}/GraphEditor.cpp
+        ${imguizmo_SOURCE_DIR}/GraphEditor.cpp
+        ${imguizmo_SOURCE_DIR}/GraphEditor.cpp
+        )
+    target_include_directories(imguizmo PUBLIC 
+        ${imguizmo_SOURCE_DIR}
+        )
+    target_link_libraries(imguizmo PUBLIC 
+        imgui
+        )
+endif()
+
+FetchContent_Declare(
         plf_colony
         GIT_REPOSITORY  https://github.com/mattreecebentley/plf_colony.git
         GIT_TAG         5aeb1e6dbc7686f9f09eef685e57dc6acfe616c7

@@ -1,7 +1,7 @@
 #include "reflection_subsystem.hpp"
 
 #include "ai/behavior_tree_component.hpp"
-#include "ai/waypoint_component.hpp"
+#include "ai/patrol_path_component.hpp"
 #include "animation/animation_event_component.hpp"
 #include "animation/animator_component.hpp"
 #include "behavior/game_object.hpp"
@@ -74,6 +74,7 @@ namespace reflection {
             TRAITS(EditorReadOnly);
 
         entt::meta_factory<eastl::fixed_vector<entt::entity, 16> >();
+        entt::meta_factory<eastl::vector<entt::handle>>();
 
         // And our component types
         REFLECT_COMPONENT(TransformComponent)
@@ -85,8 +86,8 @@ namespace reflection {
         REFLECT_COMPONENT(ai::BehaviorTreeComponent)
             DATA(ai::BehaviorTreeComponent, data);
 
-        REFLECT_COMPONENT(ai::WaypointComponent)
-            DATA(ai::WaypointComponent, next_waypoint);
+        REFLECT_COMPONENT(ai::PatrolPathComponent)
+            DATA(ai::PatrolPathComponent, waypoints);
 
         REFLECT_COMPONENT(NodeAnimationComponent);
 
@@ -111,6 +112,7 @@ namespace reflection {
             DATA(render::DirectionalLightComponent, color);
 
         REFLECT_COMPONENT(ImportedModelComponent)
+            DATA(ImportedModelComponent, filepath)
             DATA(ImportedModelComponent, node_to_entity);
 
         REFLECT_COMPONENT(CameraComponent);

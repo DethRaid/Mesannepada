@@ -24,6 +24,7 @@
 
 #include "core/box.hpp"
 #include "core/engine.hpp"
+#include "core/generated_entity_component.hpp"
 #include "core/visitor.hpp"
 #include "physics/collider_component.hpp"
 #include "render/basic_pbr_material.hpp"
@@ -149,6 +150,7 @@ entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<e
         const auto node_entity = scene.create_entity();
         node_entity.emplace<TransformComponent>();
         node_entity.emplace<EntityInfoComponent>(node.name.c_str());
+        node_entity.emplace<GeneratedEntityComponent>();
         scene_entities.emplace_back(node_entity);
     }
 

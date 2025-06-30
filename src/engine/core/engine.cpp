@@ -112,6 +112,8 @@ void Engine::tick() {
 
     update_time();
 
+    update_perf_tracker();
+
     spawn_new_game_objects();
 
     SystemInterface::get().poll_input(player_input);
@@ -236,6 +238,10 @@ entt::handle Engine::get_player() const {
     return player;
 }
 
+const PerformanceTracker& Engine::get_perf_tracker() const {
+    return perf_tracker;
+}
+
 void Engine::update_time() {
     const auto frame_start_time = std::chrono::high_resolution_clock::now();
     const auto last_frame_duration = frame_start_time - last_frame_start_time;
@@ -250,6 +256,10 @@ void Engine::update_time() {
     time_since_start = static_cast<float>(std::chrono::duration_cast<std::chrono::microseconds>(application_duration).
                            count())
                        / 1000000.f;
+}
+
+void Engine::update_perf_tracker() {
+    perf_tracker.add_frame_time_sample(get_frame_time());
 }
 
 void Engine::spawn_new_game_objects() {

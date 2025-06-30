@@ -2,6 +2,7 @@
 
 #include "animation/animation_event_component.hpp"
 #include "core/engine.hpp"
+#include "core/generated_entity_component.hpp"
 #include "resources/godot_scene.hpp"
 #include "resources/imodel.hpp"
 #include "resources/model_components.hpp"
@@ -15,6 +16,8 @@ UrEnvironmentGameObject::UrEnvironmentGameObject(const entt::handle entity) : Ga
 
     auto& scene = engine.get_scene();
     level_entity = level_scene->add_to_scene(scene, root_entity);
+    // Remove the generated entity component from the level's root entity so that the save system can save it
+    level_entity.remove<GeneratedEntityComponent>();
 
     const auto* level_godot_scene = static_cast<const godot::GodotScene*>(level_scene.get());
     const auto gltf_node_idx = level_godot_scene->find_node("SM_UrEnvironment");

@@ -6,6 +6,7 @@
 #include "core/engine.hpp"
 #include "core/issue_breakpoint.hpp"
 #include "../scene/spawn_gameobject_component.hpp"
+#include "core/generated_entity_component.hpp"
 #include "core/string_utils.hpp"
 #include "core/system_interface.hpp"
 #include "resources/model_components.hpp"
@@ -55,7 +56,7 @@ namespace godot {
 
         scene.load_nodes(eastl::string_view{file_string.begin() + new_start, file_string.size() - new_start});
 
-        return eastl::move(scene);
+        return scene;
     }
 
     entt::handle GodotScene::add_to_scene(Scene &scene_in, const eastl::optional<entt::handle> &parent_node) const {
@@ -277,13 +278,14 @@ namespace godot {
         const auto entity = scene.create_entity();
         entity.emplace<EntityInfoComponent>(node.name);
         entity.emplace<TransformComponent>().set_local_transform(node.transform);
+        entity.emplace<GeneratedEntityComponent>();
 
         if (node_entities.size() <= node_index) {
             node_entities.resize(node_index + 1);
         }
         node_entities[node_index] = entity;
 
-        if (auto itr = node.metadata.find("spawn_gameobject"); itr != node.metadata.end()) {
+        if (const auto itr = node.metadata.find("spawn_gameobject"); itr != node.metadata.end()) {
             entity.emplace<SpwanPrefabComponent>(itr->second);
         }
 
