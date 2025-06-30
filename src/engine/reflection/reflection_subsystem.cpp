@@ -1,5 +1,7 @@
 #include "reflection_subsystem.hpp"
 
+#include <cereal/cereal.hpp>
+
 #include "ai/behavior_tree_component.hpp"
 #include "ai/patrol_path_component.hpp"
 #include "animation/animation_event_component.hpp"
@@ -15,6 +17,7 @@
 #include "scene/entity_info_component.hpp"
 #include "scene/game_object_component.hpp"
 #include "scene/transform_component.hpp"
+#include "serialization/world_serializer.hpp"
 
 using namespace entt::literals;
 

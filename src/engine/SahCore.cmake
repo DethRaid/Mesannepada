@@ -76,6 +76,7 @@ endif()
 
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-format-security")
 target_link_libraries(SahCore PUBLIC
+        cereal::cereal
         EASTL
         EnTT::EnTT
         fastgltf::fastgltf

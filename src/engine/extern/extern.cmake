@@ -9,54 +9,7 @@ set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
 
 set(CPP_RTTI_ENABLED ON CACHE BOOL "" FORCE)
 
-set(OPTIONAL_BUILD_PACKAGE OFF CACHE BOOL "" FORCE)
-set(OPTIONAL_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-
-set(SPIRV_REFLECT_EXECUTABLE OFF CACHE BOOL "" FORCE)
-set(SPIRV_REFLECT_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(SPIRV_REFLECT_STATIC_LIB ON CACHE BOOL "" FORCE)
-
-set(VMA_STATIC_VULKAN_FUNCTIONS OFF CACHE BOOL "" FORCE)
-set(VMA_DYNAMIC_VULKAN_FUNCTIONS ON CACHE BOOL "" FORCE)
-
-set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE) 
-set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
-
-set(FASTGLTF_ENABLE_KHR_PHYSICS_RIGID_BODIES ON CACHE BOOL "" FORCE)
-
-set(STREAMLINE_FEATURE_DLSS_SR ON CACHE BOOL "" FORCE)
-set(STREAMLINE_FEATURE_DLSS_RR ON CACHE BOOL "" FORCE)
-
-set(CAULDRON_VK ON CACHE BOOL "" FORCE)
-
-set(NRI_ENABLE_D3D12_SUPPORT OFF CACHE BOOL "" FORCE)
-set(NRI_ENABLE_D3D11_SUPPORT OFF CACHE BOOL "" FORCE)
-set(NRI_ENABLE_NGX_SDK ON CACHE BOOL "" FORCE)
-set(NRI_ENABLE_FFX_SDK ON CACHE BOOL "" FORCE)
-set(NRI_ENABLE_XESS_SDK ON CACHE BOOL "" FORCE)
-
-set(NRD_EMBEDS_DXIL_SHADERS OFF CACHE BOOL "" FORCE)
-set(NRD_EMBEDS_DXBC_SHADERS OFF CACHE BOOL "" FORCE)
-set(NRD_NORMAL_ENCODING "4" CACHE STRING "" FORCE)
-
-set(RMLUI_BACKEND GLFW_VK CACHE STRING "" FORCE)
-set(RMLUI_TRACY_PROFILING OFF CACHE BOOL "" FORCE)
-set(RMLUI_CUSTOM_RTTI ON CACHE BOOL "" FORCE)
-
-set(ENTT_INCLUDE_NATVIS ON CACHE BOOL "" FORCE)
-
 set(SHADER_OUTPUT_PATH "${SHADER_DIR}" CACHE STRING "")
-
-set(RECASTNAVIGATION_DEMO OFF CACHE BOOL "" FORCE)
-set(RECASTNAVIGATION_TESTS OFF CACHE BOOL "" FORCE)
-set(RECASTNAVIGATION_EXAMPLES OFF CACHE BOOL "" FORCE)
-
-# Couple of Linux-specific things - glfw defaults to X11, but Fedora uses Wayland
-if(LINUX)
-    set(GLFW_BUILD_WAYLAND ON CACHE BOOL "" FORCE)
-endif()
 
 # Freetype
 # link freetype (disable freetype dependencies since we do not need them)
@@ -69,18 +22,31 @@ set(CMAKE_DISABLE_FIND_PACKAGE_HarfBuzz ON CACHE INTERNAL "")
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/freetype")
 add_library(Freetype::Freetype ALIAS freetype)
 
+set(BUILD_DOC OFF CACHE BOOL "" FORCE)
+set(BUILD_SANDBOX OFF CACHE BOOL "" FORCE)
+set(SKIP_PERFORMANCE_COMPARISON ON CACHE BOOL "" FORCE)
+FetchContent_Declare(
+        cereal
+        GIT_REPOSITORY  https://github.com/USCiLab/cereal.git
+        GIT_TAG         a56bad8bbb770ee266e930c95d37fff2a5be7fea
+)
+
 FetchContent_Declare(
         eastl
         GIT_REPOSITORY  https://github.com/electronicarts/EASTL.git
         GIT_SHALLOW     ON
         GIT_TAG         3.21.23 
 )
+
+set(ENTT_INCLUDE_NATVIS ON CACHE BOOL "" FORCE)
 FetchContent_Declare(
         entt
         GIT_REPOSITORY  https://github.com/skypjack/entt.git
         GIT_SHALLOW     ON
         GIT_TAG         v3.15.0 
 )
+
+set(FASTGLTF_ENABLE_KHR_PHYSICS_RIGID_BODIES ON CACHE BOOL "" FORCE)
 FetchContent_Declare(
         fetch_fastgltf
         GIT_REPOSITORY  https://github.com/spnda/fastgltf.git
@@ -88,78 +54,116 @@ FetchContent_Declare(
         # GIT_REPOSITORY  https://github.com/DethRaid/fastgltf.git
         # GIT_TAG         308b996e13d765b7b29aff2791612a2c2a6f8b0b
 )
+
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE) 
+set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+if(LINUX)
+    set(GLFW_BUILD_WAYLAND ON CACHE BOOL "" FORCE)
+endif()
 FetchContent_Declare(
         fetch_glfw
         GIT_REPOSITORY  https://github.com/glfw/glfw.git
         GIT_TAG         e7ea71be039836da3a98cea55ae5569cb5eb885c
 )
+
 FetchContent_Declare(
         glm
         GIT_REPOSITORY  https://github.com/g-truc/glm.git
         GIT_SHALLOW     ON
         GIT_TAG         1.0.0
 )
+
 FetchContent_Declare(
         fetch_magic_enum
         GIT_REPOSITORY  https://github.com/Neargye/magic_enum.git
         GIT_SHALLOW     ON
         GIT_TAG         v0.9.5
 )
+
+set(NRD_EMBEDS_DXIL_SHADERS OFF CACHE BOOL "" FORCE)
+set(NRD_EMBEDS_DXBC_SHADERS OFF CACHE BOOL "" FORCE)
+set(NRD_NORMAL_ENCODING "4" CACHE STRING "" FORCE)
 FetchContent_Declare(
         NRD 
         GIT_REPOSITORY  https://github.com/NVIDIA-RTX/NRD.git
         GIT_TAG         v4.15.0 
 )
+
+set(NRI_ENABLE_D3D12_SUPPORT OFF CACHE BOOL "" FORCE)
+set(NRI_ENABLE_D3D11_SUPPORT OFF CACHE BOOL "" FORCE)
+set(NRI_ENABLE_NGX_SDK ON CACHE BOOL "" FORCE)
+set(NRI_ENABLE_FFX_SDK ON CACHE BOOL "" FORCE)
+set(NRI_ENABLE_XESS_SDK ON CACHE BOOL "" FORCE)
 FetchContent_Declare(
         NRI
         GIT_REPOSITORY  https://github.com/NVIDIA-RTX/NRI.git
         GIT_TAG         v171
 )
+
+set(RECASTNAVIGATION_DEMO OFF CACHE BOOL "" FORCE)
+set(RECASTNAVIGATION_TESTS OFF CACHE BOOL "" FORCE)
+set(RECASTNAVIGATION_EXAMPLES OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(
         recast
         GIT_REPOSITORY https://github.com/recastnavigation/recastnavigation
         GIT_TAG        bd98d84c274ee06842bf51a4088ca82ac71f8c2d
 )
+
+set(RMLUI_BACKEND GLFW_VK CACHE STRING "" FORCE)
+set(RMLUI_TRACY_PROFILING OFF CACHE BOOL "" FORCE)
+set(RMLUI_CUSTOM_RTTI ON CACHE BOOL "" FORCE)
 FetchContent_Declare(
         rmlui
         GIT_REPOSITORY  https://github.com/mikke89/RmlUi.git
         GIT_SHALLOW     ON
         GIT_TAG         6.0
 )
+
 FetchContent_Declare(
         spdlog
         GIT_REPOSITORY  https://github.com/gabime/spdlog.git
         GIT_TAG         v1.15.3
 )
+
+set(SPIRV_REFLECT_EXECUTABLE OFF CACHE BOOL "" FORCE)
+set(SPIRV_REFLECT_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(SPIRV_REFLECT_STATIC_LIB ON CACHE BOOL "" FORCE)
 FetchContent_Declare(
         fetch_spirv_reflect
         GIT_REPOSITORY  https://github.com/KhronosGroup/SPIRV-Reflect.git
         GIT_SHALLOW     ON
         GIT_TAG         vulkan-sdk-1.4.304.0
 )
+
 FetchContent_Declare(
         toml11
         GIT_REPOSITORY https://github.com/ToruNiina/toml11.git
         GIT_SHALLOW     ON
         GIT_TAG        v4.4.0
 )
+
 FetchContent_Declare(
         fetch_tracy
         GIT_REPOSITORY  https://github.com/wolfpld/tracy.git
         GIT_SHALLOW     ON
         GIT_TAG         v0.11.1
 )
+
 FetchContent_Declare(
         utf8cpp
         GIT_REPOSITORY https://github.com/nemtrif/utfcpp.git
         GIT_SHALLOW    ON
         GIT_TAG        v4.0.6
 )
+
 FetchContent_Declare(
         fetch_volk
         GIT_REPOSITORY  https://github.com/zeux/volk.git
         GIT_TAG         02ffc36f3c7f8a744e741127eda7ccbdb5c622e6
 )
+
 FetchContent_Declare(
         vk-bootstrap
         GIT_REPOSITORY  https://github.com/charles-lunarg/vk-bootstrap.git
@@ -167,6 +171,9 @@ FetchContent_Declare(
         #GIT_REPOSITORY  https://github.com/DethRaid/vk-bootstrap.git
         #GIT_TAG         vk_14_features
 )
+
+set(VMA_STATIC_VULKAN_FUNCTIONS OFF CACHE BOOL "" FORCE)
+set(VMA_DYNAMIC_VULKAN_FUNCTIONS ON CACHE BOOL "" FORCE)
 FetchContent_Declare(
         fetch_vma
         GIT_REPOSITORY  https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
@@ -192,6 +199,7 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(
+        cereal
         eastl
         entt
         fetch_fastgltf
@@ -222,6 +230,8 @@ if(ANDROID)
 endif()
 
 if(SAH_USE_STREAMLINE)
+    set(STREAMLINE_FEATURE_DLSS_SR ON CACHE BOOL "" FORCE)
+    set(STREAMLINE_FEATURE_DLSS_RR ON CACHE BOOL "" FORCE)
     FetchContent_Declare(
             streamline
             DOWNLOAD_EXTRACT_TIMESTAMP OFF
@@ -231,6 +241,7 @@ if(SAH_USE_STREAMLINE)
 endif()
 
 if(SAH_USE_FFX)
+    set(CAULDRON_VK ON CACHE BOOL "" FORCE)
     FetchContent_Declare(
             fidelityfx
             DOWNLOAD_EXTRACT_TIMESTAMP OFF
