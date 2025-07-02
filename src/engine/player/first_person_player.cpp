@@ -153,7 +153,7 @@ void FirstPersonPlayer::handle_input(
     // TODO: Swap between crouched and standing shapes on crouch input
 }
 
-void FirstPersonPlayer::tick(const float delta_time, Scene& scene) {
+void FirstPersonPlayer::tick(const float delta_time, World& scene) {
     GameObject::tick(delta_time, scene);
 
     // Update character simulation

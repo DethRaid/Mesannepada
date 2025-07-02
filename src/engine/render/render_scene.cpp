@@ -58,7 +58,7 @@ namespace render {
         vertex_deformer = pipeline_cache.create_pipeline("shaders/animation/vertex_skinning.comp.spv");
     }
 
-    void RenderScene::setup_observers(Scene& scene) {
+    void RenderScene::setup_observers(World& scene) {
         auto& registry = scene.get_registry();
 
         registry.on_construct<StaticMeshComponent>().connect<&RenderScene::on_construct_static_mesh>(this);
@@ -79,7 +79,7 @@ namespace render {
         registry.on_update<TransformComponent>().connect<&RenderScene::on_transform_update>(this);
     }
 
-    void RenderScene::tick(Scene& scene) {
+    void RenderScene::tick(World& scene) {
         ZoneScoped;
         auto& registry = scene.get_registry();
 

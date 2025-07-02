@@ -32,9 +32,11 @@ public:
 
     entt::handle add_model_to_scene(
         const std::filesystem::path& scene_path, const eastl::optional<entt::handle>& parent_node = eastl::nullopt
-    );
+        );
 
-    template <typename PlayerType>
+    entt::handle add_prefab_to_scene(const std::filesystem::path& scene_path, const float4x4& transform);
+
+    template<typename PlayerType>
     void instantiate_player();
 
     /**
@@ -42,7 +44,7 @@ public:
      */
     void update_resolution() const;
 
-    template <typename GameInstanceType>
+    template<typename GameInstanceType>
     void initialize_game_instance();
 
     void tick();
@@ -69,9 +71,9 @@ public:
      */
     void give_player_full_control();
 
-    Scene& get_scene();
+    World& get_scene();
 
-    const Scene& get_scene() const;
+    const World& get_scene() const;
 
     physics::PhysicsScene& get_physics_scene();
 
@@ -82,6 +84,8 @@ public:
     entt::handle get_player() const;
 
     const PerformanceTracker& get_perf_tracker() const;
+
+    void save_world_to_file(const std::filesystem::path& filepath);
 
 private:
     std::chrono::high_resolution_clock::time_point application_start_time;
@@ -98,7 +102,7 @@ private:
 
     eastl::unique_ptr<audio::Controller> audio_controller;
 
-    Scene scene;
+    World scene;
 
     PrefabLoader prefab_loader;
 
@@ -132,13 +136,13 @@ private:
     void spawn_new_game_objects();
 };
 
-template <typename PlayerType>
+template<typename PlayerType>
 void Engine::instantiate_player() {
     player = scene.create_game_object<PlayerType>("Player");
     player_input.set_controlled_entity(player);
 }
 
-template <typename GameInstanceType>
+template<typename GameInstanceType>
 void Engine::initialize_game_instance() {
     game_instance = eastl::make_unique<GameInstanceType>();
 }

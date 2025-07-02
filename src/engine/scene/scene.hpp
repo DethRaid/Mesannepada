@@ -17,9 +17,9 @@
  * Various subsystems such as rendering or physics may maintain their own scenes. In those cases, this scene stores
  * handles to objects in the subsystem's scenes
  */
-class Scene {
+class World {
 public:
-    Scene();
+    World();
 
     /**
      * Creates a generic entity
@@ -67,7 +67,7 @@ private:
 };
 
 template <typename GameObjectType>
-entt::handle Scene::create_game_object(
+entt::handle World::create_game_object(
     const eastl::string_view name, const eastl::optional<entt::handle>& parent_node
 ) {
     const auto entity = create_entity();
@@ -88,6 +88,6 @@ entt::handle Scene::create_game_object(
 }
 
 template <typename ComponentType>
-ComponentType& Scene::add_component(entt::entity entity, ComponentType component) {
+ComponentType& World::add_component(entt::entity entity, ComponentType component) {
     return registry.get_or_emplace<ComponentType>(entity, eastl::move(component));
 }

@@ -12,17 +12,17 @@
 
 static std::shared_ptr<spdlog::logger> logger;
 
-Scene::Scene() {
+World::World() {
     if(logger == nullptr) {
         logger = SystemInterface::get().get_logger("Scene");
     }
 }
 
-entt::handle Scene::create_entity() {
+entt::handle World::create_entity() {
     return entt::handle{registry, registry.create()};
 }
 
-void Scene::destroy_entity(const entt::entity entity) {
+void World::destroy_entity(const entt::entity entity) {
     if(auto* transform = registry.try_get<TransformComponent>(entity)) {
         for(const auto child_entity : transform->children) {
             destroy_entity(child_entity);
@@ -32,15 +32,15 @@ void Scene::destroy_entity(const entt::entity entity) {
     registry.destroy(entity);
 }
 
-entt::registry& Scene::get_registry() {
+entt::registry& World::get_registry() {
     return registry;
 }
 
-const entt::registry& Scene::get_registry() const {
+const entt::registry& World::get_registry() const {
     return registry;
 }
 
-void Scene::parent_entity_to_entity(const entt::handle child, const entt::handle parent) {
+void World::parent_entity_to_entity(const entt::handle child, const entt::handle parent) {
     if(!registry.valid(child)) {
         logger->error("No child set, unable to parent!");
         return;
@@ -71,13 +71,13 @@ void Scene::parent_entity_to_entity(const entt::handle child, const entt::handle
     top_level_entities.erase(child.entity());
 }
 
-void Scene::add_top_level_entities(const eastl::span<const entt::handle> entities) {
+void World::add_top_level_entities(const eastl::span<const entt::handle> entities) {
     for(const auto& entity : entities) {
         top_level_entities.insert(entity.entity());
     }
 }
 
-void Scene::propagate_transforms(float delta_time) {
+void World::propagate_transforms(float delta_time) {
     ZoneScoped;
 
     for(const auto root_entity : top_level_entities) {
@@ -104,11 +104,11 @@ void Scene::propagate_transforms(float delta_time) {
     }
 }
 
-const eastl::unordered_set<entt::entity>& Scene::get_top_level_entities() const {
+const eastl::unordered_set<entt::entity>& World::get_top_level_entities() const {
     return top_level_entities;
 }
 
-void Scene::propagate_transform(const entt::entity entity, const float4x4& parent_to_world) {
+void World::propagate_transform(const entt::entity entity, const float4x4& parent_to_world) {
     const auto& transform = registry.get<TransformComponent>(entity);
     if(transform.cached_parent_to_world != parent_to_world) {
         registry.patch<TransformComponent>(

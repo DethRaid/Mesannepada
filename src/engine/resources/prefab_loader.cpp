@@ -12,7 +12,7 @@ static std::shared_ptr<spdlog::logger> logger;
 
 using namespace entt::literals;
 
-entt::handle PrefabLoader::load_prefab(const std::filesystem::path& prefab_file, Scene& scene,
+entt::handle PrefabLoader::load_prefab(const std::filesystem::path& prefab_file, World& scene,
                                        const float4x4& transform) {
     if(logger == nullptr) {
         logger = SystemInterface::get().get_logger("PrefabLoader");

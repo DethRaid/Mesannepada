@@ -1,6 +1,7 @@
 #pragma once
 
 #include <EASTL/array.h>
+#include <EASTL/fixed_vector.h>
 #include <EASTL/unordered_map.h>
 #include <entt/entt.hpp>
 

@@ -7,7 +7,7 @@
 #include "animation/animation_system.hpp"
 #include "animation/animation_system.hpp"
 
-class Scene;
+class World;
 
 /**
  * Interface for model-like resources, e.g. glTF models and Godot scenes
@@ -19,5 +19,5 @@ public:
     /**
      * Adds this model to the provided scene, optionally parenting it to the provided entity
      */
-    virtual entt::handle add_to_scene(Scene& scene_in, const eastl::optional<entt::handle>& parent_node) const = 0;
+    virtual entt::handle add_to_scene(World& scene_in, const eastl::optional<entt::handle>& parent_node) const = 0;
 };

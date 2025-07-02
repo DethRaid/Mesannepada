@@ -17,7 +17,7 @@
 #include "physics/physics_body.hpp"
 #include "physics/broadphase_layer_implementation.hpp"
 
-class Scene;
+class World;
 
 namespace physics {
     struct MeshBodyCreateInfo {
@@ -41,13 +41,13 @@ namespace physics {
      */
     class PhysicsScene {
     public:
-        PhysicsScene(Scene& scene);
+        PhysicsScene(World& scene);
 
         ~PhysicsScene();
 
         void finalize();
 
-        void tick(float delta_time, Scene& scene);
+        void tick(float delta_time, World& scene);
 
         JPH::BodyInterface& get_body_interface() const;
 

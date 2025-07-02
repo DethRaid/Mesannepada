@@ -4,16 +4,16 @@
 #include <magic_enum.hpp>
 #include <tracy/Tracy.hpp>
 
-#include "render/components/skeletal_mesh_component.hpp"
-#include "scene/spawn_gameobject_component.hpp"
 #include "animation/animation_event_component.hpp"
 #include "core/system_interface.hpp"
 #include "glm/gtx/matrix_decompose.hpp"
 #include "player/first_person_player.hpp"
 #include "reflection/reflection_subsystem.hpp"
+#include "render/components/skeletal_mesh_component.hpp"
 #include "resources/gltf_model.hpp"
 #include "scene/entity_info_component.hpp"
 #include "scene/game_object_component.hpp"
+#include "scene/spawn_gameobject_component.hpp"
 #include "scene/transform_component.hpp"
 #include "ui/ui_controller.hpp"
 
@@ -100,6 +100,10 @@ entt::handle Engine::add_model_to_scene(
     logger->info("Loaded scene {}", scene_path.string());
 
     return entt::handle{scene.get_registry(), model_root};
+}
+
+entt::handle Engine::add_prefab_to_scene(const std::filesystem::path& scene_path, const float4x4& transform) {
+    return prefab_loader.load_prefab(scene_path, scene, transform);
 }
 
 void Engine::update_resolution() const {
@@ -214,11 +218,11 @@ void Engine::give_player_full_control() {
     set_player_controller_enabled(true);
 }
 
-Scene& Engine::get_scene() {
+World& Engine::get_scene() {
     return scene;
 }
 
-const Scene& Engine::get_scene() const {
+const World& Engine::get_scene() const {
     return scene;
 }
 
@@ -240,6 +244,10 @@ entt::handle Engine::get_player() const {
 
 const PerformanceTracker& Engine::get_perf_tracker() const {
     return perf_tracker;
+}
+
+void Engine::save_world_to_file(const std::filesystem::path& filepath) {
+
 }
 
 void Engine::update_time() {
@@ -269,9 +277,8 @@ void Engine::spawn_new_game_objects() {
         ) {
             const auto transform = registry.get<TransformComponent>(entity);
             // Replace this node with the prefab
-            const auto instance = prefab_loader.load_prefab(spawn_prefab_comp.prefab_path.c_str(),
-                                                            scene,
-                                                            transform.get_local_to_world());
+            const auto instance = add_prefab_to_scene(spawn_prefab_comp.prefab_path.c_str(),
+                                                      transform.get_local_to_world());
 
             eastl::string name = "Spawned Entity";
             const auto* entity_info = registry.try_get<EntityInfoComponent>(entity);

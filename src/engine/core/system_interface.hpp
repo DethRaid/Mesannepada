@@ -1,14 +1,15 @@
 #pragma once
 
 #include <filesystem>
-#include <EASTL/vector.h>
-#include <EASTL/optional.h>
 #include <string>
+#include <EASTL/optional.h>
+#include <EASTL/vector.h>
 
 #include <volk.h>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <spdlog/logger.h>
+#include <spdlog/fmt/std.h>
 
 namespace ui {
     class Controller;

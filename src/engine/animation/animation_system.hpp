@@ -8,11 +8,11 @@
 #include "animation/skeleton.hpp"
 #include "resources/gltf_animations.hpp"
 
-class Scene;
+class World;
 
 class AnimationSystem {
 public:
-    AnimationSystem(Scene& scene_in);
+    AnimationSystem(World& scene_in);
 
     void tick(float delta_time);
 
@@ -34,7 +34,7 @@ public:
     void destroy_skeleton(SkeletonHandle skeleton);
 
 private:
-    Scene& scene;
+    World& scene;
 
     using AnimationMap = eastl::unordered_map<eastl::string, eastl::unique_ptr<Animation>>;
 

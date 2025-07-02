@@ -47,7 +47,7 @@ namespace physics {
         logger->info(buffer);
     }
 
-    PhysicsScene::PhysicsScene(Scene& scene) {
+    PhysicsScene::PhysicsScene(World& scene) {
         ZoneScoped;
 
         if(logger == nullptr) {
@@ -97,7 +97,7 @@ namespace physics {
         physics_system->OptimizeBroadPhase();
     }
 
-    void PhysicsScene::tick(const float delta_time, Scene& scene) {
+    void PhysicsScene::tick(const float delta_time, World& scene) {
         ZoneScoped;
 
         physics_system->Update(delta_time, 1, temp_allocator.get(), thread_pool.get());

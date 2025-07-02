@@ -59,7 +59,7 @@ namespace godot {
         return scene;
     }
 
-    entt::handle GodotScene::add_to_scene(Scene &scene_in, const eastl::optional<entt::handle> &parent_node) const {
+    entt::handle GodotScene::add_to_scene(World &scene_in, const eastl::optional<entt::handle> &parent_node) const {
         // Traverse the node tree, creating EnTT entities for each node. Hook up parent/child relationships as we go.
         // Save a map from node index to node entity for future use. Load external models
         eastl::vector<entt::handle> node_entities;
@@ -271,7 +271,7 @@ namespace godot {
     }
 
     entt::handle GodotScene::add_node_to_scene(
-        Scene &scene, const size_t node_index, eastl::vector<entt::handle> &node_entities
+        World &scene, const size_t node_index, eastl::vector<entt::handle> &node_entities
     ) const {
         const auto &node = nodes.at(node_index);
         // Create this node

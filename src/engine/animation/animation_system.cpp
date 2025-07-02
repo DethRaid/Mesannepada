@@ -11,7 +11,7 @@
 
 static std::shared_ptr<spdlog::logger> logger;
 
-AnimationSystem::AnimationSystem(Scene& scene_in) :
+AnimationSystem::AnimationSystem(World& scene_in) :
     scene{scene_in} {
     if(logger == nullptr) {
         logger = SystemInterface::get().get_logger("AnimationSystem");

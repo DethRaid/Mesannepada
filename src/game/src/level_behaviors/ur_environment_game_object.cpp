@@ -39,7 +39,7 @@ UrEnvironmentGameObject::UrEnvironmentGameObject(const entt::handle entity) : Ga
     engine.get_physics_scene().finalize();
 }
 
-void UrEnvironmentGameObject::tick(const float delta_time, Scene& scene) {
+void UrEnvironmentGameObject::tick(const float delta_time, World& scene) {
     GameObject::tick(delta_time, scene);
 
     auto& registry = scene.get_registry();

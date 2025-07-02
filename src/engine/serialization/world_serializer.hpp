@@ -1,11 +1,13 @@
 #pragma once
 
+#include <filesystem>
 #include <cereal/cereal.hpp>
 #include <entt/entt.hpp>
 #include <tracy/Tracy.hpp>
 
 #include "reflection/reflection_types.hpp"
 
+class World;
 using namespace entt::literals;
 
 namespace serialization {
@@ -14,6 +16,8 @@ namespace serialization {
 
     template<typename Archive, typename ValueType>
     void serialize(Archive& ar, ValueType& value);
+
+    void save_world_to_file(const std::filesystem::path& filepath, const World& scene);
 
     template<bool Save, typename Archive>
     void serialize(Archive& ar, entt::meta_any value) {

@@ -34,7 +34,7 @@ void PlayerInputManager::set_controlled_entity(const entt::entity entity) {
     controlled_entity = entity;
 }
 
-void PlayerInputManager::tick(const float delta_time, Scene& scene) {
+void PlayerInputManager::tick(const float delta_time, World& scene) {
     if(!enabled) {
         return;
     }

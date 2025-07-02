@@ -138,7 +138,7 @@ const fastgltf::Asset& GltfModel::get_gltf_data() const {
     return asset;
 }
 
-entt::handle GltfModel::add_nodes_to_scene(Scene& scene, const eastl::optional<entt::handle>& parent_node) const {
+entt::handle GltfModel::add_nodes_to_scene(World& scene, const eastl::optional<entt::handle>& parent_node) const {
     ZoneScoped;
 
     auto& registry = scene.get_registry();
@@ -500,7 +500,7 @@ JPH::Ref<JPH::Shape> GltfModel::create_jolt_shape(const fastgltf::Collider& coll
     return nullptr;
 }
 
-entt::handle GltfModel::add_to_scene(Scene& scene_in, const eastl::optional<entt::handle>& parent_node) const {
+entt::handle GltfModel::add_to_scene(World& scene_in, const eastl::optional<entt::handle>& parent_node) const {
     const auto root_entity = add_nodes_to_scene(scene_in, parent_node);
 
     // I'm slightly sorry, future Sarah

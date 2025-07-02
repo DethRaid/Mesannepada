@@ -4,7 +4,7 @@
 #include <entt/entity/registry.hpp>
 #include <entt/entity/handle.hpp>
 
-class Scene;
+class World;
 
 /**
  * An object in the game
@@ -32,7 +32,7 @@ public:
 
     virtual void begin_play();
 
-    virtual void tick(float delta_time, Scene& scene);
+    virtual void tick(float delta_time, World& scene);
 
 protected:
 

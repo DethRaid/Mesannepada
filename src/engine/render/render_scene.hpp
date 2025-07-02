@@ -19,7 +19,7 @@ namespace render {
     struct SkeletalMeshPrimitive;
 }
 
-class Scene;
+class World;
 
 namespace render {
     struct IndirectDrawingBuffers;
@@ -40,13 +40,13 @@ namespace render {
         /**
          * Sets up various observers for a scene, e.g. mesh creation and destruction listeners
          */
-        void setup_observers(Scene& scene);
+        void setup_observers(World& scene);
 
         /**
          * Performs scene updates that rely on the Scene, e.g. updating the player view matrices and uploading bone
          * transforms
          */
-        void tick(Scene& scene);
+        void tick(World& scene);
 
         /**
          * Creates a proxy for a mesh. Note that this is used for both skeletal and non-skeletal meshes.

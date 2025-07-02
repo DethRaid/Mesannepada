@@ -20,8 +20,10 @@ namespace reflection {
 entt::meta_factory<Scalar>()                                                                                \
     .func<&editor_write_scalar<Scalar>>("editor_write"_hs)                                                  \
     .func<&editor_read_scalar<Scalar>>("editor_read"_hs)                                                    \
-    .func<serialization::serialize<cereal::BinaryInputArchive, Scalar>>("binary_input_archive"_hs)          \
-    .func<serialization::serialize<cereal::BinaryInputArchive, const Scalar>>("binary_output_archive"_hs)   \
+    .func<serialization::serialize<cereal::BinaryInputArchive, Scalar>>("serialize_from_binary"_hs)         \
+    .func<serialization::serialize<cereal::BinaryOutputArchive, const Scalar>>("serialize_to_binary"_hs)    \
+    .func<serialization::serialize<cereal::JsonInputArchive, Scalar>>("serialize_from_json"_hs)             \
+    .func<serialization::serialize<cereal::JsonOutputArchive, const Scalar>>("serialize_to_json"_hs)        \
     .traits(Traits::Trivial)
 
 #define REFLECT_COMPONENT(T, ...)                                                                   \
