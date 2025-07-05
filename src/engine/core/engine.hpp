@@ -19,6 +19,7 @@
 #include "resources/prefab_loader.hpp"
 #include "resources/resource_loader.hpp"
 #include "scene/scene.hpp"
+#include "scene/scene_file.hpp"
 
 class SystemInterface;
 
@@ -134,6 +135,11 @@ private:
      * Spawns new GameObjects from SpawnGameObject components
      */
     void spawn_new_game_objects();
+
+    /**
+     * Map of all scenes that have been loaded into memory
+     */
+    eastl::unordered_map<eastl::string, SceneFile> loaded_scenes;
 };
 
 template<typename PlayerType>
