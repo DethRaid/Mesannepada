@@ -1,7 +1,9 @@
 #pragma once
 
 #include <filesystem>
+
 #include <cereal/cereal.hpp>
+#include <cereal/types/common.hpp>
 #include <entt/entt.hpp>
 #include <tracy/Tracy.hpp>
 
@@ -34,7 +36,7 @@ namespace serialization {
         // If the type has a bespoke serialization function, use that
         // We gotta check for a function that takes an archive, since we use the same code for serialization and
         // deserialization
-        const auto archive_hash = entt::id_type<Archive>();
+        const auto archive_hash = entt::type_id<Archive>();
         for(const auto& [id, func] : value.type().func()) {
             if(func.arg(0).info() == archive_hash) {
                 auto ret = func.invoke({}, entt::forward_as_meta(ar), value.as_ref());

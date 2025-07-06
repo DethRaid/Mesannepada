@@ -5,7 +5,7 @@
 
 #include "core/engine.hpp"
 #include "core/issue_breakpoint.hpp"
-#include "../scene/spawn_gameobject_component.hpp"
+#include "scene/spawn_gameobject_component.hpp"
 #include "core/generated_entity_component.hpp"
 #include "core/string_utils.hpp"
 #include "core/system_interface.hpp"
@@ -66,7 +66,8 @@ namespace godot {
         node_entities.reserve(nodes.size());
         const auto root_entity = add_node_to_scene(scene_in, 0, node_entities);
 
-        root_entity.emplace<ImportedModelComponent>(node_entities);
+        const auto filepath_string = file_path.string();
+        root_entity.emplace<ImportedModelComponent>(filepath_string.c_str(), node_entities);
 
         if (!parent_node) {
             scene_in.add_top_level_entities(eastl::array{root_entity});

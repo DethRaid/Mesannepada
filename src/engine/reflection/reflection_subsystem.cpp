@@ -1,6 +1,7 @@
 #include "reflection_subsystem.hpp"
 
 #include <cereal/cereal.hpp>
+#include <cereal/archives/json.hpp>
 
 #include "ai/behavior_tree_component.hpp"
 #include "ai/patrol_path_component.hpp"

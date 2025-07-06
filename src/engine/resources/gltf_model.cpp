@@ -200,7 +200,8 @@ entt::handle GltfModel::add_nodes_to_scene(World& scene, const eastl::optional<e
     assert(asset.scenes[*asset.defaultScene].nodeIndices.size() == 1);
     const auto root_node_index = asset.scenes[*asset.defaultScene].nodeIndices[0];
     const auto root_entity = scene_entities[root_node_index];
-    root_entity.emplace<ImportedModelComponent>(scene_entities);
+    const auto filename_string = filepath.string();
+    root_entity.emplace<ImportedModelComponent>(filename_string.c_str(), scene_entities);
 
     // Add our top-level entities to the scene
     if(!parent_node) {

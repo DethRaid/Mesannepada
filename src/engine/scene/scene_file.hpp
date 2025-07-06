@@ -2,9 +2,12 @@
 
 #include <filesystem>
 
+#include <cereal/types/string.hpp>
+#include <cereal/types/unordered_map.hpp>
 #include <EASTL/unordered_map.h>
 #include <entt/entt.hpp>
 
+#include "serialization/eastl/unordered_map.hpp"
 #include "shared/prelude.h"
 
 class World;
@@ -54,5 +57,5 @@ private:
      *
      * This map doesn't contain any actual entity handles until you add the scene file to a world
      */
-    eastl::unordered_map<std::string, SceneObject> scene_objects;
+    eastl::hash_map<std::string, SceneObject> scene_objects;
 };

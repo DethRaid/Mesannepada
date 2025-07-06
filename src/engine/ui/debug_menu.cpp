@@ -87,7 +87,7 @@ void DebugUI::draw() {
 
         draw_perf_info_window();
 
-        draw_scene_outline_window();
+        draw_entity_hierarchy();
 
         draw_debug_window();
 
@@ -349,8 +349,8 @@ void DebugUI::draw_gi_menu() {
     }
 }
 
-void DebugUI::draw_scene_outline_window() {
-    if(ImGui::Begin("Scene Outline")) {
+void DebugUI::draw_entity_hierarchy() {
+    if(ImGui::Begin("Entity Hierarchy")) {
         const auto& application = Engine::get();
         const auto& scene = application.get_scene();
         const auto& registry = scene.get_registry();

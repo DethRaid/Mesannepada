@@ -1,6 +1,7 @@
 #pragma once
 
 #include <entt/entity/entity.hpp>
+#include <EASTL/string.h>
 #include <EASTL/vector.h>
 
 #include "animation/skeleton.hpp"

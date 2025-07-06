@@ -8,8 +8,8 @@
 #include <GLFW/glfw3.h>
 #include <entt/entt.hpp>
 #include <vulkan/vulkan.h>
+#include <EASTL/bonus/fixed_ring_buffer.h>
 
-#include "EASTL/bonus/fixed_ring_buffer.h"
 #include "render/backend/handles.hpp"
 
 namespace render {
@@ -65,7 +65,7 @@ private:
 
     void draw_gi_menu();
 
-    void draw_scene_outline_window();
+    void draw_entity_hierarchy();
 
     entt::entity selected_entity = {};
     bool show_entity_editor = false;

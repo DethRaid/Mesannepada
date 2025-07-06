@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cereal/archives/json.hpp>
+#include <cereal/archives/binary.hpp>
 #include <entt/entt.hpp>
 
 #include "reflection/reflection_types.hpp"
@@ -22,8 +24,8 @@ entt::meta_factory<Scalar>()                                                    
     .func<&editor_read_scalar<Scalar>>("editor_read"_hs)                                                    \
     .func<serialization::serialize<cereal::BinaryInputArchive, Scalar>>("serialize_from_binary"_hs)         \
     .func<serialization::serialize<cereal::BinaryOutputArchive, const Scalar>>("serialize_to_binary"_hs)    \
-    .func<serialization::serialize<cereal::JsonInputArchive, Scalar>>("serialize_from_json"_hs)             \
-    .func<serialization::serialize<cereal::JsonOutputArchive, const Scalar>>("serialize_to_json"_hs)        \
+    .func<serialization::serialize<cereal::JSONInputArchive, Scalar>>("serialize_from_json"_hs)             \
+    .func<serialization::serialize<cereal::JSONOutputArchive, const Scalar>>("serialize_to_json"_hs)        \
     .traits(Traits::Trivial)
 
 #define REFLECT_COMPONENT(T, ...)                                                                   \

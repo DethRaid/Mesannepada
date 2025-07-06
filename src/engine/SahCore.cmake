@@ -117,7 +117,7 @@ elseif(LINUX)
         "-fms-extensions"
         "-Wno-nullability-completeness"
         "-Wno-deprecated-literal-operator"
-        "-fno-rtti")
+        )
 endif()
 
 if(SAH_USE_FFX)
