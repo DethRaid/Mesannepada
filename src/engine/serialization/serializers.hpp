@@ -8,18 +8,26 @@
 #include <tracy/Tracy.hpp>
 
 #include "reflection/reflection_types.hpp"
+#include "shared/prelude.h"
 
 class World;
 using namespace entt::literals;
 
 namespace serialization {
+    void register_serializers();
+
+    void save_world_to_file(const std::filesystem::path& filepath, const World& scene);
+
+    template<typename Archive, typename ValueType>
+    void serialize_scalar(Archive& ar, ValueType& value);
+
     template<bool Save, typename Archive>
     void serialize(Archive& ar, entt::meta_any value);
 
     template<typename Archive, typename ValueType>
-    void serialize(Archive& ar, ValueType& value);
-
-    void save_world_to_file(const std::filesystem::path& filepath, const World& scene);
+    void serialize_scalar(Archive& ar, ValueType& value) {
+        ar(value);
+    }
 
     template<bool Save, typename Archive>
     void serialize(Archive& ar, entt::meta_any value) {
@@ -58,7 +66,8 @@ namespace serialization {
                 sequence.resize(size);
             }
 
-            if(sequence.size() > 0 && sequence.value_type().traits<reflection::Traits>() & reflection::Traits::Trivial) {
+            if(sequence.size() > 0 && sequence.value_type().traits<reflection::Traits>() &
+               reflection::Traits::Trivial) {
                 // Assume the sequence container is contiguous and can be treated like a binary blob. This is likely true
                 auto* vp = const_cast<void*>(sequence.begin().base().data());
                 auto binary = cereal::binary_data(vp, sequence.size() * sequence.value_type().size_of());
@@ -76,7 +85,7 @@ namespace serialization {
         if(value.type().is_enum()) {
             auto to_underlying = value.type().func("to_underlying"_hs);
             assert(to_underlying);
-            if constexpr (Save) {
+            if constexpr(Save) {
                 serialize<Save>(ar, to_underlying.invoke({}, value));
             } else {
                 auto underlying = to_underlying.ret().construct();
@@ -90,7 +99,7 @@ namespace serialization {
         // If we're here then we have a complex type that can be reflected
         for(auto [id, data] : value.type().data()) {
             if(data.traits<reflection::Traits>() & reflection::Traits::Transient) {
-               continue;
+                continue;
             }
 
             if(data.traits<reflection::Traits>() & reflection::Traits::Trivial) {
@@ -101,10 +110,5 @@ namespace serialization {
                 serialize<Save>(ar, data.get(value).as_ref());
             }
         }
-    }
-
-    template<typename Archive, typename ValueType>
-    void serialize(Archive& ar, ValueType& value) {
-        ar(value);
     }
 }

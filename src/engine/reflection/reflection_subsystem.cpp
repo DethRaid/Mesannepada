@@ -11,6 +11,7 @@
 #include "core/system_interface.hpp"
 #include "physics/collider_component.hpp"
 #include "reflection/editor_ui.hpp"
+#include "../serialization/glm.hpp"
 #include "reflection/reflection_macros.hpp"
 #include "render/components/light_component.hpp"
 #include "resources/model_components.hpp"
@@ -18,7 +19,7 @@
 #include "scene/entity_info_component.hpp"
 #include "scene/game_object_component.hpp"
 #include "scene/transform_component.hpp"
-#include "serialization/world_serializer.hpp"
+#include "serialization/serializers.hpp"
 
 using namespace entt::literals;
 
@@ -59,6 +60,8 @@ namespace reflection {
             DATA(glm::quat, y)
             DATA(glm::quat, z)
             DATA(glm::quat, w);
+        entt::meta_factory<float4x4>()
+            TRAITS(Trivial);
 
         entt::meta_factory<eastl::string>()
             .func<&editor_write_string>("editor_write"_hs)
@@ -78,7 +81,7 @@ namespace reflection {
             TRAITS(EditorReadOnly);
 
         entt::meta_factory<eastl::fixed_vector<entt::entity, 16> >();
-        entt::meta_factory<eastl::vector<entt::handle>>();
+        entt::meta_factory<eastl::vector<entt::handle> >();
 
         // And our component types
         REFLECT_COMPONENT(TransformComponent)

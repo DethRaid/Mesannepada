@@ -43,6 +43,7 @@ Engine::Engine() :
     application_start_time = std::chrono::high_resolution_clock::now();
 
     reflection::ReflectionSubsystem::register_types();
+    serialization::register_serializers();
 
     SystemInterface::get().set_input_manager(player_input);
 

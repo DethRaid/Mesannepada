@@ -2,24 +2,23 @@
 
 #include <filesystem>
 
-#include <cereal/types/string.hpp>
-#include <cereal/types/unordered_map.hpp>
+#include <EASTL/string.h>
 #include <EASTL/unordered_map.h>
 #include <entt/entt.hpp>
 
+#include "serialization/serializers.hpp"
+#include "serialization/eastl/string.hpp"
 #include "serialization/eastl/unordered_map.hpp"
 #include "shared/prelude.h"
 
 class World;
 
 struct SceneObject {
-    float4x4 transform;
-    entt::handle entity;
+    float3 location;
+    glm::quat orientation;
+    float3 scale;
 
-    template<typename Archive>
-    void serialize(Archive& ar) {
-        ar(transform);
-    }
+    entt::handle entity;
 };
 
 /**
@@ -47,8 +46,13 @@ public:
     void add_packaged_model(const std::filesystem::path& model_file, float3 location);
 
     template<typename Archive>
-    void serialize(Archive& ar) {
-        ar(scene_objects);
+    void save(Archive& ar) {
+        serialization::serialize<true>(ar, entt::meta_any(scene_objects));
+    }
+
+    template<typename Archive>
+    void load(Archive& ar) {
+        serialization::serialize<false>(ar, entt::meta_any(scene_objects));
     }
 
 private:
@@ -57,5 +61,5 @@ private:
      *
      * This map doesn't contain any actual entity handles until you add the scene file to a world
      */
-    eastl::hash_map<std::string, SceneObject> scene_objects;
+    eastl::unordered_map<eastl::string, SceneObject> scene_objects;
 };
