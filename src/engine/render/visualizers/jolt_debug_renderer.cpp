@@ -30,6 +30,9 @@ namespace render {
         triangle_vertices.reserve(1024 * 3);
     }
 
+    JoltDebugRenderer::~JoltDebugRenderer() {
+    }
+
     void JoltDebugRenderer::DrawLine(JPH::RVec3Arg from, JPH::RVec3Arg to, const JPH::ColorArg color) {
         line_vertices.emplace_back(JoltDebugVertex{ .position = to_glm(from), .color = color.GetUInt32() });
         line_vertices.emplace_back(JoltDebugVertex{ .position = to_glm(to), .color = color.GetUInt32() });

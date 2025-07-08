@@ -28,9 +28,6 @@ namespace serialization {
         Binary,
     };
 
-    static auto cvar_file_format = AutoCVar_Enum{"e.World.SaveFileFormat", "What file format to use when saving files",
-                                                 SaveFileFormat::Binary};
-
     static std::shared_ptr<spdlog::logger> logger;
 
     void register_serializers() {
@@ -52,9 +49,7 @@ namespace serialization {
 
         entt::meta_factory<float4x4>()
             .func<glm::serialize<cereal::BinaryInputArchive> >("serialize_from_binary"_hs)
-            .func<glm::serialize<cereal::BinaryOutputArchive> >("serialize_to_binary"_hs)
-            .func<glm::serialize<cereal::JSONInputArchive> >("serialize_from_json"_hs)
-            .func<glm::serialize<cereal::JSONOutputArchive> >("serialize_to_json"_hs);
+            .func<glm::serialize<cereal::BinaryOutputArchive> >("serialize_to_binary"_hs);
 
         entt::meta_factory<SceneObject>()
             .traits(reflection::Traits::Trivial)
@@ -63,10 +58,8 @@ namespace serialization {
             DATA(SceneObject, scale);
 
         entt::meta_factory<SceneFile>()
-            .func<&SceneFile::load<cereal::BinaryInputArchive> >("serialize_from_binary"_hs)
-            .func<&SceneFile::save<cereal::BinaryOutputArchive> >("serialize_to_binary"_hs)
-            .func<&SceneFile::load<cereal::JSONInputArchive> >("serialize_from_json"_hs)
-            .func<&SceneFile::save<cereal::JSONOutputArchive> >("serialize_to_json"_hs);
+            .func<&SceneFile::load<cereal::BinaryInputArchive>>("serialize_from_binary"_hs)
+            .func<&SceneFile::save<cereal::BinaryOutputArchive>>("serialize_to_binary"_hs);
     }
 
     template<typename Archive>
@@ -106,23 +99,12 @@ namespace serialization {
 
         const auto& registry = scene.get_registry();
 
-        auto bits = std::ios::out | std::ios::trunc;
-        if(cvar_file_format.get() == SaveFileFormat::Binary) {
-            bits |= std::ios::binary;
-        }
-
-        auto file = std::ofstream{filepath, bits};
+        auto file = std::ofstream{filepath, std::ios::out | std::ios::trunc | std::ios::binary};
         if(!file) {
             throw std::runtime_error{"Could not open world file"};
         }
 
-        if(cvar_file_format.get() == SaveFileFormat::Json) {
-            //save_world_to_file_impl<cereal::JSONOutputArchive>(file, registry);
-        } else if(cvar_file_format.get() == SaveFileFormat::Binary) {
-            save_world_to_file_impl<cereal::BinaryOutputArchive>(file, registry);
-        } else {
-            throw std::runtime_error{"Unknown save file format"};
-        }
+        save_world_to_file_impl<cereal::BinaryOutputArchive>(file, registry);
 
         logger->info("Saving complete");
     }

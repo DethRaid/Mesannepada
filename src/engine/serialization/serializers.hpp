@@ -3,7 +3,6 @@
 #include <filesystem>
 
 #include <cereal/cereal.hpp>
-#include <cereal/types/common.hpp>
 #include <entt/entt.hpp>
 #include <tracy/Tracy.hpp>
 

@@ -19,11 +19,11 @@ namespace render {
     struct GBuffer;
     class RenderGraph;
 
-    class JoltDebugRenderer : public JPH::DebugRenderer {
+    class JoltDebugRenderer final : public JPH::DebugRenderer {
     public:
-        JoltDebugRenderer(MeshStorage& meshes_in);
+        explicit JoltDebugRenderer(MeshStorage& meshes_in);
 
-        ~JoltDebugRenderer() override = default;
+        ~JoltDebugRenderer() override;
 
         void DrawLine(JPH::RVec3Arg from, JPH::RVec3Arg to, JPH::ColorArg color) override;
 

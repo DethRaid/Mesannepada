@@ -33,7 +33,7 @@ void SceneFile::write_to_file(const std::filesystem::path& filepath) {
 void SceneFile::add_to_world() {
     auto& engine = Engine::get();
     for(auto& [filepath, object] : scene_objects) {
-        if(filepath.ends_with("glb")) {
+        if(eastl::string_view{filepath}.ends_with("glb")) {
             object.entity = engine.add_model_to_scene(filepath.c_str());
             object.entity.patch<TransformComponent>([&](TransformComponent& transform) {
                 transform.location = object.location;
@@ -41,7 +41,7 @@ void SceneFile::add_to_world() {
                 transform.scale = object.scale;
             });
 
-        } else if(filepath.ends_with("sprefab")) {
+        } else if(eastl::string_view{filepath}.ends_with("sprefab")) {
             const auto transform_mat = glm::translate(float4x4{1.f}, object.location) *
                                        glm::mat4{object.orientation} *
                                        glm::scale(object.scale);
