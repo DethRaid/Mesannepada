@@ -48,7 +48,7 @@ set(FASTGLTF_ENABLE_KHR_PHYSICS_RIGID_BODIES ON CACHE BOOL "" FORCE)
 FetchContent_Declare(
         fetch_fastgltf
         GIT_REPOSITORY  https://github.com/spnda/fastgltf.git
-        GIT_TAG         2fd60264ac31ffb8cb3a132803fe558671c9412d
+        GIT_TAG         v0.9.0
         # GIT_REPOSITORY  https://github.com/DethRaid/fastgltf.git
         # GIT_TAG         308b996e13d765b7b29aff2791612a2c2a6f8b0b
 )
@@ -327,6 +327,30 @@ else()
             )
     target_link_libraries(imgui PUBLIC
         glfw)
+endif()
+
+
+FetchContent_Declare(
+        ImGuiFileDialog
+        GIT_REPOSITORY  https://github.com/aiekick/ImGuiFileDialog.git
+        GIT_TAG         dba9ab725f0f42cbef1bfd3f7678156091cce659
+)
+FetchContent_GetProperties(ImGuiFileDialog)
+if(ImGuiFileDialog_POPULATED)
+    message("ImGuiFileDialog automatically populated")
+else()
+    FetchContent_MakeAvailable(ImGuiFileDialog)
+    add_library(imguifiledialog STATIC 
+        ${ImGuiFileDialog_SOURCE_DIR}/ImGuiFileDialog.cpp
+        ${ImGuiFileDialog_SOURCE_DIR}/ImGuiFileDialog.h
+        ${ImGuiFileDialog_SOURCE_DIR}/ImGuiFileDialogConfig.h
+        )
+    target_include_directories(imguifiledialog PUBLIC 
+        ${ImGuiFileDialog_SOURCE_DIR}
+        )
+    target_link_libraries(imguifiledialog PUBLIC 
+        imgui
+        )
 endif()
 
 FetchContent_Declare(

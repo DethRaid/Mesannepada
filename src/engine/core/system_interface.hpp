@@ -45,6 +45,8 @@ public:
 
     void flush_all_loggers();
 
+    std::filesystem::path get_data_folder() const;
+
     /**
      * Retrieves a writable folder where we can store game data
      */

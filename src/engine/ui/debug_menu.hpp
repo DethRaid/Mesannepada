@@ -10,6 +10,7 @@
 #include <vulkan/vulkan.h>
 #include <EASTL/bonus/fixed_ring_buffer.h>
 
+#include "ImGuiFileDialog.h"
 #include "render/backend/handles.hpp"
 
 namespace render {
@@ -52,6 +53,8 @@ private:
     int selected_gi_quality = 2;
 
     void create_font_texture();
+
+    ImGuiFileDialog open_model_dialog;
 
     void draw_editor_menu();
 

@@ -30,6 +30,7 @@
 
 #include <GLFW/glfw3.h>
 
+#include "ImGuiFileDialog.h"
 #include "scene/entity_info_component.hpp"
 
 DebugUI::DebugUI(render::SarahRenderer& renderer_in) :
@@ -92,6 +93,9 @@ void DebugUI::draw() {
         draw_debug_window();
 
         draw_entity_editor_window();
+
+        if(ImGuiFileDialog::Instance()->Display("open_model_dialog")) {
+        }
     }
 
     ImGui::Render();
@@ -145,15 +149,23 @@ void DebugUI::draw_editor_menu() {
             if(ImGui::MenuItem("Save", "CTRL+S")) {
                 // save_world();
             }
+
             if(ImGui::MenuItem("Open", "CTRL+O")) {
                 // open_world();
             }
 
-            ImGui::EndMenu();
-        }
-        if(ImGui::BeginMenu("Add Prefab")) {
-            // Show a menu that lets us select a prefab. We can put all the prefabs in data/game/prefabs/ to make life
-            // easier. We'll send a ray from the player's camera and spawn the prefab at whatever it intersects with
+            if(ImGui::MenuItem("Add Packaged Model")) {
+                const auto config = IGFD::FileDialogConfig{
+                    .path = SystemInterface::get().get_data_folder().string(),
+                    .flags = ImGuiFileDialogFlags_Default | ImGuiFileDialogFlags_DisableCreateDirectoryButton
+                };
+                ImGuiFileDialog::Instance()->OpenDialog("open_packaged_model", "Open Packaged Model", ".glb,.gltf", config);
+            }
+
+            if(ImGui::MenuItem("Add Prefab")) {
+                // Show a menu that lets us select a prefab. We can put all the prefabs in data/game/prefabs/ to make life
+                // easier. We'll send a ray from the player's camera and spawn the prefab at whatever it intersects with
+            }
 
             ImGui::EndMenu();
         }
@@ -417,17 +429,17 @@ bool DebugUI::draw_component_helper(
         auto is_open = false;
         if(auto it = properties.find("name"_hs); it != properties.end()) {
             is_open = ImGui::TreeNodeEx(instance.try_cast<void>(),
-                                       0,
-                                       "%s: %d",
-                                       it->second.cast<const char*>(),
-                                       static_cast<int>(instance.as_sequence_container().size()));
+                                        0,
+                                        "%s: %d",
+                                        it->second.cast<const char*>(),
+                                        static_cast<int>(instance.as_sequence_container().size()));
         } else {
             auto name = std::string{meta.info().name()};
             is_open = ImGui::TreeNodeEx(instance.try_cast<void>(),
-                                       0,
-                                       "%s: %d",
-                                       name.c_str(),
-                                       static_cast<int>(instance.as_sequence_container().size()));
+                                        0,
+                                        "%s: %d",
+                                        name.c_str(),
+                                        static_cast<int>(instance.as_sequence_container().size()));
         }
         if(is_open) {
             for(auto element : instance.as_sequence_container()) {
