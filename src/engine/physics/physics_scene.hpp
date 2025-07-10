@@ -49,6 +49,8 @@ namespace physics {
 
         void tick(float delta_time, World& scene);
 
+        bool cast_ray(const JPH::RRayCast& ray, JPH::RayCastResult& result) const;
+
         JPH::BodyInterface& get_body_interface() const;
 
         JPH::PhysicsSystem* get_physics_system() const;

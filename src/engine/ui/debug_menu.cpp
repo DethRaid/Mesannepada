@@ -31,6 +31,9 @@
 #include <GLFW/glfw3.h>
 
 #include "ImGuiFileDialog.h"
+#include "Jolt/Physics/Collision/CastResult.h"
+#include "Jolt/Physics/Collision/RayCast.h"
+#include "core/glm_jph_conversions.hpp"
 #include "scene/entity_info_component.hpp"
 
 DebugUI::DebugUI(render::SarahRenderer& renderer_in) :
@@ -94,7 +97,34 @@ void DebugUI::draw() {
 
         draw_entity_editor_window();
 
-        if(ImGuiFileDialog::Instance()->Display("open_model_dialog")) {
+        if(open_model_dialog.Display("open_model_dialog")) {
+            open_model_dialog.Close();
+
+            if(open_model_dialog.IsOk()) {
+                const auto filenames = open_model_dialog.GetSelection();
+                const auto filename = std::filesystem::path{filenames.begin()->second};
+                auto& engine = Engine::get();
+                const auto new_model = engine.add_model_to_scene(filename);
+
+                const auto player = engine.get_player();
+                const auto& transform = player.get<TransformComponent>();
+                const auto location = transform.location;
+                const auto direction = float3{0, 0, 1} * transform.rotation;
+                // Raycast from the player's location to the physics scene, place the new object at the hit point
+                auto ray_cast = JPH::RRayCast{to_jolt(location + direction), to_jolt(direction)};
+
+                JPH::RayCastResult ray_result;
+                ray_result.mFraction = 1000.f;
+                auto placement_location = location;
+                if(engine.get_physics_scene().cast_ray(ray_cast, ray_result)) {
+                    placement_location = to_glm(ray_cast.GetPointOnRay(ray_result.mFraction));
+                }
+                new_model.patch<TransformComponent>([&](TransformComponent& trans) {
+                    trans.location = placement_location;
+                });
+
+                selected_entity = new_model;
+            }
         }
     }
 
@@ -159,7 +189,7 @@ void DebugUI::draw_editor_menu() {
                     .path = SystemInterface::get().get_data_folder().string(),
                     .flags = ImGuiFileDialogFlags_Default | ImGuiFileDialogFlags_DisableCreateDirectoryButton
                 };
-                ImGuiFileDialog::Instance()->OpenDialog("open_packaged_model", "Open Packaged Model", ".glb,.gltf", config);
+                open_model_dialog.OpenDialog("open_model_dialog", "Open Packaged Model", ".glb,.gltf", config);
             }
 
             if(ImGui::MenuItem("Add Prefab")) {

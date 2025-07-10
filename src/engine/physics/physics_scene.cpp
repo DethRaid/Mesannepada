@@ -134,6 +134,10 @@ namespace physics {
         }
     }
 
+    bool PhysicsScene::cast_ray(const JPH::RRayCast& ray, JPH::RayCastResult& result) const {
+        return physics_system->GetNarrowPhaseQuery().CastRay(ray, result);
+    }
+
     JPH::BodyInterface& PhysicsScene::get_body_interface() const {
         return physics_system->GetBodyInterface();
     }
