@@ -296,7 +296,7 @@ namespace render {
     }
 
     void DirectionalLight::render_shadows(
-        RenderGraph& graph, const GBuffer& gbuffer, const RenderScene& scene, const TextureHandle noise
+        RenderGraph& graph, const GBuffer& gbuffer, const RenderWorld& world, const TextureHandle noise
         ) {
         if(shadow_mask_texture == nullptr) {
             shadow_mask_texture = RenderBackend::get().get_global_allocator().create_texture(
@@ -316,11 +316,11 @@ namespace render {
 
         switch(cvar_sun_shadow_mode.get()) {
         case SunShadowMode::CascadedShadowMaps:
-            render_shadowmaps(graph, gbuffer, scene);
+            render_shadowmaps(graph, gbuffer, world);
             break;
 
         case SunShadowMode::RayTracing:
-            ray_trace_shadows(graph, gbuffer, scene, noise);
+            ray_trace_shadows(graph, gbuffer, world, noise);
             break;
 
         default:
@@ -346,7 +346,7 @@ namespace render {
     }
 
     void DirectionalLight::render_shadowmaps(
-        RenderGraph& graph, const GBuffer& gbuffer, const RenderScene& scene
+        RenderGraph& graph, const GBuffer& gbuffer, const RenderWorld& world
         ) {
 
         auto& backend = RenderBackend::get();
@@ -362,19 +362,19 @@ namespace render {
                  static_cast<uint32_t>(cvar_num_shadow_cascades.get())});
         }
 
-        const auto& pipelines = scene.get_material_storage().get_pipelines();
+        const auto& pipelines = world.get_material_storage().get_pipelines();
         const auto shadow_pso = pipelines.get_shadow_pso();
         const auto shadow_masked_pso = pipelines.get_shadow_masked_pso();
 
         const auto solid_set = backend.get_transient_descriptor_allocator()
                                       .build_set(shadow_pso, 0)
-                                      .bind(scene.get_primitive_buffer())
+                                      .bind(world.get_primitive_buffer())
                                       .bind(world_to_ndc_matrices_buffer)
                                       .build();
 
         const auto masked_set = backend.get_transient_descriptor_allocator()
                                        .build_set(shadow_masked_pso, 0)
-                                       .bind(scene.get_primitive_buffer())
+                                       .bind(world.get_primitive_buffer())
                                        .bind(world_to_ndc_matrices_buffer)
                                        .build();
 
@@ -390,10 +390,10 @@ namespace render {
             .execute = [&](CommandBuffer& commands) {
                 commands.bind_descriptor_set(0, solid_set);
 
-                scene.draw_opaque(commands, shadow_pso);
+                world.draw_opaque(commands, shadow_pso);
 
                 commands.bind_descriptor_set(0, masked_set);
-                scene.draw_masked(commands, shadow_masked_pso);
+                world.draw_masked(commands, shadow_masked_pso);
 
                 commands.clear_descriptor_set(0);
             }
@@ -419,7 +419,7 @@ namespace render {
                                            .bind(gbuffer.depth)
                                            .bind(shadowmap_handle, shadowmap_sampler)
                                            .bind(sun_buffer)
-                                           .bind(scene.get_player_view().get_buffer())
+                                           .bind(world.get_player_view().get_buffer())
                                            .build();
 
         graph.add_render_pass({
@@ -438,7 +438,7 @@ namespace render {
     }
 
     void DirectionalLight::ray_trace_shadows(
-        RenderGraph& graph, const GBuffer& gbuffer, const RenderScene& scene, const TextureHandle noise
+        RenderGraph& graph, const GBuffer& gbuffer, const RenderWorld& world, const TextureHandle noise
         ) {
         auto& backend = RenderBackend::get();
 
@@ -466,10 +466,10 @@ namespace render {
 
         auto set = backend.get_transient_descriptor_allocator()
                           .build_set(rt_shadow_pipeline, 0)
-                          .bind(scene.get_primitive_buffer())
+                          .bind(world.get_primitive_buffer())
                           .bind(sun_buffer)
-                          .bind(scene.get_player_view().get_buffer())
-                          .bind(scene.get_raytracing_scene().get_acceleration_structure())
+                          .bind(world.get_player_view().get_buffer())
+                          .bind(world.get_raytracing_world().get_acceleration_structure())
                           .bind(shadow_mask_texture)
                           .bind(gbuffer.data)
                           .bind(gbuffer.depth)

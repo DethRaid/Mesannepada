@@ -9,19 +9,19 @@
 #include "core/engine.hpp"
 #include "scene/transform_component.hpp"
 
-SceneFile SceneFile::load_from_file(const std::filesystem::path& filepath) {
+Scene Scene::load_from_file(const std::filesystem::path& filepath) {
     ZoneScoped;
 
     auto stream = std::ifstream{filepath, std::ios::binary};
     auto archive = cereal::BinaryInputArchive{stream};
 
-    auto scene = SceneFile{};
+    auto scene = Scene{};
     serialization::serialize<false>(archive, entt::forward_as_meta(scene));
 
     return scene;
 }
 
-void SceneFile::write_to_file(const std::filesystem::path& filepath) {
+void Scene::write_to_file(const std::filesystem::path& filepath) {
     ZoneScoped;
 
     auto stream = std::ofstream{filepath, std::ios::binary};
@@ -30,11 +30,11 @@ void SceneFile::write_to_file(const std::filesystem::path& filepath) {
     serialization::serialize<true>(archive, entt::forward_as_meta(*this));
 }
 
-void SceneFile::add_to_world() {
+void Scene::add_to_world() {
     auto& engine = Engine::get();
     for(auto& [filepath, object] : scene_objects) {
         if(eastl::string_view{filepath}.ends_with("glb")) {
-            object.entity = engine.add_model_to_scene(filepath.c_str());
+            object.entity = engine.add_model_to_world(filepath.c_str());
             object.entity.patch<TransformComponent>([&](TransformComponent& transform) {
                 transform.location = object.location;
                 transform.rotation = object.orientation;
@@ -45,7 +45,7 @@ void SceneFile::add_to_world() {
             const auto transform_mat = glm::translate(float4x4{1.f}, object.location) *
                                        glm::mat4{object.orientation} *
                                        glm::scale(object.scale);
-            object.entity = engine.add_prefab_to_scene(filepath.c_str(), transform_mat);
+            object.entity = engine.add_prefab_to_world(filepath.c_str(), transform_mat);
         }
     }
 }

@@ -31,11 +31,11 @@ public:
 
     ~Engine();
 
-    entt::handle add_model_to_scene(
-        const std::filesystem::path& scene_path, const eastl::optional<entt::handle>& parent_node = eastl::nullopt
+    entt::handle add_model_to_world(
+        const std::filesystem::path& model_path, const eastl::optional<entt::handle>& parent_node = eastl::nullopt
         );
 
-    entt::handle add_prefab_to_scene(const std::filesystem::path& scene_path, const float4x4& transform);
+    entt::handle add_prefab_to_world(const std::filesystem::path& prefab_path, const float4x4& transform);
 
     template<typename PlayerType>
     void instantiate_player();
@@ -72,11 +72,23 @@ public:
      */
     void give_player_full_control();
 
-    World& get_scene();
+    World& get_world();
 
-    const World& get_scene() const;
+    const World& get_world() const;
 
-    physics::PhysicsScene& get_physics_scene();
+    void create_scene(const eastl::string& name);
+
+    /**
+     * Tries to load the scene with the specified name, and add it to the world
+     * @return True if success, false if not
+     */
+    bool load_scene(const eastl::string& name);
+
+    Scene& get_main_scene();
+
+    Scene& get_scene(const eastl::string& name);
+
+    physics::PhysicsWorld& get_physics_world();
 
     AnimationSystem& get_animation_system();
 
@@ -103,13 +115,13 @@ private:
 
     eastl::unique_ptr<audio::Controller> audio_controller;
 
-    World scene;
+    World world;
 
     PrefabLoader prefab_loader;
 
-    physics::PhysicsScene physics_scene;
+    physics::PhysicsWorld physics_world;
 
-    eastl::unique_ptr<render::RenderScene> render_scene;
+    eastl::unique_ptr<render::RenderWorld> render_world;
 
     SettingsController scalability;
 
@@ -139,12 +151,12 @@ private:
     /**
      * Map of all scenes that have been loaded into memory
      */
-    eastl::unordered_map<eastl::string, SceneFile> loaded_scenes;
+    eastl::unordered_map<eastl::string, Scene> loaded_scenes;
 };
 
 template<typename PlayerType>
 void Engine::instantiate_player() {
-    player = scene.create_game_object<PlayerType>("Player");
+    player = world.create_game_object<PlayerType>("Player");
     player_input.set_controlled_entity(player);
 }
 

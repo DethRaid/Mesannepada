@@ -8,18 +8,18 @@
 
 namespace render {
     SceneDrawer::SceneDrawer(
-        const ScenePassType::Type type_in, const RenderScene& scene_in, const MeshStorage& mesh_storage_in,
+        const ScenePassType::Type type_in, const RenderWorld& world_in, const MeshStorage& mesh_storage_in,
         const MaterialStorage& material_storage_in, ResourceAllocator& resource_allocator_in
-    ) : scene{ &scene_in }, mesh_storage{ &mesh_storage_in }, material_storage{ &material_storage_in },
+    ) : world{ &world_in }, mesh_storage{ &mesh_storage_in }, material_storage{ &material_storage_in },
         allocator{ &resource_allocator_in }, type{ type_in } {
     }
 
     void SceneDrawer::draw(CommandBuffer& commands) const {
-        if (scene == nullptr) {
+        if (world == nullptr) {
             return;
         }
 
-        const auto& solids = scene->get_solid_primitives();
+        const auto& solids = world->get_solid_primitives();
 
         commands.bind_vertex_buffer(0, mesh_storage->get_vertex_position_buffer());
         commands.bind_vertex_buffer(1, mesh_storage->get_vertex_data_buffer());
@@ -43,11 +43,11 @@ namespace render {
     }
 
     void SceneDrawer::draw(CommandBuffer& commands, GraphicsPipelineHandle solid_pso) const {
-        if (scene == nullptr) {
+        if (world == nullptr) {
             return;
         }
 
-        const auto& solids = scene->get_solid_primitives();
+        const auto& solids = world->get_solid_primitives();
 
         commands.bind_vertex_buffer(0, mesh_storage->get_vertex_position_buffer());
         commands.bind_vertex_buffer(1, mesh_storage->get_vertex_data_buffer());
@@ -74,11 +74,11 @@ namespace render {
     void SceneDrawer::draw_indirect(
         CommandBuffer& commands, const GraphicsPipelineHandle pso, const IndirectDrawingBuffers& drawbuffers
     ) const {
-        if (scene == nullptr) {
+        if (world == nullptr) {
             return;
         }
 
-        const auto& solids = scene->get_solid_primitives();
+        const auto& solids = world->get_solid_primitives();
 
         commands.bind_vertex_buffer(0, mesh_storage->get_vertex_position_buffer());
         commands.bind_vertex_buffer(1, mesh_storage->get_vertex_data_buffer());
@@ -98,7 +98,7 @@ namespace render {
 
     }
 
-    const RenderScene& SceneDrawer::get_scene() const { return *scene; }
+    const RenderWorld& SceneDrawer::get_world() const { return *world; }
 
     const MeshStorage& SceneDrawer::get_mesh_storage() const { return *mesh_storage; }
 

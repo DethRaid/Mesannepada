@@ -5,9 +5,9 @@
 
 void GameObject::begin_play() {}
 
-void GameObject::tick(const float delta_time, World& scene) {}
+void GameObject::tick(const float delta_time, World& world) {}
 
 GameObject::GameObject(const entt::handle root_entity_in) : root_entity{ root_entity_in } {
-    auto& scene = Engine::get().get_scene();
-    scene.add_component(root_entity, TransformComponent{});
+    auto& world = Engine::get().get_world();
+    world.add_component(root_entity, TransformComponent{});
 }

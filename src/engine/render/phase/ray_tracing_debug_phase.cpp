@@ -26,7 +26,7 @@ namespace render {
     }
 
     void RayTracingDebugPhase::raytrace(
-        RenderGraph& graph, const SceneView& view, const RenderScene& scene, const GBuffer& gbuffer,
+        RenderGraph& graph, const SceneView& view, const RenderWorld& world, const GBuffer& gbuffer,
         const TextureHandle output_texture
     ) {
         if (cvar_debug_mode.get() == RaytracingDebugMode::Off) {
@@ -40,7 +40,7 @@ namespace render {
         }
 
         auto set = backend.get_transient_descriptor_allocator().build_set(pipeline, 0)
-            .bind(scene.get_primitive_buffer())
+            .bind(world.get_primitive_buffer())
             .bind(view.get_buffer())
             .bind(gbuffer.depth)
             .bind(output_texture)

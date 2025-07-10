@@ -59,20 +59,20 @@ namespace godot {
         return scene;
     }
 
-    entt::handle GodotScene::add_to_scene(World &scene_in, const eastl::optional<entt::handle> &parent_node) const {
+    entt::handle GodotScene::add_to_world(World &world_in, const eastl::optional<entt::handle> &parent_node) const {
         // Traverse the node tree, creating EnTT entities for each node. Hook up parent/child relationships as we go.
         // Save a map from node index to node entity for future use. Load external models
         eastl::vector<entt::handle> node_entities;
         node_entities.reserve(nodes.size());
-        const auto root_entity = add_node_to_scene(scene_in, 0, node_entities);
+        const auto root_entity = add_node_to_world(world_in, 0, node_entities);
 
         const auto filepath_string = file_path.string();
         root_entity.emplace<ImportedModelComponent>(filepath_string.c_str(), node_entities);
 
         if (!parent_node) {
-            scene_in.add_top_level_entities(eastl::array{root_entity});
+            world_in.add_top_level_entities(eastl::array{root_entity});
         } else {
-            scene_in.parent_entity_to_entity(root_entity, *parent_node);
+            world_in.parent_entity_to_entity(root_entity, *parent_node);
         }
 
         return root_entity;
@@ -271,12 +271,12 @@ namespace godot {
         }
     }
 
-    entt::handle GodotScene::add_node_to_scene(
-        World &scene, const size_t node_index, eastl::vector<entt::handle> &node_entities
+    entt::handle GodotScene::add_node_to_world(
+        World &world, const size_t node_index, eastl::vector<entt::handle> &node_entities
     ) const {
         const auto &node = nodes.at(node_index);
         // Create this node
-        const auto entity = scene.create_entity();
+        const auto entity = world.create_entity();
         entity.emplace<EntityInfoComponent>(node.name);
         entity.emplace<TransformComponent>().set_local_transform(node.transform);
         entity.emplace<GeneratedEntityComponent>();
@@ -297,12 +297,12 @@ namespace godot {
             full_resource_path.make_preferred();
             auto &resources = Engine::get().get_resource_loader();
             const auto instanced_model = resources.get_model(full_resource_path);
-            instanced_model->add_to_scene(scene, entity);
+            instanced_model->add_to_world(world, entity);
         }
 
         for (const auto &child_node: node.children) {
-            const auto child_entity = add_node_to_scene(scene, child_node, node_entities);
-            scene.parent_entity_to_entity(child_entity, entity);
+            const auto child_entity = add_node_to_world(world, child_node, node_entities);
+            world.parent_entity_to_entity(child_entity, entity);
         }
 
         return entity;

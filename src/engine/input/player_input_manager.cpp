@@ -34,12 +34,12 @@ void PlayerInputManager::set_controlled_entity(const entt::entity entity) {
     controlled_entity = entity;
 }
 
-void PlayerInputManager::tick(const float delta_time, World& scene) {
+void PlayerInputManager::tick(const float delta_time, World& world) {
     if(!enabled) {
         return;
     }
 
-    auto& registry = scene.get_registry();
+    auto& registry = world.get_registry();
 
     if(!registry.valid(controlled_entity)) {
         return;

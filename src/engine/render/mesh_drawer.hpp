@@ -10,7 +10,7 @@ namespace render {
     class MaterialStorage;
     class CommandBuffer;
     class MeshStorage;
-    class RenderScene;
+    class RenderWorld;
 
     /**
      * Draws meshes!
@@ -31,7 +31,7 @@ namespace render {
     public:
         SceneDrawer() = default;
 
-        SceneDrawer(ScenePassType::Type type_in, const RenderScene& scene_in, const MeshStorage& mesh_storage_in, const MaterialStorage& material_storage_in, ResourceAllocator& resource_allocator_in);
+        SceneDrawer(ScenePassType::Type type_in, const RenderWorld& world_in, const MeshStorage& mesh_storage_in, const MaterialStorage& material_storage_in, ResourceAllocator& resource_allocator_in);
 
         SceneDrawer(const SceneDrawer& other) = default;
         SceneDrawer& operator=(const SceneDrawer& other) = default;
@@ -55,14 +55,14 @@ namespace render {
 
         void draw_indirect(CommandBuffer& commands, GraphicsPipelineHandle pso, const IndirectDrawingBuffers& drawbuffers) const;
 
-        const RenderScene& get_scene() const;
+        const RenderWorld& get_world() const;
 
         const MeshStorage& get_mesh_storage() const;
 
         const MaterialStorage& get_material_storage() const;
 
     private:
-        const RenderScene* scene = nullptr;
+        const RenderWorld* world = nullptr;
 
         const MeshStorage* mesh_storage = nullptr;
 

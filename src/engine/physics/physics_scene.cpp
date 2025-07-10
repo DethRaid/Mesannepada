@@ -47,7 +47,7 @@ namespace physics {
         logger->info(buffer);
     }
 
-    PhysicsScene::PhysicsScene(World& scene) {
+    PhysicsWorld::PhysicsWorld(World& world) {
         ZoneScoped;
 
         if(logger == nullptr) {
@@ -84,20 +84,20 @@ namespace physics {
         // TODO: Set a contact listener? I think we want one?
 
         // Register transform change listeners
-        auto& registry = scene.get_registry();
-        registry.on_update<TransformComponent>().connect<&PhysicsScene::on_transform_update>(this);
+        auto& registry = world.get_registry();
+        registry.on_update<TransformComponent>().connect<&PhysicsWorld::on_transform_update>(this);
     }
 
-    PhysicsScene::~PhysicsScene() {
+    PhysicsWorld::~PhysicsWorld() {
         delete JPH::Factory::sInstance;
         JPH::Factory::sInstance = nullptr;
     }
 
-    void PhysicsScene::finalize() {
+    void PhysicsWorld::finalize() {
         physics_system->OptimizeBroadPhase();
     }
 
-    void PhysicsScene::tick(const float delta_time, World& scene) {
+    void PhysicsWorld::tick(const float delta_time, World& world) {
         ZoneScoped;
 
         physics_system->Update(delta_time, 1, temp_allocator.get(), thread_pool.get());
@@ -105,7 +105,7 @@ namespace physics {
         auto& body_interface = get_body_interface();
 
         // Sync physics -> transforms
-        auto& registry = scene.get_registry();
+        auto& registry = world.get_registry();
         registry.view<TransformComponent, CollisionComponent>().each(
             [&](entt::entity entity, const TransformComponent& transform, const CollisionComponent& collision) {
                 const auto layer = body_interface.GetObjectLayer(collision.body_id);
@@ -134,24 +134,24 @@ namespace physics {
         }
     }
 
-    bool PhysicsScene::cast_ray(const JPH::RRayCast& ray, JPH::RayCastResult& result) const {
+    bool PhysicsWorld::cast_ray(const JPH::RRayCast& ray, JPH::RayCastResult& result) const {
         return physics_system->GetNarrowPhaseQuery().CastRay(ray, result);
     }
 
-    JPH::BodyInterface& PhysicsScene::get_body_interface() const {
+    JPH::BodyInterface& PhysicsWorld::get_body_interface() const {
         return physics_system->GetBodyInterface();
     }
 
-    JPH::PhysicsSystem* PhysicsScene::get_physics_system() const {
+    JPH::PhysicsSystem* PhysicsWorld::get_physics_system() const {
         return physics_system.get();
     }
 
-    JPH::TempAllocator& PhysicsScene::get_temp_allocator() const {
+    JPH::TempAllocator& PhysicsWorld::get_temp_allocator() const {
         return *temp_allocator;
     }
 
     // from https://github.com/jrouwe/JoltPhysics/blob/master/Samples/SamplesApp.cpp#L2367C2-L2501C50
-    void PhysicsScene::debug_draw_physics() {
+    void PhysicsWorld::debug_draw_physics() {
 #ifdef JPH_DEBUG_RENDERER
         ShapeToGeometryMap shape_to_geometry;
 
@@ -303,7 +303,7 @@ namespace physics {
 #endif
     }
 
-    void PhysicsScene::on_transform_update(const entt::registry& registry, const entt::entity entity) const {
+    void PhysicsWorld::on_transform_update(const entt::registry& registry, const entt::entity entity) const {
         if(registry.all_of<TransformComponent, CollisionComponent>(entity)) {
             const auto& transform = registry.get<TransformComponent>(entity);
             const auto& collision = registry.get<CollisionComponent>(entity);

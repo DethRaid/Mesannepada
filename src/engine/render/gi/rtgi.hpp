@@ -13,7 +13,7 @@
 
 namespace render {
     class ProceduralSky;
-    class RenderScene;
+    class RenderWorld;
     class CommandBuffer;
     struct DescriptorSet;
     class SceneView;
@@ -32,11 +32,11 @@ namespace render {
         ~RayTracedGlobalIllumination() override;
 
         void pre_render(
-            RenderGraph& graph, const SceneView& view, const RenderScene& scene, TextureHandle noise_tex
+            RenderGraph& graph, const SceneView& view, const RenderWorld& world, TextureHandle noise_tex
         ) override;
 
         void post_render(
-            RenderGraph& graph, const SceneView& view, const RenderScene& scene, const GBuffer& gbuffer,
+            RenderGraph& graph, const SceneView& view, const RenderWorld& world, const GBuffer& gbuffer,
              TextureHandle motion_vectors, TextureHandle noise_tex
         ) override;
 
@@ -58,7 +58,7 @@ namespace render {
         ) const override;
 
         void render_volumetrics(
-            RenderGraph& render_graph, const SceneView& player_view, const RenderScene& scene, const GBuffer& gbuffer,
+            RenderGraph& render_graph, const SceneView& player_view, const RenderWorld& world, const GBuffer& gbuffer,
             TextureHandle lit_scene_handle
         ) override;
 

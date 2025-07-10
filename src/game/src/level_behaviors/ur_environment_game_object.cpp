@@ -14,8 +14,8 @@ UrEnvironmentGameObject::UrEnvironmentGameObject(const entt::handle entity) : Ga
     auto& loader = engine.get_resource_loader();
     level_scene = loader.get_model("data/game/environments/Ur.tscn");
 
-    auto& scene = engine.get_scene();
-    level_entity = level_scene->add_to_scene(scene, root_entity);
+    auto& world = engine.get_world();
+    level_entity = level_scene->add_to_world(world, root_entity);
     // Remove the generated entity component from the level's root entity so that the save system can save it
     level_entity.remove<GeneratedEntityComponent>();
 
@@ -36,13 +36,13 @@ UrEnvironmentGameObject::UrEnvironmentGameObject(const entt::handle entity) : Ga
             Engine::get().give_player_full_control();
         });
 
-    engine.get_physics_scene().finalize();
+    engine.get_physics_world().finalize();
 }
 
-void UrEnvironmentGameObject::tick(const float delta_time, World& scene) {
-    GameObject::tick(delta_time, scene);
+void UrEnvironmentGameObject::tick(const float delta_time, World& world) {
+    GameObject::tick(delta_time, world);
 
-    auto& registry = scene.get_registry();
+    auto& registry = world.get_registry();
 
     // process events
     if(const auto* animation_event = registry.try_get<AnimationEventComponent>(root_entity)) {

@@ -34,7 +34,7 @@ public:
 
     void set_controlled_entity(entt::entity entity);
 
-    void tick(float delta_time, World& scene);
+    void tick(float delta_time, World& world);
 
 private:
     glm::vec3 player_movement_input = glm::vec3{ 0 };

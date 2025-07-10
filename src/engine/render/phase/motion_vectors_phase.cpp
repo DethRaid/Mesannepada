@@ -83,7 +83,7 @@ namespace render {
     }
 
     void MotionVectorsPhase::render(
-        RenderGraph& graph, const RenderScene& scene, const BufferHandle view_data_buffer,
+        RenderGraph& graph, const RenderWorld& world, const BufferHandle view_data_buffer,
         const TextureHandle depth_buffer, const IndirectDrawingBuffers& buffers,
         const IndirectDrawingBuffers& masked_buffers
         ) {
@@ -106,12 +106,12 @@ namespace render {
         } else {
             const auto set = allocator.build_set(motion_vectors_opaque_pso, 0)
                                       .bind(view_data_buffer)
-                                      .bind(scene.get_primitive_buffer())
+                                      .bind(world.get_primitive_buffer())
                                       .build();
 
             const auto masked_set = allocator.build_set(motion_vectors_masked_pso, 0)
                                              .bind(view_data_buffer)
-                                             .bind(scene.get_primitive_buffer())
+                                             .bind(world.get_primitive_buffer())
                                              .build();
 
             graph.add_render_pass(
@@ -161,11 +161,11 @@ namespace render {
                 .execute = [&](CommandBuffer& commands) {
                     commands.bind_descriptor_set(0, set);
 
-                    scene.draw_opaque(commands, buffers, motion_vectors_opaque_pso);
+                    world.draw_opaque(commands, buffers, motion_vectors_opaque_pso);
 
                     commands.bind_descriptor_set(0, masked_set);
 
-                    scene.draw_masked(commands, masked_buffers, motion_vectors_masked_pso);
+                    world.draw_masked(commands, masked_buffers, motion_vectors_masked_pso);
 
                     commands.clear_descriptor_set(0);
                 }

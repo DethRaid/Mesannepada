@@ -47,7 +47,7 @@ namespace render {
 
     void LightingPhase::render(
         RenderGraph& render_graph,
-        const RenderScene& scene,
+        const RenderWorld& world,
         const GBuffer& gbuffer,
         const TextureHandle lit_scene_texture,
         const TextureHandle ao_texture,
@@ -58,7 +58,7 @@ namespace render {
         ) {
         ZoneScoped;
 
-        const auto& view = scene.get_player_view();
+        const auto& view = world.get_player_view();
         auto& backend = RenderBackend::get();
 
         if(cvar_sky_occlusion_type.get() == SkyOcclusionType::DepthMap) {
@@ -69,7 +69,7 @@ namespace render {
             }
         }
 
-        auto& sun = scene.get_sun_light();
+        auto& sun = world.get_sun_light();
         const auto sun_pipeline = sun.get_pipeline();
 
         const auto sampler = backend.get_default_sampler();
@@ -85,9 +85,9 @@ namespace render {
         auto point_lights_descriptor_set_builder = backend.get_transient_descriptor_allocator()
                                                           .build_set(point_lights_pipeline, 1)
                                                           .bind(view.get_buffer())
-                                                          .bind(scene.get_point_lights_buffer());
+                                                          .bind(world.get_point_lights_buffer());
         if(backend.supports_ray_tracing()) {
-            point_lights_descriptor_set_builder.bind(scene.get_raytracing_scene().get_acceleration_structure());
+            point_lights_descriptor_set_builder.bind(world.get_raytracing_world().get_acceleration_structure());
         }
         auto point_lights_descriptor_set = point_lights_descriptor_set_builder.build();
 
@@ -132,7 +132,7 @@ namespace render {
 
                 sun.render(commands, view);
 
-                apply_point_lights(commands, point_lights_descriptor_set, scene.get_num_point_lights());
+                apply_point_lights(commands, point_lights_descriptor_set, world.get_num_point_lights());
 
                 if(gi) {
                     gi->render_to_lit_scene(
@@ -146,7 +146,7 @@ namespace render {
                 commands.bind_descriptor_set(0, gbuffers_descriptor_set);
                 add_emissive_lighting(commands);
 
-                scene.get_sky().render_sky(commands, view.get_buffer(), sun.get_constant_buffer(), gbuffer.depth);
+                world.get_sky().render_sky(commands, view.get_buffer(), sun.get_constant_buffer(), gbuffer.depth);
 
                 // The sky uses different descriptor sets, so if we add anything after this we'll have to re-bind the gbuffer descriptor set
             }

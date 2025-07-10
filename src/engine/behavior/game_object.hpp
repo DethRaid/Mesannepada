@@ -32,7 +32,7 @@ public:
 
     virtual void begin_play();
 
-    virtual void tick(float delta_time, World& scene);
+    virtual void tick(float delta_time, World& world);
 
 protected:
 

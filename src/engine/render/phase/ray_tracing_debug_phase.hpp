@@ -5,7 +5,7 @@
 
 namespace render {
     struct GBuffer;
-    class RenderScene;
+    class RenderWorld;
     class RenderGraph;
     class SceneView;
 
@@ -14,7 +14,7 @@ namespace render {
         static uint32_t get_debug_mode();
 
         void raytrace(
-            RenderGraph& graph, const SceneView& view, const RenderScene& scene, const GBuffer& gbuffer,
+            RenderGraph& graph, const SceneView& view, const RenderWorld& world, const GBuffer& gbuffer,
             TextureHandle output_texture
         );
 

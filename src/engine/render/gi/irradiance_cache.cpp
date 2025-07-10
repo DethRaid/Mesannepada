@@ -240,7 +240,7 @@ namespace render {
     }
 
     void IrradianceCache::update_cascades_and_probes(
-        RenderGraph& graph, const SceneView& view, const RenderScene& scene, const TextureHandle noise_tex
+        RenderGraph& graph, const SceneView& view, const RenderWorld& scene, const TextureHandle noise_tex
     ) {
         ZoneScoped;
 

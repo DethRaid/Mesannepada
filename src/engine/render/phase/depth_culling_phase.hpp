@@ -10,7 +10,7 @@
 #include "render/backend/handles.hpp"
 
 namespace render {
-    class RenderScene;
+    class RenderWorld;
     class MaterialStorage;
     class TextureDescriptorPool;
     class RenderGraph;
@@ -33,7 +33,7 @@ namespace render {
         void set_render_resolution(const glm::uvec2& resolution);
 
         void render(
-            RenderGraph& graph, const RenderScene& scene, MaterialStorage& materials, BufferHandle view_data_buffer
+            RenderGraph& graph, const RenderWorld& world, MaterialStorage& materials, BufferHandle view_data_buffer
         );
 
         TextureHandle get_depth_buffer() const;
@@ -68,7 +68,7 @@ namespace render {
          * Draws visible objects using device-generated commands
          */
         void draw_visible_objects_dgc(
-            RenderGraph& graph, const RenderScene& scene, MaterialStorage& materials, const DescriptorSet& descriptors,
+            RenderGraph& graph, const RenderWorld& world, MaterialStorage& materials, const DescriptorSet& descriptors,
             BufferHandle primitive_buffer, uint32_t num_primitives
         );
 
@@ -82,7 +82,7 @@ namespace render {
          * @see visible_objects
          */
         void draw_visible_objects(
-            RenderGraph& graph, const RenderScene& scene, const DescriptorSet& view_descriptor,
+            RenderGraph& graph, const RenderWorld& world, const DescriptorSet& view_descriptor,
             const DescriptorSet& masked_view_descriptor, BufferHandle primitive_buffer, uint32_t num_primitives
         ) const;
     };

@@ -26,12 +26,12 @@ struct SceneObject {
  *
  * This data contains wonderful information about what objects should be in what places
  */
-class SceneFile {
+class Scene {
 public:
     /**
      * Loads a SceneFile from disk. Does not add any entities to the world
      */
-    static SceneFile load_from_file(const std::filesystem::path& filepath);
+    static Scene load_from_file(const std::filesystem::path& filepath);
 
     /**
      * Writes a SceneFile to disk

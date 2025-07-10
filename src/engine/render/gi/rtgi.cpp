@@ -72,7 +72,7 @@ namespace render {
     }
 
     void RayTracedGlobalIllumination::pre_render(
-        RenderGraph& graph, const SceneView& view, const RenderScene& scene, const TextureHandle noise_tex
+        RenderGraph& graph, const SceneView& view, const RenderWorld& world, const TextureHandle noise_tex
         ) {
         ZoneScoped;
 
@@ -98,7 +98,7 @@ namespace render {
     }
 
     void RayTracedGlobalIllumination::post_render(
-        RenderGraph& graph, const SceneView& view, const RenderScene& scene, const GBuffer& gbuffer,
+        RenderGraph& graph, const SceneView& view, const RenderWorld& world, const GBuffer& gbuffer,
         const TextureHandle motion_vectors, const TextureHandle noise_tex
         ) {
         if(!should_render()
@@ -165,15 +165,15 @@ namespace render {
             denoiser->set_constants(view, cvar_denoiser.get(), render_resolution);
         }
 
-        const auto sun_buffer = scene.get_sun_light().get_constant_buffer();
+        const auto sun_buffer = world.get_sun_light().get_constant_buffer();
 
-        auto& sky = scene.get_sky();
+        auto& sky = world.get_sky();
         const auto set = backend.get_transient_descriptor_allocator()
                                 .build_set(rtgi_pipeline, 0)
-                                .bind(scene.get_primitive_buffer())
+                                .bind(world.get_primitive_buffer())
                                 .bind(sun_buffer)
                                 .bind(view.get_buffer())
-                                .bind(scene.get_raytracing_scene().get_acceleration_structure())
+                                .bind(world.get_raytracing_world().get_acceleration_structure())
                                 .bind(gbuffer.normals)
                                 .bind(gbuffer.data)
                                 .bind(gbuffer.depth)
@@ -309,7 +309,7 @@ namespace render {
     }
 
     void RayTracedGlobalIllumination::render_volumetrics(
-        RenderGraph& render_graph, const SceneView& player_view, const RenderScene& scene, const GBuffer& gbuffer,
+        RenderGraph& render_graph, const SceneView& player_view, const RenderWorld& world, const GBuffer& gbuffer,
         TextureHandle lit_scene_handle
         ) {
         if(!should_render()

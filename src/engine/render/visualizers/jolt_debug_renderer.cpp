@@ -52,9 +52,9 @@ namespace render {
     }
 
     void JoltDebugRenderer::draw(
-        RenderGraph& graph, const RenderScene& scene, const GBuffer& gbuffer, const TextureHandle lit_scene_handle
+        RenderGraph& graph, const RenderWorld& world, const GBuffer& gbuffer, const TextureHandle lit_scene_handle
     ) {
-        const auto& view = scene.get_player_view();
+        const auto& view = world.get_player_view();
         camera_pos = view.get_position();
 
         if (!line_vertices.empty()) {
@@ -81,7 +81,7 @@ namespace render {
             );
         }
 
-        const auto& sun = scene.get_sun_light();
+        const auto& sun = world.get_sun_light();
 
         auto barriers = BufferUsageList{
             {

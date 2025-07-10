@@ -141,29 +141,29 @@ namespace render {
         output_resolution = new_output_resolution;
     }
 
-    void SarahRenderer::set_scene(RenderScene& scene_in) {
-        scene = &scene_in;
+    void SarahRenderer::set_world(RenderWorld& world_in) {
+        world = &world_in;
     }
 
     void SarahRenderer::set_render_resolution(const glm::uvec2 new_render_resolution) {
-        if (new_render_resolution == scene_render_resolution) {
+        if (new_render_resolution == render_resolution) {
             return;
         }
 
-        scene_render_resolution = new_render_resolution;
+        render_resolution = new_render_resolution;
 
         logger->info(
             "Setting resolution to {} by {}",
-            scene_render_resolution.x,
-            scene_render_resolution.y);
+            render_resolution.x,
+            render_resolution.y);
 
-        auto& player_view = scene->get_player_view();
-        player_view.set_render_resolution(scene_render_resolution);
+        auto& player_view = world->get_player_view();
+        player_view.set_render_resolution(render_resolution);
 
         player_view.set_perspective_projection(
             75.f,
-            static_cast<float>(scene_render_resolution.x) /
-            static_cast<float>(scene_render_resolution.y),
+            static_cast<float>(render_resolution.x) /
+            static_cast<float>(render_resolution.y),
             0.05f
         );
 
@@ -177,7 +177,7 @@ namespace render {
 
         backend.advance_frame();
 
-        auto& player_view = scene->get_player_view();
+        auto& player_view = world->get_player_view();
         player_view.increment_frame_count();
 
         logger->trace("Beginning frame");
@@ -194,7 +194,7 @@ namespace render {
 
             set_render_resolution(output_resolution * 2u);
 
-            vrsaa->init(scene_render_resolution);
+            vrsaa->init(render_resolution);
             player_view.set_mip_bias(0);
 
             break;
@@ -280,7 +280,7 @@ namespace render {
         player_view.update_buffer(backend.get_upload_queue());
 
         if (upscaler) {
-            upscaler->set_constants(player_view, scene_render_resolution);
+            upscaler->set_constants(player_view, render_resolution);
         }
 
         auto render_graph = RenderGraph{ backend };
@@ -296,7 +296,7 @@ namespace render {
 
         {
             ZoneScopedN("Begin Frame");
-            auto& sun = scene->get_sun_light();
+            auto& sun = world->get_sun_light();
             if (DirectionalLight::get_shadow_mode() == SunShadowMode::CascadedShadowMaps) {
                 sun.update_shadow_cascades(player_view);
             }
@@ -314,7 +314,7 @@ namespace render {
             {
                 .buffers = {
                     {
-                        .buffer = scene->get_primitive_buffer(),
+                        .buffer = world->get_primitive_buffer(),
                         .stage = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
                         VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
                         VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
@@ -339,15 +339,15 @@ namespace render {
             }
         );
 
-        scene->begin_frame(render_graph);
+        world->begin_frame(render_graph);
 
-        scene->deform_skinned_meshes(render_graph);
+        world->deform_skinned_meshes(render_graph);
 
         // Depth and stuff
 
         depth_culling_phase.render(
             render_graph,
-            *scene,
+            *world,
             material_storage,
             player_view.get_buffer());
 
@@ -355,22 +355,22 @@ namespace render {
         const auto visible_solids_buffers = translate_visibility_list_to_draw_commands(
             render_graph,
             visible_objects_list,
-            scene->get_primitive_buffer(),
-            scene->get_total_num_primitives(),
-            scene->get_meshes().get_draw_args_buffer(),
+            world->get_primitive_buffer(),
+            world->get_total_num_primitives(),
+            world->get_meshes().get_draw_args_buffer(),
             PRIMITIVE_TYPE_SOLID);
         const auto visible_masked_buffers = translate_visibility_list_to_draw_commands(
             render_graph,
             visible_objects_list,
-            scene->get_primitive_buffer(),
-            scene->get_total_num_primitives(),
-            scene->get_meshes().get_draw_args_buffer(),
+            world->get_primitive_buffer(),
+            world->get_total_num_primitives(),
+            world->get_meshes().get_draw_args_buffer(),
             PRIMITIVE_TYPE_CUTOUT);
 
         if (needs_motion_vectors) {
             motion_vectors_phase.render(
                 render_graph,
-                *scene,
+                *world,
                 player_view.get_buffer(),
                 depth_culling_phase.get_depth_buffer(),
                 visible_solids_buffers,
@@ -378,7 +378,7 @@ namespace render {
         }
 
         if (gi) {
-            gi->pre_render(render_graph, player_view, *scene, stbn_3d_unitvec.get_layer(frame_count));
+            gi->pre_render(render_graph, player_view, *world, stbn_3d_unitvec.get_layer(frame_count));
         }
 
         // Generate shading rate image
@@ -419,7 +419,7 @@ namespace render {
 
         gbuffer_phase.render(
             render_graph,
-            *scene,
+            *world,
             visible_solids_buffers,
             visible_masked_buffers,
             gbuffer,
@@ -427,14 +427,14 @@ namespace render {
             player_view);
 
         // Shadows
-        auto& sun = scene->get_sun_light();
-        sun.render_shadows(render_graph, gbuffer, *scene, stbn_3d_unitvec.get_layer(frame_count));
+        auto& sun = world->get_sun_light();
+        sun.render_shadows(render_graph, gbuffer, *world, stbn_3d_unitvec.get_layer(frame_count));
 
         if (gi) {
             gi->post_render(
                 render_graph,
                 player_view,
-                *scene,
+                *world,
                 gbuffer,
                 motion_vectors_phase.get_motion_vectors(),
                 stbn_3d_unitvec.layers[frame_count % stbn_3d_unitvec.num_layers]);
@@ -443,7 +443,7 @@ namespace render {
         ao_phase.generate_ao(
             render_graph,
             player_view,
-            *scene,
+            *world,
             stbn_3d_unitvec,
             gbuffer.normals,
             gbuffer.depth,
@@ -451,7 +451,7 @@ namespace render {
 
         lighting_pass.render(
             render_graph,
-            *scene,
+            *world,
             gbuffer,
             lit_scene_handle,
             ao_handle,
@@ -469,7 +469,7 @@ namespace render {
 
         if (cvar_enable_fog.get() != 0) {
             if (gi) {
-                gi->render_volumetrics(render_graph, player_view, *scene, gbuffer, lit_scene_handle);
+                gi->render_volumetrics(render_graph, player_view, *world, gbuffer, lit_scene_handle);
             }
         }
 
@@ -566,7 +566,7 @@ namespace render {
         auto& descriptors = RenderBackend::get().get_transient_descriptor_allocator();
 
         const auto resolution = lit_scene_handle->get_resolution();
-        const auto& player_view = scene->get_player_view();
+        const auto& player_view = world->get_player_view();
 
         // Build histogram
         {
@@ -630,7 +630,7 @@ namespace render {
 
     void SarahRenderer::evaluate_antialiasing(RenderGraph& render_graph, const TextureHandle gbuffer_depth_handle) const {
         auto& backend = RenderBackend::get();
-        auto& player_view = scene->get_player_view();
+        auto& player_view = world->get_player_view();
 
         switch (cvar_anti_aliasing.get()) {
         case AntiAliasingType::VRSAA:
@@ -730,16 +730,16 @@ namespace render {
             allocator.destroy_texture(antialiased_scene_handle);
         }
 
-        depth_culling_phase.set_render_resolution(scene_render_resolution);
+        depth_culling_phase.set_render_resolution(render_resolution);
 
-        motion_vectors_phase.set_render_resolution(scene_render_resolution, output_resolution);
+        motion_vectors_phase.set_render_resolution(render_resolution, output_resolution);
 
         // gbuffer and lighting render targets
         gbuffer.color = allocator.create_texture(
             "gbuffer_color",
             {
                 VK_FORMAT_R8G8B8A8_SRGB,
-                scene_render_resolution,
+                render_resolution,
                 1,
                 TextureUsage::RenderTarget
             }
@@ -749,7 +749,7 @@ namespace render {
             "gbuffer_normals",
             {
                 VK_FORMAT_R16G16B16A16_SFLOAT,
-                scene_render_resolution,
+                render_resolution,
                 1,
                 TextureUsage::RenderTarget
             }
@@ -759,7 +759,7 @@ namespace render {
             "gbuffer_data",
             {
                 VK_FORMAT_R8G8B8A8_UNORM,
-                scene_render_resolution,
+                render_resolution,
                 1,
                 TextureUsage::RenderTarget
             }
@@ -769,7 +769,7 @@ namespace render {
             "gbuffer_emission",
             {
                 VK_FORMAT_R8G8B8A8_SRGB,
-                scene_render_resolution,
+                render_resolution,
                 1,
                 TextureUsage::RenderTarget
             }
@@ -779,7 +779,7 @@ namespace render {
             "AO",
             TextureCreateInfo{
                 .format = VK_FORMAT_R32_SFLOAT,
-                .resolution = scene_render_resolution,
+                .resolution = render_resolution,
                 .num_mips = 1,
                 .usage = TextureUsage::RenderTarget,
                 .usage_flags = VK_IMAGE_USAGE_STORAGE_BIT
@@ -790,7 +790,7 @@ namespace render {
             "lit_scene",
             {
                 .format = VK_FORMAT_R16G16B16A16_SFLOAT,
-                .resolution = scene_render_resolution,
+                .resolution = render_resolution,
                 .usage = TextureUsage::RenderTarget,
                 .usage_flags = VK_IMAGE_USAGE_STORAGE_BIT
             }
@@ -845,7 +845,7 @@ namespace render {
             jitter = upscaler->get_jitter();
         }
 
-        auto& player_view = scene->get_player_view();
+        auto& player_view = world->get_player_view();
         player_view.set_jitter(jitter);
     }
 
@@ -857,7 +857,7 @@ namespace render {
 
         case RenderVisualization::GIDebug:
             if (gi) {
-                auto& player_view = scene->get_player_view();
+                auto& player_view = world->get_player_view();
                 gi->draw_debug_overlays(render_graph, player_view, gbuffer, lit_scene_handle);
             }
             break;
@@ -865,7 +865,7 @@ namespace render {
 #ifdef JPH_DEBUG_RENDERER
         case RenderVisualization::Physics:
             if (jolt_debug) {
-                jolt_debug->draw(render_graph, *scene, gbuffer, lit_scene_handle);
+                jolt_debug->draw(render_graph, *world, gbuffer, lit_scene_handle);
             }
 #endif
         }

@@ -138,20 +138,20 @@ const fastgltf::Asset& GltfModel::get_gltf_data() const {
     return asset;
 }
 
-entt::handle GltfModel::add_nodes_to_scene(World& scene, const eastl::optional<entt::handle>& parent_node) const {
+entt::handle GltfModel::add_nodes_to_world(World& world, const eastl::optional<entt::handle>& parent_node) const {
     ZoneScoped;
 
-    auto& registry = scene.get_registry();
+    auto& registry = world.get_registry();
 
-    eastl::vector<entt::handle> scene_entities;
-    scene_entities.reserve(asset.nodes.size());
+    eastl::vector<entt::handle> world_entities;
+    world_entities.reserve(asset.nodes.size());
     // Spawn one entity per node, indexed by node ID
     for(const auto& node : asset.nodes) {
-        const auto node_entity = scene.create_entity();
+        const auto node_entity = world.create_entity();
         node_entity.emplace<TransformComponent>();
         node_entity.emplace<EntityInfoComponent>(node.name.c_str());
         node_entity.emplace<GeneratedEntityComponent>();
-        scene_entities.emplace_back(node_entity);
+        world_entities.emplace_back(node_entity);
     }
 
     auto parent_matrix = float4x4{1.f};
@@ -163,10 +163,10 @@ entt::handle GltfModel::add_nodes_to_scene(World& scene, const eastl::optional<e
 
     traverse_nodes(
         [&](const size_t node_index, const fastgltf::Node& node, const float4x4& parent_to_world) {
-            const auto entity = scene_entities.at(node_index);
+            const auto entity = world_entities.at(node_index);
 
             for(const auto child_index : node.children) {
-                scene.parent_entity_to_entity(scene_entities.at(child_index), entity);
+                world.parent_entity_to_entity(world_entities.at(child_index), entity);
             }
 
             const auto node_to_parent = get_node_to_parent_matrix(node);
@@ -199,17 +199,17 @@ entt::handle GltfModel::add_nodes_to_scene(World& scene, const eastl::optional<e
     // Add imported information to our root node
     assert(asset.scenes[*asset.defaultScene].nodeIndices.size() == 1);
     const auto root_node_index = asset.scenes[*asset.defaultScene].nodeIndices[0];
-    const auto root_entity = scene_entities[root_node_index];
+    const auto root_entity = world_entities[root_node_index];
     const auto filename_string = filepath.string();
-    root_entity.emplace<ImportedModelComponent>(filename_string.c_str(), scene_entities);
+    root_entity.emplace<ImportedModelComponent>(filename_string.c_str(), world_entities);
 
     // Add our top-level entities to the scene
     if(!parent_node) {
         auto top_levels = eastl::fixed_vector<entt::handle, 16>{};
         for(const auto top_level_node : asset.scenes[*asset.defaultScene].nodeIndices) {
-            top_levels.emplace_back(scene_entities.at(top_level_node));
+            top_levels.emplace_back(world_entities.at(top_level_node));
         }
-        scene.add_top_level_entities(top_levels);
+        world.add_top_level_entities(top_levels);
     }
 
     // Link to parent node, if present
@@ -217,12 +217,12 @@ entt::handle GltfModel::add_nodes_to_scene(World& scene, const eastl::optional<e
         const auto& gltf_scene = asset.scenes[*asset.defaultScene];
 
         for(const auto& node_index : gltf_scene.nodeIndices) {
-            const auto node_entity = scene_entities[node_index];
-            scene.parent_entity_to_entity(node_entity, *parent_node);
+            const auto node_entity = world_entities[node_index];
+            world.parent_entity_to_entity(node_entity, *parent_node);
         }
     }
 
-    scene_entities.clear();
+    world_entities.clear();
     return root_entity;
 }
 
@@ -357,7 +357,7 @@ void GltfModel::add_collider_component(
         }
         {
             ZoneScopedN("create_body");
-            auto& physics_scene = Engine::get().get_physics_scene();
+            auto& physics_scene = Engine::get().get_physics_world();
             auto& body_interface = physics_scene.get_body_interface();
 
             const auto body_id = body_interface.CreateAndAddBody(body_settings, JPH::EActivation::Activate);
@@ -501,17 +501,17 @@ JPH::Ref<JPH::Shape> GltfModel::create_jolt_shape(const fastgltf::Collider& coll
     return nullptr;
 }
 
-entt::handle GltfModel::add_to_scene(World& scene_in, const eastl::optional<entt::handle>& parent_node) const {
-    const auto root_entity = add_nodes_to_scene(scene_in, parent_node);
+entt::handle GltfModel::add_to_world(World& world_in, const eastl::optional<entt::handle>& parent_node) const {
+    const auto root_entity = add_nodes_to_world(world_in, parent_node);
 
     // I'm slightly sorry, future Sarah
     if(extras.player_parent_node != std::numeric_limits<size_t>::max()) {
-        const auto& gltf_model_component = scene_in.get_registry().get<ImportedModelComponent>(root_entity);
+        const auto& gltf_model_component = world_in.get_registry().get<ImportedModelComponent>(root_entity);
         const auto player = Engine::get().get_player();
-        scene_in.parent_entity_to_entity(
+        world_in.parent_entity_to_entity(
             player,
             gltf_model_component.node_to_entity.at(extras.player_parent_node));
-        scene_in.get_registry().patch<GameObjectComponent>(
+        world_in.get_registry().patch<GameObjectComponent>(
             player,
             [&](const GameObjectComponent& comp) {
                 comp.game_object->enabled = false;

@@ -34,7 +34,7 @@ namespace render {
     }
 
     void AmbientOcclusionPhase::generate_ao(
-        RenderGraph& graph, const SceneView& view, const RenderScene& scene, const NoiseTexture& noise,
+        RenderGraph& graph, const SceneView& view, const RenderWorld& world, const NoiseTexture& noise,
         const TextureHandle gbuffer_normals, const TextureHandle gbuffer_depth, const TextureHandle ao_out
     ) {
         ZoneScoped;
@@ -58,13 +58,13 @@ namespace render {
             break;
 
         case AoTechnique::RTAO:
-            evaluate_rtao(graph, view, scene, noise, gbuffer_depth, gbuffer_normals, ao_out);
+            evaluate_rtao(graph, view, world, noise, gbuffer_depth, gbuffer_normals, ao_out);
             break;
         }
     }
 
     void AmbientOcclusionPhase::evaluate_rtao(
-        RenderGraph& graph, const SceneView& view, const RenderScene& scene, const NoiseTexture& noise,
+        RenderGraph& graph, const SceneView& view, const RenderWorld& world, const NoiseTexture& noise,
         const TextureHandle gbuffer_depth, const TextureHandle gbuffer_normals, const TextureHandle ao_out
     ) {
         auto& backend = RenderBackend::get();
@@ -74,7 +74,7 @@ namespace render {
 
         const auto set = backend.get_transient_descriptor_allocator().build_set(rtao_pipeline, 0)
             .bind(view.get_buffer())
-            .bind(scene.get_raytracing_scene().get_acceleration_structure())
+            .bind(world.get_raytracing_world().get_acceleration_structure())
             .bind(gbuffer_depth)
             .bind(gbuffer_normals)
             .bind(noise.layers[frame_index % noise.num_layers])

@@ -11,15 +11,15 @@
 
 static std::shared_ptr<spdlog::logger> logger;
 
-AnimationSystem::AnimationSystem(World& scene_in) :
-    scene{scene_in} {
+AnimationSystem::AnimationSystem(World& world_in) :
+    world{world_in} {
     if(logger == nullptr) {
         logger = SystemInterface::get().get_logger("AnimationSystem");
     }
 }
 
 void AnimationSystem::tick(float delta_time) {
-    auto& registry = scene.get_registry();
+    auto& registry = world.get_registry();
 
     const auto current_time = Engine::get().get_current_time();
 
@@ -97,7 +97,7 @@ void AnimationSystem::play_animation_on_entity(const entt::handle entity, const 
         logger->error("Could not find an animation named {}, unable to play!", animation_name.c_str());
     }
 
-    auto& registry = scene.get_registry();
+    auto& registry = world.get_registry();
     const auto& gltf_component = registry.get<ImportedModelComponent>(entity);
 
     const auto start_time = Engine::get().get_current_time();

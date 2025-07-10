@@ -217,19 +217,19 @@ namespace render {
     }
 
     void LightPropagationVolume::pre_render(
-        RenderGraph& graph, const SceneView& view, const RenderScene& scene, TextureHandle noise_tex
+        RenderGraph& graph, const SceneView& view, const RenderWorld& world, TextureHandle noise_tex
     ) {
         clear_volume(graph);
 
-        update_cascade_transforms(view, scene.get_sun_light());
+        update_cascade_transforms(view, world.get_sun_light());
 
         // VPL cloud generation
 
-        inject_indirect_sun_light(graph, scene);
+        inject_indirect_sun_light(graph, world);
     }
 
     void LightPropagationVolume::post_render(
-        RenderGraph& graph, const SceneView& view, const RenderScene& scene, const GBuffer& gbuffer,
+        RenderGraph& graph, const SceneView& view, const RenderWorld& world, const GBuffer& gbuffer,
          const TextureHandle motion_vectors, const TextureHandle noise_tex
     ) {
         if(cvar_lpv_build_gv_mode.get() == GvBuildMode::DepthBuffers) {
@@ -300,7 +300,7 @@ namespace render {
     }
 
     void LightPropagationVolume::render_volumetrics(
-        RenderGraph& render_graph, const SceneView& player_view, const RenderScene& scene, const GBuffer& gbuffer, const
+        RenderGraph& render_graph, const SceneView& player_view, const RenderWorld& world, const GBuffer& gbuffer, const
         TextureHandle lit_scene_handle
     ) {
         auto& backend = RenderBackend::get();
@@ -331,7 +331,7 @@ namespace render {
                 .execute = [&](CommandBuffer& commands) {
                     commands.bind_pipeline(fog_pipeline);
                     commands.bind_descriptor_set(0, set);
-                    commands.set_push_constant(0, scene.get_fog_strength());
+                    commands.set_push_constant(0, world.get_fog_strength());
 
                     commands.draw_triangle();
 
@@ -602,7 +602,7 @@ namespace render {
     }
 
     void LightPropagationVolume::inject_indirect_sun_light(
-        RenderGraph& graph, const RenderScene& scene
+        RenderGraph& graph, const RenderWorld& world
     ) const {
         ZoneScoped;
 
@@ -624,16 +624,16 @@ namespace render {
             view_mask |= 1 << cascade_index;
         }
 
-        const auto& pipelines = scene.get_material_storage().get_pipelines();
+        const auto& pipelines = world.get_material_storage().get_pipelines();
         const auto rsm_pso = pipelines.get_rsm_pso();
         const auto rsm_masked_pso = pipelines.get_rsm_masked_pso();
 
         auto& backend = RenderBackend::get();
         const auto set = backend.get_transient_descriptor_allocator()
                                 .build_set(rsm_pso, 0)
-                                .bind(scene.get_primitive_buffer())
+                                .bind(world.get_primitive_buffer())
                                 .bind(vp_matrix_buffer)
-                                .bind(scene.get_sun_light().get_constant_buffer())
+                                .bind(world.get_sun_light().get_constant_buffer())
                                 .build();
 
         graph.add_render_pass(
@@ -664,9 +664,9 @@ namespace render {
                 .execute = [&](CommandBuffer& commands) {
                     commands.bind_descriptor_set(0, set);
 
-                    scene.draw_opaque(commands, rsm_pso);
+                    world.draw_opaque(commands, rsm_pso);
 
-                    scene.draw_masked(commands, rsm_masked_pso);
+                    world.draw_masked(commands, rsm_masked_pso);
 
                     commands.clear_descriptor_set(0);
                 }
@@ -742,7 +742,7 @@ namespace render {
 
         for(auto cascade_index = 0u; cascade_index < cascades.size(); cascade_index++) {
             const auto& cascade = cascades[cascade_index];
-            dispatch_vpl_injection_pass(graph, cascade_index, cascade, scene.get_sun_light().get_constant_buffer());
+            dispatch_vpl_injection_pass(graph, cascade_index, cascade, world.get_sun_light().get_constant_buffer());
 
         }
 

@@ -53,8 +53,8 @@ namespace ui {
 
         SystemInterface::get().set_cursor_hidden(true);
 
-        auto& scene = Engine::get().get_scene();
-        scene.add_component(environment, AnimationEventComponent{.animation_to_play = "FlyIn_Level1"});
+        auto& world = Engine::get().get_world();
+        world.add_component(environment, AnimationEventComponent{.animation_to_play = "FlyIn_Level1"});
 
         controller.pop_screen();
     }

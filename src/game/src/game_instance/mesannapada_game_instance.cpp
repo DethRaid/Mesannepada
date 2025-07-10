@@ -16,8 +16,8 @@ MesannepadaGameInstance::MesannepadaGameInstance() {
 
     auto& main_menu = engine.get_ui_controller().show_screen<ui::MainMenu>();
 
-    auto& scene = engine.get_scene();
-    environment_entity = scene.create_game_object<UrEnvironmentGameObject>("UrEnvironment");
+    auto& world = engine.get_world();
+    environment_entity = world.create_game_object<UrEnvironmentGameObject>("UrEnvironment");
     
     main_menu.set_environment_entity(environment_entity);
 }

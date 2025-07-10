@@ -33,20 +33,20 @@ namespace render {
      *
      * Contains lots of wonderful things - meshes, materials, ray tracing acceleration structure, and more!
      */
-    class RenderScene {
+    class RenderWorld {
     public:
-        explicit RenderScene(MeshStorage& meshes_in, MaterialStorage& materials_in);
+        explicit RenderWorld(MeshStorage& meshes_in, MaterialStorage& materials_in);
 
         /**
          * Sets up various observers for a scene, e.g. mesh creation and destruction listeners
          */
-        void setup_observers(World& scene);
+        void setup_observers(World& world);
 
         /**
          * Performs scene updates that rely on the Scene, e.g. updating the player view matrices and uploading bone
          * transforms
          */
-        void tick(World& scene);
+        void tick(World& world);
 
         /**
          * Creates a proxy for a mesh. Note that this is used for both skeletal and non-skeletal meshes.
@@ -143,9 +143,9 @@ namespace render {
 
         const MeshStorage& get_meshes() const;
 
-        RaytracingScene& get_raytracing_scene();
+        RaytracingScene& get_raytracing_world();
 
-        const RaytracingScene& get_raytracing_scene() const;
+        const RaytracingScene& get_raytracing_world() const;
 
         MaterialStorage& get_material_storage() const;
 
@@ -158,7 +158,7 @@ namespace render {
 
         MaterialStorage& materials;
 
-        eastl::optional<RaytracingScene> raytracing_scene = eastl::nullopt;
+        eastl::optional<RaytracingScene> raytracing_world = eastl::nullopt;
 
         SceneView player_view;
 

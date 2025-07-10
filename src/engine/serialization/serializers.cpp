@@ -57,9 +57,9 @@ namespace serialization {
             DATA(SceneObject, orientation)
             DATA(SceneObject, scale);
 
-        entt::meta_factory<SceneFile>()
-            .func<&SceneFile::load<cereal::BinaryInputArchive>>("serialize_from_binary"_hs)
-            .func<&SceneFile::save<cereal::BinaryOutputArchive>>("serialize_to_binary"_hs);
+        entt::meta_factory<Scene>()
+            .func<&Scene::load<cereal::BinaryInputArchive>>("serialize_from_binary"_hs)
+            .func<&Scene::save<cereal::BinaryOutputArchive>>("serialize_to_binary"_hs);
     }
 
     template<typename Archive>
@@ -92,12 +92,12 @@ namespace serialization {
         }
     }
 
-    void save_world_to_file(const std::filesystem::path& filepath, const World& scene) {
+    void save_world_to_file(const std::filesystem::path& filepath, const World& world) {
         ZoneScoped;
 
         logger->info("Saving world to {}", filepath);
 
-        const auto& registry = scene.get_registry();
+        const auto& registry = world.get_registry();
 
         auto file = std::ofstream{filepath, std::ios::out | std::ios::trunc | std::ios::binary};
         if(!file) {

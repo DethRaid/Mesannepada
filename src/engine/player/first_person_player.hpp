@@ -33,7 +33,7 @@ public:
      */
     void handle_input(float delta_time, float3 player_movement_input, float delta_pitch, float delta_yaw, bool jump);
 
-    void tick(float delta_time, World& scene) override;
+    void tick(float delta_time, World& world) override;
 
 private:
 #pragma region Configuration

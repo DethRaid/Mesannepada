@@ -12,15 +12,15 @@ namespace render {
     GbufferPhase::GbufferPhase() {}
 
     void GbufferPhase::render(
-        RenderGraph& graph, const RenderScene& scene, const IndirectDrawingBuffers& buffers,
+        RenderGraph& graph, const RenderWorld& world, const IndirectDrawingBuffers& buffers,
         const IndirectDrawingBuffers& visible_masked_buffers, const GBuffer& gbuffer, const eastl::optional<TextureHandle> shading_rate, const SceneView& player_view
     ) {
-        const auto& pipelines = scene.get_material_storage().get_pipelines();
+        const auto& pipelines = world.get_material_storage().get_pipelines();
         const auto solid_pso = pipelines.get_gbuffer_pso();
 
         auto& backend = RenderBackend::get();
         auto gbuffer_set = backend.get_transient_descriptor_allocator().build_set(solid_pso, 0)
-            .bind(scene.get_primitive_buffer())
+            .bind(world.get_primitive_buffer())
             .bind(player_view.get_buffer())
             .build();
 
@@ -89,9 +89,9 @@ namespace render {
                 .execute = [&](CommandBuffer& commands) {
                     commands.bind_descriptor_set(0, gbuffer_set);
 
-                    scene.draw_opaque(commands, buffers, solid_pso);
+                    world.draw_opaque(commands, buffers, solid_pso);
 
-                    scene.draw_masked(commands, visible_masked_buffers, masked_pso);
+                    world.draw_masked(commands, visible_masked_buffers, masked_pso);
 
                     commands.clear_descriptor_set(0);
                 }

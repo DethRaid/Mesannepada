@@ -15,7 +15,7 @@ using namespace entt::literals;
 namespace serialization {
     void register_serializers();
 
-    void save_world_to_file(const std::filesystem::path& filepath, const World& scene);
+    void save_world_to_file(const std::filesystem::path& filepath, const World& world);
 
     template<typename Archive, typename ValueType>
     void serialize_scalar(Archive& ar, ValueType& value);

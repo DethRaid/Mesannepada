@@ -15,7 +15,7 @@ namespace render {
     class RenderBackend;
     class ResourceAllocator;
     class CommandBuffer;
-    class RenderScene;
+    class RenderWorld;
     class SceneView;
     class DirectionalLight;
     class MeshStorage;
@@ -68,11 +68,11 @@ namespace render {
         ~LightPropagationVolume() override;
 
         void pre_render(
-            RenderGraph& graph, const SceneView& view, const RenderScene& scene, TextureHandle noise_tex
+            RenderGraph& graph, const SceneView& view, const RenderWorld& world, TextureHandle noise_tex
         ) override;
 
         void post_render(
-            RenderGraph& graph, const SceneView& view, const RenderScene& scene, const GBuffer& gbuffer,
+            RenderGraph& graph, const SceneView& view, const RenderWorld& world, const GBuffer& gbuffer,
              TextureHandle motion_vectors, TextureHandle noise_tex
         ) override;
 
@@ -86,7 +86,7 @@ namespace render {
         ) const override;
 
         void render_volumetrics(
-            RenderGraph& render_graph, const SceneView& player_view, const RenderScene& scene, const GBuffer& gbuffer,
+            RenderGraph& render_graph, const SceneView& player_view, const RenderWorld& world, const GBuffer& gbuffer,
             TextureHandle lit_scene_handle
         ) override;
 
@@ -182,7 +182,7 @@ namespace render {
             TextureHandle normal_target, BufferHandle view_uniform_buffer
         ) const;
 
-        void inject_indirect_sun_light(RenderGraph& graph, const RenderScene& scene) const;
+        void inject_indirect_sun_light(RenderGraph& graph, const RenderWorld& world) const;
 
         void dispatch_vpl_injection_pass(
             RenderGraph& graph, uint32_t cascade_index, const CascadeData& cascade, BufferHandle sun_light_buffer

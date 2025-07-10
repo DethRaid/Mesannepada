@@ -60,7 +60,7 @@ namespace render {
          */
         void set_output_resolution(const glm::uvec2& new_output_resolution);
 
-        void set_scene(RenderScene& scene_in);
+        void set_world(RenderWorld& world_in);
 
         /**
          * Do the thing!
@@ -98,11 +98,11 @@ namespace render {
 
         Bloomer bloomer;
 
-        RenderScene* scene = nullptr;
+        RenderWorld* world = nullptr;
 
         glm::uvec2 output_resolution = {};
 
-        glm::uvec2 scene_render_resolution = glm::uvec2{};
+        glm::uvec2 render_resolution = glm::uvec2{};
 
         /**
          * Spatio-temporal blue noise texture, containing 3D vectors in a unit sphere

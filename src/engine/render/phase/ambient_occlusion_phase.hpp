@@ -6,7 +6,7 @@
 
 namespace render {
     struct NoiseTexture;
-    class RenderScene;
+    class RenderWorld;
     class SceneView;
     class RenderGraph;
 
@@ -27,7 +27,7 @@ namespace render {
         ~AmbientOcclusionPhase();
 
         void generate_ao(
-            RenderGraph& graph, const SceneView& view, const RenderScene& scene, const NoiseTexture& noise,
+            RenderGraph& graph, const SceneView& view, const RenderWorld& world, const NoiseTexture& noise,
             TextureHandle gbuffer_normals, TextureHandle gbuffer_depth, TextureHandle ao_out
         );
 
@@ -38,7 +38,7 @@ namespace render {
         uint32_t frame_index = 0;
 
         void evaluate_rtao(
-            RenderGraph& graph, const SceneView& view, const RenderScene& scene, const NoiseTexture& noise,
+            RenderGraph& graph, const SceneView& view, const RenderWorld& world, const NoiseTexture& noise,
             TextureHandle gbuffer_depth, TextureHandle gbuffer_normals, TextureHandle ao_out
         );
     };

@@ -13,7 +13,7 @@ FirstPersonPlayer::FirstPersonPlayer(const entt::handle entity) :
     GameObject{entity} {
     name = "FirstPersonPlayer";
     auto& engine = Engine::get();
-    auto& scene = engine.get_scene();
+    auto& world = engine.get_world();
 
     standing_shape = JPH::RotatedTranslatedShapeSettings(
         JPH::Vec3(0, 0.5f * player_height_standing + player_radius_standing, 0),
@@ -24,7 +24,7 @@ FirstPersonPlayer::FirstPersonPlayer(const entt::handle entity) :
         JPH::Quat::sIdentity(),
         new JPH::CapsuleShape(0.5f * player_height_crouching, player_radius_crouching)).Create().Get();
 
-    auto* physics_system = engine.get_physics_scene().get_physics_system();
+    auto* physics_system = engine.get_physics_world().get_physics_system();
     const JPH::Ref player_settings = new JPH::CharacterVirtualSettings{};
     player_settings->mShape = standing_shape;
     player_settings->mSupportingVolume = JPH::Plane{
@@ -49,29 +49,29 @@ FirstPersonPlayer::FirstPersonPlayer(const entt::handle entity) :
     // We need an entity for the head pivot, an entity for the camera, an entity for the arms, and an entity for the hold item target
     // Might need other entities idk
 
-    head_pivot_entity = scene.create_entity();
+    head_pivot_entity = world.create_entity();
     head_pivot_entity.emplace<TransformComponent>(
         TransformComponent{
             .location = float3{0, rig_height_standing, 0},
         });
-    scene.parent_entity_to_entity(head_pivot_entity, root_entity);
+    world.parent_entity_to_entity(head_pivot_entity, root_entity);
 
-    const auto camera_entity = scene.create_entity();
+    const auto camera_entity = world.create_entity();
     camera_entity.emplace<TransformComponent>(
         TransformComponent{
             .location = float3{0, 0.1, 0.05},
         });
     camera_entity.emplace<CameraComponent>();
-    scene.parent_entity_to_entity(camera_entity, head_pivot_entity);
+    world.parent_entity_to_entity(camera_entity, head_pivot_entity);
 
-    hold_target = scene.create_entity();
+    hold_target = world.create_entity();
     hold_target.emplace<TransformComponent>(
         TransformComponent{
             .location = float3{-0.411, -0.451, 1.415},
         });
-    scene.parent_entity_to_entity(hold_target, root_entity);
+    world.parent_entity_to_entity(hold_target, root_entity);
 
-    engine.add_model_to_scene("data/game/SM_PlayerArms.glb", root_entity);
+    engine.add_model_to_world("data/game/SM_PlayerArms.glb", root_entity);
 }
 
 void FirstPersonPlayer::set_worldspace_location(const float3 location_in) const {
@@ -129,7 +129,7 @@ void FirstPersonPlayer::handle_input(
     }
 
     // Gravity
-    const auto& physics = Engine::get().get_physics_scene();
+    const auto& physics = Engine::get().get_physics_world();
     const auto* physics_system = physics.get_physics_system();
     new_velocity += physics_system->GetGravity() * delta_time;
 
@@ -153,12 +153,12 @@ void FirstPersonPlayer::handle_input(
     // TODO: Swap between crouched and standing shapes on crouch input
 }
 
-void FirstPersonPlayer::tick(const float delta_time, World& scene) {
-    GameObject::tick(delta_time, scene);
+void FirstPersonPlayer::tick(const float delta_time, World& world) {
+    GameObject::tick(delta_time, world);
 
     // Update character simulation
 
-    const auto& physics = Engine::get().get_physics_scene();
+    const auto& physics = Engine::get().get_physics_world();
     const auto* physics_system = physics.get_physics_system();
 
     auto update_settings = JPH::CharacterVirtual::ExtendedUpdateSettings{};

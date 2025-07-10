@@ -8,7 +8,7 @@
 namespace render {
     struct IndirectDrawingBuffers;
     class RenderGraph;
-    class RenderScene;
+    class RenderWorld;
 
     class MotionVectorsPhase {
     public:
@@ -19,7 +19,7 @@ namespace render {
         void set_render_resolution(const glm::uvec2& resolution, const glm::uvec2& output_resolution);
 
         void render(
-            RenderGraph& graph, const RenderScene& scene, BufferHandle view_data_buffer, TextureHandle depth_buffer,
+            RenderGraph& graph, const RenderWorld& world, BufferHandle view_data_buffer, TextureHandle depth_buffer,
             const IndirectDrawingBuffers& buffers, const IndirectDrawingBuffers& masked_buffers
         );
 

@@ -20,7 +20,7 @@ class UrEnvironmentGameObject : public GameObject
 public:
     UrEnvironmentGameObject(entt::handle entity);
 
-    void tick(float delta_time, World& scene) override;
+    void tick(float delta_time, World& world) override;
 
 private:
     entt::handle level_entity;

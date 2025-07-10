@@ -10,8 +10,8 @@ namespace render {
         "r.Raytracing.Enable", "Whether or not to enable raytracing", 1
     };
 
-    RaytracingScene::RaytracingScene(RenderScene& scene_in)
-        : scene{ scene_in } {
+    RaytracingScene::RaytracingScene(RenderWorld& world_in)
+        : world{ world_in } {
         placed_blases.reserve(4096);
     }
 

@@ -12,7 +12,7 @@ static std::shared_ptr<spdlog::logger> logger;
 
 using namespace entt::literals;
 
-entt::handle PrefabLoader::load_prefab(const std::filesystem::path& prefab_file, World& scene,
+entt::handle PrefabLoader::load_prefab(const std::filesystem::path& prefab_file, World& world,
                                        const float4x4& transform) {
     if(logger == nullptr) {
         logger = SystemInterface::get().get_logger("PrefabLoader");
@@ -31,9 +31,9 @@ entt::handle PrefabLoader::load_prefab(const std::filesystem::path& prefab_file,
     std::string_view root_entity_name;
     if(prefab["root_entity"].get_string(root_entity_name) == simdjson::SUCCESS) {
         const auto& model = resource_loader.get_model(root_entity_name);
-        entity = model->add_to_scene(scene, eastl::nullopt);
+        entity = model->add_to_world(world, eastl::nullopt);
     } else {
-        entity = scene.create_entity();
+        entity = world.create_entity();
         entity.emplace<TransformComponent>();
     }
 
@@ -65,7 +65,7 @@ entt::handle PrefabLoader::load_prefab(const std::filesystem::path& prefab_file,
         transform_comp.set_local_transform(transform);
     });
 
-    scene.add_top_level_entities(eastl::array{entity});
+    world.add_top_level_entities(eastl::array{entity});
 
     return entity;
 }

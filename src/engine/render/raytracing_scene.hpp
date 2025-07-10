@@ -4,11 +4,11 @@
 
 namespace render {
     class RenderGraph;
-    class RenderScene;
+    class RenderWorld;
 
     class RaytracingScene {
     public:
-        explicit RaytracingScene(RenderScene& scene_in);
+        explicit RaytracingScene(RenderWorld& world_in);
 
         void add_primitive(MeshPrimitiveProxyHandle primitive);
 
@@ -30,7 +30,7 @@ namespace render {
         void set_dirty();
 
     private:
-        RenderScene& scene;
+        RenderWorld& world;
 
         /**
          * List of all the placed blasses from all primitives

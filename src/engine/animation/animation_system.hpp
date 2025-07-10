@@ -12,7 +12,7 @@ class World;
 
 class AnimationSystem {
 public:
-    AnimationSystem(World& scene_in);
+    AnimationSystem(World& world_in);
 
     void tick(float delta_time);
 
@@ -34,7 +34,7 @@ public:
     void destroy_skeleton(SkeletonHandle skeleton);
 
 private:
-    World& scene;
+    World& world;
 
     using AnimationMap = eastl::unordered_map<eastl::string, eastl::unique_ptr<Animation>>;
 

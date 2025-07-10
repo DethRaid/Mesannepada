@@ -103,8 +103,10 @@ void DebugUI::draw() {
             if(open_model_dialog.IsOk()) {
                 const auto filenames = open_model_dialog.GetSelection();
                 const auto filename = std::filesystem::path{filenames.begin()->second};
+
                 auto& engine = Engine::get();
-                const auto new_model = engine.add_model_to_scene(filename);
+
+                const auto new_model = engine.add_model_to_world(filename);
 
                 const auto player = engine.get_player();
                 const auto& transform = player.get<TransformComponent>();
@@ -116,7 +118,7 @@ void DebugUI::draw() {
                 JPH::RayCastResult ray_result;
                 ray_result.mFraction = 1000.f;
                 auto placement_location = location;
-                if(engine.get_physics_scene().cast_ray(ray_cast, ray_result)) {
+                if(engine.get_physics_world().cast_ray(ray_cast, ray_result)) {
                     placement_location = to_glm(ray_cast.GetPointOnRay(ray_result.mFraction));
                 }
                 new_model.patch<TransformComponent>([&](TransformComponent& trans) {
@@ -394,10 +396,12 @@ void DebugUI::draw_gi_menu() {
 void DebugUI::draw_entity_hierarchy() {
     if(ImGui::Begin("Entity Hierarchy")) {
         const auto& application = Engine::get();
-        const auto& scene = application.get_scene();
-        const auto& registry = scene.get_registry();
+        const auto& world = application.get_world();
+        const auto& registry = world.get_registry();
 
-        const auto& roots = scene.get_top_level_entities();
+
+
+        const auto& roots = world.get_top_level_entities();
         for(const auto root : roots) {
             draw_entity(root, registry);
         }
@@ -410,7 +414,7 @@ void DebugUI::draw_entity_editor_window() {
     if(ImGui::Begin("Entity Editor")) {
         ImGui::PushID(static_cast<int>(selected_entity));
 
-        auto& registry = Engine::get().get_scene().get_registry();
+        auto& registry = Engine::get().get_world().get_registry();
 
         // Iterate over all the components in the registry
         for(auto i = 0; auto&& [id, storage] : registry.storage()) {

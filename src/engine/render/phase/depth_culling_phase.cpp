@@ -111,7 +111,7 @@ namespace render {
     }
 
     void DepthCullingPhase::render(
-        RenderGraph& graph, const RenderScene& scene,
+        RenderGraph& graph, const RenderWorld& world,
         MaterialStorage& materials, const BufferHandle view_data_buffer
     ) {
         ZoneScoped;
@@ -120,9 +120,9 @@ namespace render {
 
         auto& backend = RenderBackend::get();
 
-        const auto primitive_buffer = scene.get_primitive_buffer();
+        const auto primitive_buffer = world.get_primitive_buffer();
 
-        const auto& pipelines = scene.get_material_storage().get_pipelines();
+        const auto& pipelines = world.get_material_storage().get_pipelines();
 
         const auto depth_pso = pipelines.get_depth_pso();
         const auto view_descriptor = backend.get_transient_descriptor_allocator()
@@ -137,7 +137,7 @@ namespace render {
             .bind(view_data_buffer)
             .build();
 
-        const auto num_primitives = scene.get_total_num_primitives();
+        const auto num_primitives = world.get_total_num_primitives();
 
         auto& allocator = backend.get_global_allocator();
         if (!visible_objects) {
@@ -151,14 +151,14 @@ namespace render {
         if (backend.supports_device_generated_commands()) {
             draw_visible_objects_dgc(
                 graph,
-                scene,
+                world,
                 materials,
                 view_descriptor,
                 primitive_buffer,
                 num_primitives);
         }
         else {
-            draw_visible_objects(graph, scene, view_descriptor, masked_view_descriptor, primitive_buffer, num_primitives);
+            draw_visible_objects(graph, world, view_descriptor, masked_view_descriptor, primitive_buffer, num_primitives);
         }
 
         // Build Hi-Z pyramid
@@ -240,7 +240,7 @@ namespace render {
         // Save the list of visible objects so we can use them next frame
         visible_objects = this_frame_visible_objects;
 
-        draw_visible_objects(graph, scene, view_descriptor, masked_view_descriptor, primitive_buffer, num_primitives);
+        draw_visible_objects(graph, world, view_descriptor, masked_view_descriptor, primitive_buffer, num_primitives);
 
         graph.end_label();
     }
@@ -254,7 +254,7 @@ namespace render {
     }
 
     void DepthCullingPhase::draw_visible_objects_dgc(
-        RenderGraph& graph, const RenderScene& scene, MaterialStorage& materials,
+        RenderGraph& graph, const RenderWorld& world, MaterialStorage& materials,
         const DescriptorSet& descriptors,
         const BufferHandle primitive_buffer, const uint32_t num_primitives
     ) {
@@ -285,7 +285,7 @@ namespace render {
                 visible_objects,
                 primitive_buffer,
                 num_primitives,
-                scene.get_mesh_storage().get_draw_args_buffer(),
+                world.get_mesh_storage().get_draw_args_buffer(),
                 PRIMITIVE_TYPE_SOLID
             );
 
@@ -400,7 +400,7 @@ namespace render {
     }
 
     void DepthCullingPhase::draw_visible_objects(
-        RenderGraph& graph, const RenderScene& scene, const DescriptorSet& view_descriptor,
+        RenderGraph& graph, const RenderWorld& world, const DescriptorSet& view_descriptor,
         const DescriptorSet& masked_view_descriptor, const BufferHandle primitive_buffer, const uint32_t num_primitives
     ) const {
         // Translate the list of objects to indirect draw commands
@@ -410,7 +410,7 @@ namespace render {
             visible_objects,
             primitive_buffer,
             num_primitives,
-            scene.get_mesh_storage().get_draw_args_buffer(),
+            world.get_mesh_storage().get_draw_args_buffer(),
             PRIMITIVE_TYPE_SOLID
         );
 
@@ -419,11 +419,11 @@ namespace render {
             visible_objects,
             primitive_buffer,
             num_primitives,
-            scene.get_mesh_storage().get_draw_args_buffer(),
+            world.get_mesh_storage().get_draw_args_buffer(),
             PRIMITIVE_TYPE_CUTOUT
         );
 
-        const auto& pipelines = scene.get_material_storage().get_pipelines();
+        const auto& pipelines = world.get_material_storage().get_pipelines();
         const auto depth_pso = pipelines.get_depth_pso();
         const auto& masked_pso = pipelines.get_depth_masked_pso();
 
@@ -473,10 +473,10 @@ namespace render {
                 .execute = [&](CommandBuffer& commands) {
                     commands.bind_descriptor_set(0, view_descriptor);
 
-                    scene.draw_opaque(commands, solid_buffers, depth_pso);
+                    world.draw_opaque(commands, solid_buffers, depth_pso);
 
                     commands.bind_descriptor_set(0, masked_view_descriptor);
-                    scene.draw_masked(commands, cutout_buffers, masked_pso);
+                    world.draw_masked(commands, cutout_buffers, masked_pso);
 
                     commands.clear_descriptor_set(0);
                 }

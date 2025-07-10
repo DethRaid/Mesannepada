@@ -50,7 +50,7 @@ namespace godot {
 
         ~GodotScene() override = default;
 
-        entt::handle add_to_scene(World& scene_in, const eastl::optional<entt::handle>& parent_node) const override;
+        entt::handle add_to_world(World& world_in, const eastl::optional<entt::handle>& parent_node) const override;
 
         /**
          * Finds the node with the specified path
@@ -81,8 +81,8 @@ namespace godot {
          */
         void load_nodes(eastl::string_view string);
 
-        entt::handle add_node_to_scene(
-            World& scene, size_t node_index, eastl::vector<entt::handle>& node_entities
+        entt::handle add_node_to_world(
+            World& world, size_t node_index, eastl::vector<entt::handle>& node_entities
         ) const;
     };
 }
