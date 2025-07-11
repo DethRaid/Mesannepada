@@ -252,8 +252,8 @@ Scene& Engine::get_main_scene() {
     return get_scene("main.sscene");
 }
 
-Scene& Engine::get_scene(const eastl::string& name) {
-    return loaded_scenes.at(name);
+const eastl::unordered_map<eastl::string, Scene>& Engine::get_loaded_scenes() const {
+    return loaded_scenes;
 }
 
 physics::PhysicsWorld& Engine::get_physics_world() {

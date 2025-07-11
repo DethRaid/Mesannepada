@@ -31,6 +31,7 @@
 #include <GLFW/glfw3.h>
 
 #include "ImGuiFileDialog.h"
+#include "EASTL/sort.h"
 #include "Jolt/Physics/Collision/CastResult.h"
 #include "Jolt/Physics/Collision/RayCast.h"
 #include "core/glm_jph_conversions.hpp"
@@ -101,31 +102,7 @@ void DebugUI::draw() {
             open_model_dialog.Close();
 
             if(open_model_dialog.IsOk()) {
-                const auto filenames = open_model_dialog.GetSelection();
-                const auto filename = std::filesystem::path{filenames.begin()->second};
-
-                auto& engine = Engine::get();
-
-                const auto new_model = engine.add_model_to_world(filename);
-
-                const auto player = engine.get_player();
-                const auto& transform = player.get<TransformComponent>();
-                const auto location = transform.location;
-                const auto direction = float3{0, 0, 1} * transform.rotation;
-                // Raycast from the player's location to the physics scene, place the new object at the hit point
-                auto ray_cast = JPH::RRayCast{to_jolt(location + direction), to_jolt(direction)};
-
-                JPH::RayCastResult ray_result;
-                ray_result.mFraction = 1000.f;
-                auto placement_location = location;
-                if(engine.get_physics_world().cast_ray(ray_cast, ray_result)) {
-                    placement_location = to_glm(ray_cast.GetPointOnRay(ray_result.mFraction));
-                }
-                new_model.patch<TransformComponent>([&](TransformComponent& trans) {
-                    trans.location = placement_location;
-                });
-
-                selected_entity = new_model;
+                load_selected_model();
             }
         }
     }
@@ -393,17 +370,85 @@ void DebugUI::draw_gi_menu() {
     }
 }
 
+void DebugUI::load_selected_model() {
+    const auto filenames = open_model_dialog.GetSelection();
+    const auto filename = std::filesystem::path{filenames.begin()->second};
+
+    auto& engine = Engine::get();
+
+    const auto new_model = engine.add_model_to_world(filename);
+
+    const auto player = engine.get_player();
+    const auto& transform = player.get<TransformComponent>();
+    const auto location = transform.location;
+    const auto direction = float3{0, 0, 1} * transform.rotation;
+    // Raycast from the player's location to the physics scene, place the new object at the hit point
+    auto ray_cast = JPH::RRayCast{to_jolt(location + direction), to_jolt(direction)};
+
+    JPH::RayCastResult ray_result;
+    ray_result.mFraction = 1000.f;
+    auto placement_location = location;
+    if(engine.get_physics_world().cast_ray(ray_cast, ray_result)) {
+        placement_location = to_glm(ray_cast.GetPointOnRay(ray_result.mFraction));
+    }
+    new_model.patch<TransformComponent>([&](TransformComponent& trans) {
+        trans.location = placement_location;
+    });
+
+    selected_entity = new_model;
+}
+
 void DebugUI::draw_entity_hierarchy() {
-    if(ImGui::Begin("Entity Hierarchy")) {
-        const auto& application = Engine::get();
-        const auto& world = application.get_world();
-        const auto& registry = world.get_registry();
+    const auto& engine = Engine::get();
 
+    if(ImGui::Begin("Scene Views")) {
+        if(ImGui::BeginTabBar("SceneSelection")) {
+            if(ImGui::BeginTabItem("Entities")) {
+                const auto& world = engine.get_world();
+                const auto& registry = world.get_registry();
 
+                if(selected_scene.empty()) {
+                    const auto& roots = world.get_top_level_entities();
+                    for(const auto root : roots) {
+                        draw_entity(root, registry);
+                    }
+                } else {
+                    const auto& scene = engine.get_scene(selected_scene);
+                    const auto& objects = scene.get_objects();
+                    for(const auto& object : objects) {
+                        draw_entity(object.entity, registry);
+                    }
+                }
 
-        const auto& roots = world.get_top_level_entities();
-        for(const auto root : roots) {
-            draw_entity(root, registry);
+                ImGui::EndTabItem();
+            }
+
+            if(ImGui::BeginTabItem("Scenes")) {
+                const auto& scenes = engine.get_loaded_scenes();
+
+                auto scene_names = eastl::vector<eastl::string>{};
+                scene_names.reserve(scenes.size());
+
+                for(const auto& [name, scene] : scenes) {
+                    scene_names.emplace_back(name);
+                }
+
+                eastl::sort(scene_names.begin(), scene_names.end());
+
+                if(ImGui::Button("Clear selected scene")) {
+                    selected_scene = "";
+                }
+
+                for(const auto& name : scene_names) {
+                    if(ImGui::Button(name.c_str())) {
+                        selected_scene = name;
+                    }
+                }
+
+                ImGui::EndTabItem();
+            }
+
+            ImGui::EndTabBar();
         }
     }
 

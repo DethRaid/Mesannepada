@@ -62,13 +62,17 @@ private:
 
     static void draw_perf_info_window();
 
-    void draw_debug_window();
+    void load_selected_model();
 
     void draw_taa_menu();
 
     void draw_gi_menu();
 
+    void draw_debug_window();
+
     void draw_entity_hierarchy();
+
+    eastl::string selected_scene = {};
 
     entt::entity selected_entity = {};
     bool show_entity_editor = false;

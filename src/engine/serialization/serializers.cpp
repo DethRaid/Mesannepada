@@ -53,6 +53,7 @@ namespace serialization {
 
         entt::meta_factory<SceneObject>()
             .traits(reflection::Traits::Trivial)
+            DATA(SceneObject, filepath)
             DATA(SceneObject, location)
             DATA(SceneObject, orientation)
             DATA(SceneObject, scale);

@@ -14,6 +14,8 @@
 class World;
 
 struct SceneObject {
+    eastl::string filepath;
+
     float3 location;
     glm::quat orientation;
     float3 scale;
@@ -45,6 +47,8 @@ public:
 
     void add_packaged_model(const std::filesystem::path& model_file, float3 location);
 
+    const eastl::vector<SceneObject>& get_objects() const;
+
     template<typename Archive>
     void save(Archive& ar) {
         serialization::serialize<true>(ar, entt::meta_any(scene_objects));
@@ -61,5 +65,5 @@ private:
      *
      * This map doesn't contain any actual entity handles until you add the scene file to a world
      */
-    eastl::unordered_map<eastl::string, SceneObject> scene_objects;
+    eastl::vector<SceneObject> scene_objects;
 };

@@ -86,7 +86,12 @@ public:
 
     Scene& get_main_scene();
 
-    Scene& get_scene(const eastl::string& name);
+    template<class Engine>
+    constexpr auto&& get_scene(this Engine&& self, const eastl::string& name) {
+        return self.loaded_scenes.at(name);
+    }
+
+    const eastl::unordered_map<eastl::string, Scene>& get_loaded_scenes() const;
 
     physics::PhysicsWorld& get_physics_world();
 
