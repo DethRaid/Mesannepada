@@ -3,7 +3,8 @@
 #include <filesystem>
 
 #include <EASTL/string.h>
-#include <EASTL/unordered_map.h>
+#include <EASTL/vector.h>
+#include <EASTL/optional.h>
 #include <entt/entt.hpp>
 
 #include "serialization/serializers.hpp"
@@ -45,7 +46,10 @@ public:
      */
     void add_to_world();
 
-    void add_packaged_model(const std::filesystem::path& model_file, float3 location);
+    /**
+     * Adds an object to the scene. The object is not immediately added to the world
+     */
+    void add_object(const std::filesystem::path& model_file, float3 location);
 
     const eastl::vector<SceneObject>& get_objects() const;
 
@@ -58,6 +62,11 @@ public:
     void load(Archive& ar) {
         serialization::serialize<false>(ar, entt::meta_any(scene_objects));
     }
+
+    /**
+     * Tries to find a SceneObject with the given name. Returns nullptr on failure
+     */
+    SceneObject* find_object(eastl::string_view name);
 
 private:
     /**

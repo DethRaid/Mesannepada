@@ -7,6 +7,8 @@
 #include <tracy/Tracy.hpp>
 
 #include "core/engine.hpp"
+#include "glm/detail/_noise.hpp"
+#include "glm/detail/_noise.hpp"
 #include "scene/transform_component.hpp"
 
 Scene Scene::load_from_file(const std::filesystem::path& filepath) {
@@ -54,6 +56,25 @@ void Scene::add_to_world() {
     }
 }
 
+void Scene::add_object(const std::filesystem::path& model_file, const float3 location) {
+    scene_objects.emplace_back(SceneObject{
+        .filepath = model_file.string().c_str(),
+        .location = location
+    });
+}
+
 const eastl::vector<SceneObject>& Scene::get_objects() const {
     return scene_objects;
+}
+
+SceneObject* Scene::find_object(eastl::string_view name) {
+    if(const auto itr = eastl::find(scene_objects.begin(),
+                              scene_objects.end(),
+                              [&](const SceneObject& obj) {
+                                  return obj.filepath == name;
+                              }); itr != scene_objects.end()) {
+        return itr;
+    }
+
+    return nullptr;
 }

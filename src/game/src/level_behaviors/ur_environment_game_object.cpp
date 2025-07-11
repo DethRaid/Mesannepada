@@ -8,8 +8,15 @@
 #include "resources/model_components.hpp"
 #include "scene/transform_component.hpp"
 
-UrEnvironmentGameObject::UrEnvironmentGameObject(const entt::handle entity) : GameObject{entity} {
+UrEnvironmentGameObject::UrEnvironmentGameObject(const entt::handle entity) :
+    GameObject{entity} {
     auto& engine = Engine::get();
+
+    auto& main_scene = engine.get_main_scene();
+    main_scene.add_object("data/game/environments/Ur.tscn", float3{});
+    main_scene.add_to_world();
+
+    const auto& level_object = main_scene.find_object("data/game/environments/Ur.tscn");
 
     auto& loader = engine.get_resource_loader();
     level_scene = loader.get_model("data/game/environments/Ur.tscn");
@@ -53,4 +60,3 @@ void UrEnvironmentGameObject::tick(const float delta_time, World& world) {
         registry.remove<AnimationEventComponent>(root_entity);
     }
 }
-
