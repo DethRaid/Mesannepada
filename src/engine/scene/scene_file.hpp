@@ -2,9 +2,9 @@
 
 #include <filesystem>
 
+#include <plf_colony.h>
 #include <EASTL/string.h>
 #include <EASTL/vector.h>
-#include <EASTL/optional.h>
 #include <entt/entt.hpp>
 
 #include "serialization/serializers.hpp"
@@ -15,13 +15,13 @@
 class World;
 
 struct SceneObject {
-    eastl::string filepath;
+    eastl::string filepath = {};
 
-    float3 location;
-    glm::quat orientation;
-    float3 scale;
+    float3 location = {0.f, 0.f, 0.f};
+    glm::quat orientation = glm::quat{1.f, 0.f, 0.f, 0.f};
+    float3 scale = float3{1.f, 1.f, 1.f};
 
-    entt::handle entity;
+    entt::handle entity = {};
 };
 
 /**
@@ -44,14 +44,19 @@ public:
     /**
      * Adds the objects in this SceneFile to engine's global world
      */
-    void add_to_world();
+    void add_new_objects_to_world();
 
     /**
-     * Adds an object to the scene. The object is not immediately added to the world
+     * Adds an object to the scene, optionally adding it to the world
+     *
+     * \param model_file Path to the file with data for this scene object
+     * \param location Where to place the model in the world
+     * \param add_to_world Whether to immediately add the model to the engine's world, or not
+     * \return A reference to the newly-added scene object
      */
-    void add_object(const std::filesystem::path& model_file, float3 location);
+    SceneObject* add_object(const std::filesystem::path& model_file, float3 location, bool add_to_world = false);
 
-    const eastl::vector<SceneObject>& get_objects() const;
+    const plf::colony<SceneObject>& get_objects() const;
 
     template<typename Archive>
     void save(Archive& ar) {
@@ -74,5 +79,7 @@ private:
      *
      * This map doesn't contain any actual entity handles until you add the scene file to a world
      */
-    eastl::vector<SceneObject> scene_objects;
+    plf::colony<SceneObject> scene_objects;
+
+    static void add_object_to_world(SceneObject& object);
 };

@@ -9,6 +9,7 @@
 #include "scene/transform_component.hpp"
 #include "scene/transform_parent_component.hpp"
 #include "core/system_interface.hpp"
+#include "scene/entity_info_component.hpp"
 
 static std::shared_ptr<spdlog::logger> logger;
 
@@ -106,6 +107,28 @@ void World::propagate_transforms(float delta_time) {
 
 const eastl::unordered_set<entt::entity>& World::get_top_level_entities() const {
     return top_level_entities;
+}
+
+entt::handle World::find_child(const entt::handle entity, const eastl::string_view child_name) {
+    // Search the entity and all its children for a node with the specified name
+
+    if(const auto* transform = entity.try_get<TransformComponent>()) {
+        for(const auto& child : transform->children) {
+            if(const auto* info = entity.registry()->try_get<EntityInfoComponent>(child)) {
+                if(info->name == child_name) {
+                    return entt::handle{*entity.registry(), child};
+                }
+            }
+        }
+
+        for(const auto& child : transform->children) {
+            if(const auto child_maybe = find_child(entt::handle{*entity.registry(), child}, child_name)) {
+                return child_maybe;
+            }
+        }
+    }
+
+    return {};
 }
 
 void World::propagate_transform(const entt::entity entity, const float4x4& parent_to_world) {

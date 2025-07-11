@@ -13,23 +13,13 @@ UrEnvironmentGameObject::UrEnvironmentGameObject(const entt::handle entity) :
     auto& engine = Engine::get();
 
     auto& main_scene = engine.get_main_scene();
-    main_scene.add_object("data/game/environments/Ur.tscn", float3{});
-    main_scene.add_to_world();
+    const auto* level_object = main_scene.add_object("data/game/environments/Ur.tscn", float3{}, true);
+    level_entity = level_object->entity;
 
-    const auto& level_object = main_scene.find_object("data/game/environments/Ur.tscn");
-
-    auto& loader = engine.get_resource_loader();
-    level_scene = loader.get_model("data/game/environments/Ur.tscn");
-
-    auto& world = engine.get_world();
-    level_entity = level_scene->add_to_world(world, root_entity);
-    // Remove the generated entity component from the level's root entity so that the save system can save it
-    level_entity.remove<GeneratedEntityComponent>();
-
-    const auto* level_godot_scene = static_cast<const godot::GodotScene*>(level_scene.get());
-    const auto gltf_node_idx = level_godot_scene->find_node("SM_UrEnvironment");
-
-    const auto gltf_entity = level_entity.get<ImportedModelComponent>().node_to_entity.at(*gltf_node_idx);
+    const auto gltf_entity = World::find_child(level_entity, "SM_UrEnvironment");
+    if(!gltf_entity) {
+        throw std::runtime_error{"SM_UrEnvironment not found, are you loading the level correctly?"};
+    }
 
     // The entity from the scene spawns the glTF model, so we need to go one level deeper
     ur_gltf_entity = entt::handle{*gltf_entity.registry(), gltf_entity.get<TransformComponent>().children[0]};

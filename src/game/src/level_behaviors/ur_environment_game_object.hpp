@@ -15,10 +15,10 @@ class IModel;
  *
  * This behavior needs to control all the environmental things, such as 
  */
-class UrEnvironmentGameObject : public GameObject
+class UrEnvironmentGameObject final : public GameObject
 {
 public:
-    UrEnvironmentGameObject(entt::handle entity);
+    explicit UrEnvironmentGameObject(entt::handle entity);
 
     void tick(float delta_time, World& world) override;
 
@@ -26,6 +26,4 @@ private:
     entt::handle level_entity;
 
     entt::handle ur_gltf_entity;
-
-    eastl::shared_ptr<IModel> level_scene;
 };

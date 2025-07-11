@@ -7,6 +7,9 @@
 #include <EASTL/vector.h>
 #include <entt/entt.hpp>
 
+#include "animation/animation_system.hpp"
+#include "animation/animation_system.hpp"
+#include "animation/animation_system.hpp"
 #include "behavior/game_object.hpp"
 #include "scene/game_object_component.hpp"
 #include "shared/prelude.h"
@@ -19,6 +22,17 @@
  */
 class World {
 public:
+    /**
+     * Tried to find an entity with the provided name within the children tree of the provided entity
+     *
+     * Does NOT check the given entity. If that's the one you want - well, you already have it!
+     *
+     * @param entity Entity to search the children of
+     * @param child_name Name to search for. Must match exactly
+     * @return Handle to the found entity, or an empty handle if the child can't be found
+     */
+    static entt::handle find_child(entt::handle entity, eastl::string_view child_name);
+
     World();
 
     /**

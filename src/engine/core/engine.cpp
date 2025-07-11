@@ -237,7 +237,7 @@ bool Engine::load_scene(const eastl::string& name) {
     try {
         const auto scene_file_path = SystemInterface::get().get_data_folder() / "game" / name.c_str();
         auto scene = Scene::load_from_file(scene_file_path);
-        scene.add_to_world();
+        scene.add_new_objects_to_world();
 
         loaded_scenes.emplace(name, eastl::move(scene));
         return true;
