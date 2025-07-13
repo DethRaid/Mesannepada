@@ -97,7 +97,7 @@ void DebugUI::draw() {
 
         draw_perf_info_window();
 
-        draw_entity_hierarchy();
+        draw_world_and_scene_window();
 
         draw_debug_window();
 
@@ -241,6 +241,16 @@ void DebugUI::draw_perf_info_window() {
 
 void DebugUI::draw_debug_window() {
     if(ImGui::Begin("Debug Menu", &is_debug_menu_open)) {
+        if(ImGui::Button("Reload UI")) {
+            Engine::get().get_ui_controller().reload();
+        }
+
+        ImGui::SameLine();
+
+        if(ImGui::Button("Show demo")) {
+            show_demo = true;
+        }
+
         if(ImGui::CollapsingHeader("Visualizers")) {
             auto selected_visualizer = renderer.get_active_visualizer();
             for(const auto visualizer : magic_enum::enum_values<render::RenderVisualization>()) {
@@ -251,14 +261,6 @@ void DebugUI::draw_debug_window() {
             }
 
             renderer.set_active_visualizer(selected_visualizer);
-        }
-
-        if(ImGui::Button("Reload UI")) {
-            Engine::get().get_ui_controller().reload();
-        }
-
-        if(ImGui::Button("Show demo")) {
-            show_demo = true;
         }
 
         if(ImGui::CollapsingHeader("cvars")) {
@@ -444,7 +446,7 @@ void DebugUI::load_selected_model() {
     selected_entity = new_model;
 }
 
-void DebugUI::draw_entity_hierarchy() {
+void DebugUI::draw_world_and_scene_window() {
     const auto& engine = Engine::get();
 
     if(ImGui::Begin("Scene Views")) {
@@ -453,39 +455,36 @@ void DebugUI::draw_entity_hierarchy() {
                 const auto& world = engine.get_world();
                 const auto& registry = world.get_registry();
 
-                if(selected_scene.empty()) {
-                    const auto& roots = world.get_top_level_entities();
-                    for(const auto root : roots) {
-                        draw_entity(root, registry);
-                    }
-                } else {
-                    const auto& scene = engine.get_scene(selected_scene);
-                    const auto& objects = scene.get_objects();
-                    for(const auto& object : objects) {
-                        draw_entity(object.entity, registry);
-                    }
+                const auto& roots = world.get_top_level_entities();
+                for(const auto root : roots) {
+                    draw_entity(root, registry);
                 }
 
                 ImGui::EndTabItem();
             }
 
             if(ImGui::BeginTabItem("Scenes")) {
-                const auto& scenes = engine.get_loaded_scenes();
+                const auto& loaded_scenes = engine.get_loaded_scenes();
 
-                auto scene_names = eastl::vector<eastl::string>{};
-                scene_names.reserve(scenes.size());
+                auto loaded_scene_names = eastl::vector<eastl::string>{};
+                loaded_scene_names.reserve(loaded_scenes.size());
 
-                for(const auto& [name, scene] : scenes) {
-                    scene_names.emplace_back(name);
+                for(const auto& [name, scene] : loaded_scenes) {
+                    loaded_scene_names.emplace_back(name);
                 }
 
-                eastl::sort(scene_names.begin(), scene_names.end());
+                TODO: Get a list of all scenes, from data/game/scenes. Show them all in a list. Each one needs a button
+                to load/unload it, and a button to make it the active scene
+
+                Would also be cool to auto-save scenes after we edit them in-editor, if it doesn't take too long
+
+                eastl::sort(loaded_scene_names.begin(), loaded_scene_names.end());
 
                 if(ImGui::Button("Clear selected scene")) {
                     selected_scene = "";
                 }
 
-                for(const auto& name : scene_names) {
+                for(const auto& name : loaded_scene_names) {
                     if(ImGui::Button(name.c_str())) {
                         selected_scene = name;
                     }
@@ -761,8 +760,6 @@ void DebugUI::activate_style_dxhr() {
     style.ScrollbarRounding = 6;
     style.GrabRounding = 4;
     style.TabRounding = 4;
-
-    style.WindowTitleAlign = ImVec2(1.0f, 0.5f);
 
     style.DisplaySafeAreaPadding = ImVec2(4, 4);
 }

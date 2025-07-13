@@ -74,7 +74,7 @@ private:
 
     void draw_debug_window();
 
-    void draw_entity_hierarchy();
+    void draw_world_and_scene_window();
 
     eastl::string selected_scene = {};
 

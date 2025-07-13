@@ -1,5 +1,5 @@
 Developer
-David Dubois
+Sarah Dubois
 
 Audio
 https://sonniss.com/gameaudiogdc
