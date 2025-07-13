@@ -12,6 +12,7 @@
 #include "serialization/eastl/string.hpp"
 #include "serialization/eastl/unordered_map.hpp"
 #include "shared/prelude.h"
+#include "spdlog/logger.h"
 
 class World;
 
@@ -73,6 +74,7 @@ public:
 
     template<typename Archive>
     void save(Archive& ar) {
+        logger->info("Saving {} objects", scene_objects.size());
         serialization::serialize<true>(ar, entt::meta_any(scene_objects));
         dirty = false;
     }
@@ -80,6 +82,7 @@ public:
     template<typename Archive>
     void load(Archive& ar) {
         serialization::serialize<false>(ar, entt::meta_any(scene_objects));
+        logger->info("Loaded {} objects", scene_objects.size());
     }
 
     /**
@@ -97,6 +100,8 @@ public:
     void remove_from_world();
 
 private:
+    inline static std::shared_ptr<spdlog::logger> logger = {};
+
     /**
      * Whether or not the scene ahs been modified since last being saved
      */

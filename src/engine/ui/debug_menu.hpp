@@ -75,7 +75,7 @@ private:
     void draw_debug_window();
 
     bool show_scene_confirmation = false;
-
+    eastl::string scene_to_unload = {};
     void draw_scene_unload_confirmation();
 
     void draw_world_and_scene_window();

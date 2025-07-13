@@ -276,18 +276,27 @@ void DebugUI::draw_scene_unload_confirmation() {
         return;
     }
 
+    if(scene_to_unload.empty()) {
+        SAH_BREAKPOINT;
+        return;
+    }
+
     auto& engine = Engine::get();
     if(ImGui::Begin("Are you sure?", &show_scene_confirmation)) {
-        ImGui::Text("Scene %s has unsaved changes - are you sure you want to unload it?", selected_scene.c_str());
+        ImGui::Text("Scene %s has unsaved changes - are you sure you want to unload it?", scene_to_unload.c_str());
         if(ImGui::Button("Yes I'm sure")) {
-            engine.unload_scene(selected_scene);
+            engine.unload_scene(scene_to_unload);
+            scene_to_unload.clear();
+            show_scene_confirmation = false;
         }
         ImGui::SameLine();
         if(ImGui::Button("Actually, save it first")) {
-            const auto scene_path = ResourcePath{format("game://scenes/%s", selected_scene.c_str())};
-            auto& scene = engine.get_scene(selected_scene);
+            const auto scene_path = ResourcePath{format("game://scenes/%s", scene_to_unload.c_str())};
+            auto& scene = engine.get_scene(scene_to_unload);
             scene.write_to_file(scene_path);
-            engine.unload_scene(selected_scene);
+            engine.unload_scene(scene_to_unload);
+            scene_to_unload.clear();
+            show_scene_confirmation = false;
         }
         ImGui::SameLine();
         if(ImGui::Button("Forget it")) {
@@ -518,6 +527,7 @@ void DebugUI::draw_world_and_scene_window() {
                             const auto& scene = engine.get_scene(name);
                             if(scene.is_dirty()) {
                                 show_scene_confirmation = true;
+                                scene_to_unload = name;
                             } else {
                                 engine.unload_scene(name);
                             }

@@ -10,8 +10,6 @@
 #include "core/engine.hpp"
 #include "scene/transform_component.hpp"
 
-static std::shared_ptr<spdlog::logger> logger;
-
 Scene Scene::load_from_file(const ResourcePath& path) {
     ZoneScoped;
 
