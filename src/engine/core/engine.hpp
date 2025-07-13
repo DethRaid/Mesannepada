@@ -18,7 +18,7 @@
 #include "physics/physics_scene.hpp"
 #include "resources/prefab_loader.hpp"
 #include "resources/resource_loader.hpp"
-#include "scene/scene.hpp"
+#include "scene/world.hpp"
 #include "scene/scene_file.hpp"
 
 class SystemInterface;
@@ -84,6 +84,9 @@ public:
      */
     bool load_scene(const eastl::string& name);
 
+    /**
+     * Retrieves the main scene. This is the "bones" of the world - terrain, buildings, faraway geo, etc
+     */
     Scene& get_main_scene();
 
     template<class Engine>
@@ -102,8 +105,6 @@ public:
     entt::handle get_player() const;
 
     const PerformanceTracker& get_perf_tracker() const;
-
-    void save_world_to_file(const std::filesystem::path& filepath);
 
 private:
     std::chrono::high_resolution_clock::time_point application_start_time;

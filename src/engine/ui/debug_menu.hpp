@@ -52,6 +52,10 @@ private:
 
     int selected_gi_quality = 2;
 
+    int32_t cached_theme = -1;
+
+    void apply_theme();
+
     void create_font_texture();
 
     ImGuiFileDialog open_model_dialog;
@@ -91,4 +95,12 @@ private:
     void draw_entity(entt::entity entity, const entt::registry& registry, const eastl::string& prefix = "");
 
     static void draw_combo_box(const std::string& name, eastl::span<const std::string> items, int& selected_item);
+
+    static void activate_style_dxhr();
+
+    static void activate_style_deepdark();
+
+    static void activate_style_pink();
+
+    static void activate_style_corporategray();
 };

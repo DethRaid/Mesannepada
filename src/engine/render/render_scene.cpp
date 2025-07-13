@@ -16,7 +16,7 @@
 #include "render/backend/resource_allocator.hpp"
 #include "render/components/static_mesh_component.hpp"
 #include "scene/camera_component.hpp"
-#include "scene/scene.hpp"
+#include "scene/world.hpp"
 #include "scene/transform_component.hpp"
 
 namespace render {

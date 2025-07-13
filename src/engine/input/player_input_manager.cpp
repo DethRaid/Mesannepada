@@ -4,7 +4,7 @@
 
 #include "player/first_person_player.hpp"
 #include "scene/game_object_component.hpp"
-#include "scene/scene.hpp"
+#include "scene/world.hpp"
 
 static std::shared_ptr<spdlog::logger> logger;
 

@@ -276,10 +276,6 @@ const PerformanceTracker& Engine::get_perf_tracker() const {
     return perf_tracker;
 }
 
-void Engine::save_world_to_file(const std::filesystem::path& filepath) {
-
-}
-
 void Engine::update_time() {
     const auto frame_start_time = std::chrono::high_resolution_clock::now();
     const auto last_frame_duration = frame_start_time - last_frame_start_time;

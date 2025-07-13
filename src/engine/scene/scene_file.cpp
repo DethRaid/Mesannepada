@@ -4,12 +4,13 @@
 #include <cereal/cereal.hpp>
 #include <cereal/archives/binary.hpp>
 #include <glm/gtx/transform.hpp>
+#include <spdlog/fmt/std.h>
 #include <tracy/Tracy.hpp>
 
 #include "core/engine.hpp"
-#include "glm/detail/_noise.hpp"
-#include "glm/detail/_noise.hpp"
 #include "scene/transform_component.hpp"
+
+static std::shared_ptr<spdlog::logger> logger;
 
 Scene Scene::load_from_file(const std::filesystem::path& filepath) {
     ZoneScoped;
@@ -23,13 +24,23 @@ Scene Scene::load_from_file(const std::filesystem::path& filepath) {
     return scene;
 }
 
+Scene::Scene() {
+    if(logger == nullptr) {
+        logger = SystemInterface::get().get_logger("Scene");
+    }
+}
+
 void Scene::write_to_file(const std::filesystem::path& filepath) {
     ZoneScoped;
+
+    if(!std::filesystem::exists(filepath.parent_path())) {
+        std::filesystem::create_directories(filepath.parent_path());
+    }
 
     auto stream = std::ofstream{filepath, std::ios::binary};
     auto archive = cereal::BinaryOutputArchive{stream};
 
-    serialization::serialize<true>(archive, entt::forward_as_meta(*this));
+    save(archive);
 }
 
 void Scene::add_new_objects_to_world() {
@@ -38,29 +49,31 @@ void Scene::add_new_objects_to_world() {
     }
 }
 
-SceneObject* Scene::add_object(const std::filesystem::path& model_file, const float3 location, const bool add_to_world) {
-    const auto obj = scene_objects.emplace(SceneObject{
-        .filepath = model_file.string().c_str(),
+SceneObject& Scene::add_object(const std::filesystem::path& filepath, const float3 location, const bool add_to_world
+    ) {
+    logger->info("Adding object {} to the scene", filepath);
+    auto& obj = scene_objects.emplace_back(SceneObject{
+        .filepath = filepath.string().c_str(),
         .location = location
     });
 
     if(add_to_world) {
-        add_object_to_world(*obj);
+        add_object_to_world(obj);
     }
 
-    return &*obj;
+    return obj;
 }
 
-const plf::colony<SceneObject>& Scene::get_objects() const {
+const eastl::vector<SceneObject>& Scene::get_objects() const {
     return scene_objects;
 }
 
 SceneObject* Scene::find_object(eastl::string_view name) {
     if(const auto itr = eastl::find_if(scene_objects.begin(),
-                              scene_objects.end(),
-                              [&](const auto& obj) {
-                                  return obj.filepath == name;
-                              }); itr != scene_objects.end()) {
+                                       scene_objects.end(),
+                                       [&](const auto& obj) {
+                                           return obj.filepath == name;
+                                       }); itr != scene_objects.end()) {
         return &*itr;
     }
 
@@ -71,6 +84,8 @@ void Scene::add_object_to_world(SceneObject& object) {
     if(object.entity.valid()) {
         return;
     }
+
+    logger->info("Adding object {} to the world", object.filepath.c_str());
 
     auto& engine = Engine::get();
 

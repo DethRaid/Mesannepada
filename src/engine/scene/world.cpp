@@ -1,26 +1,44 @@
-#include "scene.hpp"
+#include "world.hpp"
 
-#include <tracy/Tracy.hpp>
+#include <simdjson.h>
+#include "tracy/Tracy.hpp"
 
-#include "simdjson.h"
-#include "RmlUi/Core/Transform.h"
-#include "ai/behavior_tree_component.hpp"
 #include "core/issue_breakpoint.hpp"
-#include "scene/transform_component.hpp"
-#include "scene/transform_parent_component.hpp"
 #include "core/system_interface.hpp"
 #include "scene/entity_info_component.hpp"
+#include "scene/transform_component.hpp"
 
 static std::shared_ptr<spdlog::logger> logger;
 
 World::World() {
     if(logger == nullptr) {
-        logger = SystemInterface::get().get_logger("Scene");
+        logger = SystemInterface::get().get_logger("World");
     }
 }
 
 entt::handle World::create_entity() {
     return entt::handle{registry, registry.create()};
+}
+
+entt::handle World::find_entity(const eastl::string_view name) {
+    // Search the top-level entities first, to avoid delving into deep node trees for e.g. skeletons
+    for(const auto& entity : top_level_entities) {
+        if(const auto* info = registry.try_get<EntityInfoComponent>(entity); info) {
+            if(info->name == name) {
+                return entt::handle{registry, entity};
+            }
+        }
+    }
+
+    // Search through children
+    for(const auto& entity : top_level_entities) {
+        if(const auto result = find_child(entt::handle{registry, entity}, name)) {
+            return result;
+        }
+    }
+
+    // Didn't find it? rip
+    return {};
 }
 
 void World::destroy_entity(const entt::entity entity) {

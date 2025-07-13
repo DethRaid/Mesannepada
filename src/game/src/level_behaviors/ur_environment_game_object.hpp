@@ -23,7 +23,5 @@ public:
     void tick(float delta_time, World& world) override;
 
 private:
-    entt::handle level_entity;
-
     entt::handle ur_gltf_entity;
 };

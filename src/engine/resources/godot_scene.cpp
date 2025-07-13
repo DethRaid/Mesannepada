@@ -12,7 +12,7 @@
 #include "resources/model_components.hpp"
 #include "scene/entity_info_component.hpp"
 #include "scene/game_object_component.hpp"
-#include "scene/scene.hpp"
+#include "scene/world.hpp"
 #include "scene/transform_component.hpp"
 
 using namespace entt::literals;

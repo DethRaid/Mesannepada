@@ -6,7 +6,7 @@
 #include "core/engine.hpp"
 #include "render/components/skeletal_mesh_component.hpp"
 #include "resources/model_components.hpp"
-#include "scene/scene.hpp"
+#include "scene/world.hpp"
 #include "scene/transform_component.hpp"
 
 static std::shared_ptr<spdlog::logger> logger;

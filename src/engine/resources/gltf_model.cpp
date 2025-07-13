@@ -36,7 +36,7 @@
 #include "resources/gltf_animations.hpp"
 #include "resources/model_components.hpp"
 #include "scene/entity_info_component.hpp"
-#include "scene/scene.hpp"
+#include "scene/world.hpp"
 #include "scene/transform_component.hpp"
 
 template<>

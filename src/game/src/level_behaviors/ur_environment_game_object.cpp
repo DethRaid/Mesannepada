@@ -12,11 +12,11 @@ UrEnvironmentGameObject::UrEnvironmentGameObject(const entt::handle entity) :
     GameObject{entity} {
     auto& engine = Engine::get();
 
+    // TODO: The main scene file should load the Ur environment, and also load this game object
     auto& main_scene = engine.get_main_scene();
-    const auto* level_object = main_scene.add_object("data/game/environments/Ur.tscn", float3{}, true);
-    level_entity = level_object->entity;
+    main_scene.add_object("data/game/environments/Ur.tscn", float3{}, true);
 
-    const auto gltf_entity = World::find_child(level_entity, "SM_UrEnvironment");
+    const auto gltf_entity = engine.get_world().find_entity("SM_UrEnvironment");
     if(!gltf_entity) {
         throw std::runtime_error{"SM_UrEnvironment not found, are you loading the level correctly?"};
     }

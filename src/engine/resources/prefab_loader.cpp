@@ -5,7 +5,7 @@
 #include "core/engine.hpp"
 #include "core/system_interface.hpp"
 #include "resources/imodel.hpp"
-#include "scene/scene.hpp"
+#include "scene/world.hpp"
 #include "scene/transform_component.hpp"
 
 static std::shared_ptr<spdlog::logger> logger;

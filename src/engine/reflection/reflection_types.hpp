@@ -1,5 +1,6 @@
 #pragma once
 
+#include <plf_colony.h>
 #include <EASTL/array.h>
 #include <EASTL/fixed_vector.h>
 #include <EASTL/unordered_map.h>

@@ -15,7 +15,7 @@
 #include "core/glm_jph_conversions.hpp"
 #include "glm/gtx/matrix_decompose.hpp"
 #include "Jolt/Physics/Body/BodyActivationListener.h"
-#include "scene/scene.hpp"
+#include "scene/world.hpp"
 #include "scene/transform_component.hpp"
 
 namespace physics {

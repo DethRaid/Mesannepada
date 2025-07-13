@@ -8,8 +8,6 @@
 #include <entt/entt.hpp>
 
 #include "animation/animation_system.hpp"
-#include "animation/animation_system.hpp"
-#include "animation/animation_system.hpp"
 #include "behavior/game_object.hpp"
 #include "scene/game_object_component.hpp"
 #include "shared/prelude.h"
@@ -47,6 +45,13 @@ public:
     entt::handle create_game_object(
         eastl::string_view name, const eastl::optional<entt::handle>& parent_node = eastl::nullopt
     );
+
+    /**
+     * Attempts to find an entity with the provided name in the world
+     *
+     * This is relatively expensive, it should be called sparingly
+     */
+    entt::handle find_entity(eastl::string_view name);
 
     void destroy_entity(entt::entity entity);
 

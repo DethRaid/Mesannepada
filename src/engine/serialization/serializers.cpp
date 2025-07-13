@@ -9,7 +9,7 @@
 #include "core/system_interface.hpp"
 #include "glm.hpp"
 #include "reflection/reflection_macros.hpp"
-#include "scene/scene.hpp"
+#include "scene/world.hpp"
 #include "scene/scene_file.hpp"
 
 #define SERIALIZE_SCALAR(Scalar) \

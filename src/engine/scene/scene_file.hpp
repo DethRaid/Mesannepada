@@ -36,6 +36,8 @@ public:
      */
     static Scene load_from_file(const std::filesystem::path& filepath);
 
+    Scene();
+
     /**
      * Writes a SceneFile to disk
      */
@@ -49,14 +51,14 @@ public:
     /**
      * Adds an object to the scene, optionally adding it to the world
      *
-     * \param model_file Path to the file with data for this scene object
+     * \param filepath Path to the file with data for this scene object
      * \param location Where to place the model in the world
      * \param add_to_world Whether to immediately add the model to the engine's world, or not
      * \return A reference to the newly-added scene object
      */
-    SceneObject* add_object(const std::filesystem::path& model_file, float3 location, bool add_to_world = false);
+    SceneObject& add_object(const std::filesystem::path& filepath, float3 location, bool add_to_world = false);
 
-    const plf::colony<SceneObject>& get_objects() const;
+    const eastl::vector<SceneObject>& get_objects() const;
 
     template<typename Archive>
     void save(Archive& ar) {
@@ -79,7 +81,7 @@ private:
      *
      * This map doesn't contain any actual entity handles until you add the scene file to a world
      */
-    plf::colony<SceneObject> scene_objects;
+    eastl::vector<SceneObject> scene_objects;
 
     static void add_object_to_world(SceneObject& object);
 };
