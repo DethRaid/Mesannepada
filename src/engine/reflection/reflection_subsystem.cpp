@@ -18,6 +18,7 @@
 #include "scene/camera_component.hpp"
 #include "scene/entity_info_component.hpp"
 #include "scene/game_object_component.hpp"
+#include "scene/scene_file.hpp"
 #include "scene/transform_component.hpp"
 #include "serialization/serializers.hpp"
 
@@ -132,5 +133,21 @@ namespace reflection {
 
         REFLECT_COMPONENT(AnimationEventComponent)
             DATA(AnimationEventComponent, animation_to_play);
+
+        entt::meta_factory<ResourcePath>()
+            DATA(ResourcePath, scope)
+            DATA(ResourcePath, path);
+
+        entt::meta_factory<SceneObject>()
+            DATA(SceneObject, filepath)
+            DATA(SceneObject, location)
+            DATA(SceneObject, orientation)
+            DATA(SceneObject, scale);
+
+        REFLECT_ENUM(ResourcePath::Scope)
+            ENUMERATOR(ResourcePath::Scope, File)
+            ENUMERATOR(ResourcePath::Scope, Resource)
+            ENUMERATOR(ResourcePath::Scope, Shader)
+            ENUMERATOR(ResourcePath::Scope, Game);
     }
 }

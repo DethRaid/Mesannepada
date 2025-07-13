@@ -7,10 +7,10 @@
 
 #include "console/cvars.hpp"
 #include "core/system_interface.hpp"
-#include "glm.hpp"
 #include "reflection/reflection_macros.hpp"
-#include "scene/world.hpp"
 #include "scene/scene_file.hpp"
+#include "scene/world.hpp"
+#include "serialization/glm.hpp"
 
 #define SERIALIZE_SCALAR(Scalar) \
     entt::meta_factory<Scalar>()                                                                        \
@@ -50,13 +50,6 @@ namespace serialization {
         entt::meta_factory<float4x4>()
             .func<glm::serialize<cereal::BinaryInputArchive> >("serialize_from_binary"_hs)
             .func<glm::serialize<cereal::BinaryOutputArchive> >("serialize_to_binary"_hs);
-
-        entt::meta_factory<SceneObject>()
-            .traits(reflection::Traits::Trivial)
-            DATA(SceneObject, filepath)
-            DATA(SceneObject, location)
-            DATA(SceneObject, orientation)
-            DATA(SceneObject, scale);
     }
 
     template<typename Archive>

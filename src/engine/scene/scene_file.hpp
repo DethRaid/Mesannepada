@@ -6,13 +6,12 @@
 #include <EASTL/string.h>
 #include <EASTL/vector.h>
 #include <entt/entt.hpp>
+#include <spdlog/logger.h>
 
 #include "resources/resource_path.hpp"
 #include "serialization/serializers.hpp"
-#include "serialization/eastl/string.hpp"
-#include "serialization/eastl/unordered_map.hpp"
+#include "serialization/eastl/vector.hpp"
 #include "shared/prelude.h"
-#include "spdlog/logger.h"
 
 class World;
 
@@ -24,6 +23,11 @@ struct SceneObject {
     float3 scale = float3{1.f, 1.f, 1.f};
 
     entt::handle entity = {};
+
+    template<typename Archive>
+    void serialize(Archive& ar) {
+        ar(filepath, location, orientation, scale);
+    }
 };
 
 /**
@@ -75,14 +79,15 @@ public:
     template<typename Archive>
     void save(Archive& ar) {
         logger->info("Saving {} objects", scene_objects.size());
-        serialization::serialize<true>(ar, entt::meta_any(scene_objects));
+        ar(scene_objects);
         dirty = false;
     }
 
     template<typename Archive>
     void load(Archive& ar) {
-        serialization::serialize<false>(ar, entt::meta_any(scene_objects));
+        ar(scene_objects);
         logger->info("Loaded {} objects", scene_objects.size());
+        dirty = true;
     }
 
     /**

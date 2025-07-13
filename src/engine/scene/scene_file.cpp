@@ -30,14 +30,14 @@ Scene::Scene() {
 }
 
 Scene::Scene(Scene&& old) noexcept :
-    scene_objects{old.scene_objects} {
+    scene_objects{eastl::move(old.scene_objects)} {
     old.scene_objects.clear();
 }
 
 Scene& Scene::operator=(Scene&& old) noexcept {
     this->~Scene();
 
-    scene_objects = old.scene_objects;
+    scene_objects = eastl::move(old.scene_objects);
     old.scene_objects = {};
 
     return *this;

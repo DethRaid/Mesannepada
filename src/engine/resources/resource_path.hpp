@@ -14,14 +14,12 @@
  *  - game:// is a generic resource in the data/game/ directory
  *  - file:// is a generic file, either relative to the working directory or an absolute filepath
  */
-class ResourcePath {
-public:
+struct ResourcePath {
     enum class Scope {
         File,
         Resource,
         Shader,
-        Game,
-        Cache
+        Game
     };
 
     static ResourcePath file(const std::string_view path_in) {
@@ -58,7 +56,6 @@ public:
 
     const eastl::string& get_path() const;
 
-private:
     Scope scope = Scope::File;
 
     eastl::string path = {};

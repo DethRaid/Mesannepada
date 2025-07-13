@@ -29,3 +29,8 @@ entt::meta_factory<T>{}                                                         
     .func<[](entt::registry* registry, entt::entity entity) { registry->emplace<T>(entity); }>("emplace_default"_hs)    \
     .func<[](entt::registry* registry, entt::entity entity, T& value) { registry->emplace_or_replace<T>(entity, eastl::move(value)); }>("emplace_move"_hs)
 
+#define REFLECT_ENUM(T) entt::meta_factory<T>{}\
+    .func<[](T value) { return static_cast<eastl::underlying_type_t<T>>(value); }>("to_underlying"_hs)
+#define ENUMERATOR(E, Member, ...) \
+    .data<E :: Member>(#Member##_hs) \
+    .custom<PropertiesMap>(PropertiesMap{{"name"_hs, #Member} __VA_OPT__(, __VA_ARGS__)})
