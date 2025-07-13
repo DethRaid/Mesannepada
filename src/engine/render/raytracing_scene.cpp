@@ -214,7 +214,7 @@ namespace render {
 
     size_t RaytracingScene::get_next_blas_index() {
         if (!inactive_blases.empty()) {
-            const auto value = *inactive_blases.end();
+            const auto value = inactive_blases.back();
             inactive_blases.pop_back();
             return value;
         }
