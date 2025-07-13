@@ -26,8 +26,8 @@ namespace render {
         motion_vectors_opaque_pso = RenderBackend::get()
                                     .begin_building_pipeline("motion_vectors_opaque_pso")
                                     .use_standard_vertex_layout()
-                                    .set_vertex_shader("shaders/motion_vectors/motion_vectors.vert.spv")
-                                    .set_fragment_shader("shaders/motion_vectors/motion_vectors_opaque.frag.spv")
+                                    .set_vertex_shader("motion_vectors/motion_vectors.vert.spv")
+                                    .set_fragment_shader("motion_vectors/motion_vectors_opaque.frag.spv")
                                     .set_depth_state(
                                     {
                                         .enable_depth_test = true,
@@ -39,8 +39,8 @@ namespace render {
         motion_vectors_masked_pso = RenderBackend::get()
                                     .begin_building_pipeline("motion_vectors_masked_pso")
                                     .use_standard_vertex_layout()
-                                    .set_vertex_shader("shaders/motion_vectors/motion_vectors_masked.vert.spv")
-                                    .set_fragment_shader("shaders/motion_vectors/motion_vectors_masked.frag.spv")
+                                    .set_vertex_shader("motion_vectors/motion_vectors_masked.vert.spv")
+                                    .set_fragment_shader("motion_vectors/motion_vectors_masked.frag.spv")
                                     .set_depth_state(
                                     {
                                         .enable_depth_test = true,
@@ -51,7 +51,7 @@ namespace render {
 
         motion_vectors_pso = RenderBackend::get()
                              .get_pipeline_cache()
-                             .create_pipeline("shaders/motion_vectors/camera_motion_vectors.comp.spv");
+                             .create_pipeline("motion_vectors/camera_motion_vectors.comp.spv");
     }
 
     void MotionVectorsPhase::set_render_resolution(const glm::uvec2& resolution, const glm::uvec2& output_resolution) {

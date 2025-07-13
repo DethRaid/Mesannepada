@@ -202,7 +202,8 @@ namespace render {
         if(vertex_shader) {
             throw std::runtime_error{"Vertex shader already loaded set"};
         }
-        const auto vertex_shader_maybe = SystemInterface::get().load_file(vertex_path);
+        const auto vertex_shader_maybe = SystemInterface::get().load_file(
+            SystemInterface::get().get_shaders_folder() / vertex_path);
 
         if(!vertex_shader_maybe) {
             throw std::runtime_error{"Could not load vertex shader"};
@@ -254,7 +255,8 @@ namespace render {
             throw std::runtime_error{"Geometry shader already set!"};
         }
 
-        const auto geometry_shader_maybe = SystemInterface::get().load_file(geometry_path);
+        const auto geometry_shader_maybe = SystemInterface::get().load_file(
+            SystemInterface::get().get_shaders_folder() / geometry_path);
         if(!geometry_shader_maybe) {
             throw std::runtime_error{"Could not load geometry shader"};
         }
@@ -288,7 +290,8 @@ namespace render {
             throw std::runtime_error{"Fragment shader already set"};
         }
 
-        const auto fragment_shader_maybe = SystemInterface::get().load_file(fragment_path);
+        const auto fragment_shader_maybe = SystemInterface::get().load_file(
+            SystemInterface::get().get_shaders_folder() / fragment_path);
 
         if(!fragment_shader_maybe) {
             throw std::runtime_error{"Could not load fragment shader"};

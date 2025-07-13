@@ -69,7 +69,7 @@ namespace render {
     ) {
         auto& backend = RenderBackend::get();
         if (rtao_pipeline == nullptr) {
-            rtao_pipeline = backend.get_pipeline_cache().create_pipeline("shaders/ao/rtao.comp.spv");
+            rtao_pipeline = backend.get_pipeline_cache().create_pipeline("ao/rtao.comp.spv");
         }
 
         const auto set = backend.get_transient_descriptor_allocator().build_set(rtao_pipeline, 0)

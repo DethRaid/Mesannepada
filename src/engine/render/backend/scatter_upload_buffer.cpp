@@ -9,7 +9,7 @@ namespace render {
         if (!scatter_shader) {
             auto& backend = RenderBackend::get();
             auto& pipeline_cache = backend.get_pipeline_cache();
-            scatter_shader = pipeline_cache.create_pipeline("shaders/util/scatter_upload.comp.spv");
+            scatter_shader = pipeline_cache.create_pipeline("util/scatter_upload.comp.spv");
         }
 
         return scatter_shader;

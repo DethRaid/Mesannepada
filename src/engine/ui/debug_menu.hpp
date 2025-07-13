@@ -74,6 +74,10 @@ private:
 
     void draw_debug_window();
 
+    bool show_scene_confirmation = false;
+
+    void draw_scene_unload_confirmation();
+
     void draw_world_and_scene_window();
 
     eastl::string selected_scene = {};

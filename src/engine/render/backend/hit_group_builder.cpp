@@ -16,7 +16,8 @@ namespace render {
     }
 
     HitGroupBuilder& HitGroupBuilder::add_occlusion_closesthit_shader(const std::filesystem::path& shader_path) {
-        const auto shader_maybe = SystemInterface::get().load_file(shader_path);
+        const auto shader_maybe = SystemInterface::get().load_file(
+            SystemInterface::get().get_shaders_folder() / shader_path);
         if (!shader_maybe) {
             throw std::runtime_error{ fmt::format("Could not load closesthit shader {}", shader_path.string()) };
         }
@@ -27,7 +28,8 @@ namespace render {
     }
 
     HitGroupBuilder& HitGroupBuilder::add_occlusion_anyhit_shader(const std::filesystem::path& shader_path) {
-        const auto shader_maybe = SystemInterface::get().load_file(shader_path);
+        const auto shader_maybe = SystemInterface::get().load_file(
+            SystemInterface::get().get_shaders_folder() / shader_path);
         if (!shader_maybe) {
             throw std::runtime_error{ fmt::format("Could not load anyhit shader {}", shader_path.string()) };
         }
@@ -38,7 +40,8 @@ namespace render {
     }
 
     HitGroupBuilder& HitGroupBuilder::add_gi_closesthit_shader(const std::filesystem::path& shader_path) {
-        const auto shader_maybe = SystemInterface::get().load_file(shader_path);
+        const auto shader_maybe = SystemInterface::get().load_file(
+            SystemInterface::get().get_shaders_folder() / shader_path);
         if (!shader_maybe) {
             throw std::runtime_error{ fmt::format("Could not load closesthit shader {}", shader_path.string()) };
         }
@@ -49,7 +52,8 @@ namespace render {
     }
 
     HitGroupBuilder& HitGroupBuilder::add_gi_anyhit_shader(const std::filesystem::path& shader_path) {
-        const auto shader_maybe = SystemInterface::get().load_file(shader_path);
+        const auto shader_maybe = SystemInterface::get().load_file(
+            SystemInterface::get().get_shaders_folder() / shader_path);
         if (!shader_maybe) {
             throw std::runtime_error{ fmt::format("Could not load anyhit shader {}", shader_path.string()) };
         }

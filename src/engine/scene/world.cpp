@@ -48,6 +48,8 @@ void World::destroy_entity(const entt::entity entity) {
         }
     }
 
+    top_level_entities.erase(entity);
+
     registry.destroy(entity);
 }
 

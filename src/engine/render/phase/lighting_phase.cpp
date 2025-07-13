@@ -20,21 +20,21 @@ namespace render {
     LightingPhase::LightingPhase() {
         auto& backend = RenderBackend::get();
 
-        auto point_lights_fragment_shader_name = "shaders/lighting/point_lights.frag.spv";
+        auto point_lights_fragment_shader_name = "lighting/point_lights.frag.spv";
         if(!backend.supports_ray_tracing()) {
-            point_lights_fragment_shader_name = "shaders/lighting/point_lights_no_rt.frag.spv";
+            point_lights_fragment_shader_name = "lighting/point_lights_no_rt.frag.spv";
         }
 
         point_lights_pipeline = backend.begin_building_pipeline("point_lights")
-                                       .set_vertex_shader("shaders/common/fullscreen.vert.spv")
+                                       .set_vertex_shader("common/fullscreen.vert.spv")
                                        .set_fragment_shader(point_lights_fragment_shader_name)
                                        .set_depth_state({.enable_depth_write = false, .compare_op = VK_COMPARE_OP_LESS})
                                        .set_blend_mode(BlendMode::Additive)
                                        .build();
 
         emission_pipeline = backend.begin_building_pipeline("Emissive Lighting")
-                                   .set_vertex_shader("shaders/common/fullscreen.vert.spv")
-                                   .set_fragment_shader("shaders/lighting/emissive.frag.spv")
+                                   .set_vertex_shader("common/fullscreen.vert.spv")
+                                   .set_fragment_shader("lighting/emissive.frag.spv")
                                    .set_depth_state(
                                        DepthStencilState{
                                            .enable_depth_write = false,

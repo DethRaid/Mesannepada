@@ -19,30 +19,30 @@ namespace render {
 
         shaders.emplace(
             VK_FORMAT_R16_SFLOAT,
-            pipeline_cache.create_pipeline("shaders/util/mip_chain_generator_R16F.comp.spv")
+            pipeline_cache.create_pipeline("util/mip_chain_generator_R16F.comp.spv")
         );
 
         shaders.emplace(
             VK_FORMAT_R16G16B16A16_SFLOAT,
-            pipeline_cache.create_pipeline("shaders/util/mip_chain_generator_RGBA16F.comp.spv")
+            pipeline_cache.create_pipeline("util/mip_chain_generator_RGBA16F.comp.spv")
         );
 
         shaders.emplace(
             VK_FORMAT_B10G11R11_UFLOAT_PACK32,
             pipeline_cache.create_pipeline(
-                "shaders/util/mip_chain_generator_B10G11R11F.comp.spv"
+                "util/mip_chain_generator_B10G11R11F.comp.spv"
             )
         );
 
         shaders.emplace(
             VK_FORMAT_R32_SFLOAT,
-            pipeline_cache.create_pipeline("shaders/util/mip_chain_generator_D32F_min.comp.spv")
+            pipeline_cache.create_pipeline("util/mip_chain_generator_D32F_min.comp.spv")
         );
 
 
         shaders.emplace(
             VK_FORMAT_R32_SFLOAT,
-            pipeline_cache.create_pipeline("shaders/util/mip_chain_generator_D32F_min.comp.spv"));
+            pipeline_cache.create_pipeline("util/mip_chain_generator_D32F_min.comp.spv"));
 
 
         auto& allocator = backend.get_global_allocator();

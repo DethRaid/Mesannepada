@@ -53,9 +53,9 @@ namespace render {
         }
 
         auto& pipeline_cache = backend.get_pipeline_cache();
-        emissive_point_cloud_shader = pipeline_cache.create_pipeline("shaders/util/emissive_point_cloud.comp.spv");
+        emissive_point_cloud_shader = pipeline_cache.create_pipeline("util/emissive_point_cloud.comp.spv");
 
-        vertex_deformer = pipeline_cache.create_pipeline("shaders/animation/vertex_skinning.comp.spv");
+        vertex_deformer = pipeline_cache.create_pipeline("animation/vertex_skinning.comp.spv");
     }
 
     void RenderWorld::setup_observers(World& world) {

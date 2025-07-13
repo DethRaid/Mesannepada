@@ -59,8 +59,8 @@ namespace render {
 
         const auto& backend = RenderBackend::get();
         pipeline = backend.begin_building_pipeline("Sun Light")
-                          .set_vertex_shader("shaders/common/fullscreen.vert.spv")
-                          .set_fragment_shader("shaders/lighting/directional_light.frag.spv")
+                          .set_vertex_shader("common/fullscreen.vert.spv")
+                          .set_fragment_shader("lighting/directional_light.frag.spv")
                           .set_depth_state(
                               DepthStencilState{
                                   .enable_depth_write = false,
@@ -401,9 +401,9 @@ namespace render {
 
         if(shadow_mask_shadowmap_pso == nullptr) {
             shadow_mask_shadowmap_pso = backend.begin_building_pipeline("shadow_mask_shadowmap")
-                                               .set_vertex_shader("shaders/common/fullscreen.vert.spv")
+                                               .set_vertex_shader("common/fullscreen.vert.spv")
                                                .set_fragment_shader(
-                                                   "shaders/lighting/directional_light_shadow.frag.spv")
+                                                   "lighting/directional_light_shadow.frag.spv")
                                                .set_depth_state(
                                                    DepthStencilState{
                                                        .enable_depth_test = false,
@@ -445,7 +445,7 @@ namespace render {
         if(rt_shadow_pipeline == nullptr) {
             rt_shadow_pipeline = backend.get_pipeline_cache()
                                         .create_ray_tracing_pipeline(
-                                            "shaders/lighting/directional_light_shadow.rt.spv",
+                                            "lighting/directional_light_shadow.rt.spv",
                                             true);
         }
 

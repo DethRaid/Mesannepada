@@ -78,7 +78,7 @@ Engine::Engine() :
 
     update_resolution();
 
-    create_scene("main.sscene");
+    create_scene("environment.sscene");
 
     logger->info("HELLO HUMAN");
 }
@@ -229,13 +229,17 @@ const World& Engine::get_world() const {
     return world;
 }
 
+std::filesystem::path Engine::get_scene_folder() {
+    return SystemInterface::get().get_data_folder() / "game" / "scenes";
+}
+
 void Engine::create_scene(const eastl::string& name) {
     loaded_scenes.emplace(name, Scene{});
 }
 
 bool Engine::load_scene(const eastl::string& name) {
     try {
-        const auto scene_file_path = SystemInterface::get().get_data_folder() / "game" / name.c_str();
+        const auto scene_file_path = get_scene_folder() / name.c_str();
         auto scene = Scene::load_from_file(scene_file_path);
         scene.add_new_objects_to_world();
 
@@ -248,8 +252,12 @@ bool Engine::load_scene(const eastl::string& name) {
     }
 }
 
-Scene& Engine::get_main_scene() {
-    return get_scene("main.sscene");
+void Engine::unload_scene(const eastl::string& name) {
+    loaded_scenes.erase(name);
+}
+
+Scene& Engine::get_environment_scene() {
+    return get_scene("environment.sscene");
 }
 
 const eastl::unordered_map<eastl::string, Scene>& Engine::get_loaded_scenes() const {

@@ -57,10 +57,6 @@ namespace serialization {
             DATA(SceneObject, location)
             DATA(SceneObject, orientation)
             DATA(SceneObject, scale);
-
-        entt::meta_factory<Scene>()
-            .func<&Scene::load<cereal::BinaryInputArchive>>("serialize_from_binary"_hs)
-            .func<&Scene::save<cereal::BinaryOutputArchive>>("serialize_to_binary"_hs);
     }
 
     template<typename Archive>

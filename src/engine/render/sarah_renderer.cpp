@@ -79,8 +79,8 @@ namespace render {
         auto& allocator = backend.get_global_allocator();
 
         copy_scene_pso = backend.begin_building_pipeline("Copy Scene")
-            .set_vertex_shader("shaders/common/fullscreen.vert.spv")
-            .set_fragment_shader("shaders/util/copy_with_sampler.frag.spv")
+            .set_vertex_shader("common/fullscreen.vert.spv")
+            .set_fragment_shader("util/copy_with_sampler.frag.spv")
             .set_depth_state({ .enable_depth_test = false, .enable_depth_write = false })
             .build();
         linear_sampler = allocator.get_sampler(
@@ -126,9 +126,9 @@ namespace render {
         //    });
 
         exposure_histogram_pipeline = backend.get_pipeline_cache().create_pipeline(
-            "shaders/autoexposure/histogram.comp.spv");
+            "autoexposure/histogram.comp.spv");
         average_exposure_pipeline = backend.get_pipeline_cache().create_pipeline(
-            "shaders/autoexposure/average_exposure.comp.spv");
+            "autoexposure/average_exposure.comp.spv");
 
 #ifdef JPH_DEBUG_RENDERER
         jolt_debug = eastl::make_unique<JoltDebugRenderer>(meshes);

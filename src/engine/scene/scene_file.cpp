@@ -19,7 +19,7 @@ Scene Scene::load_from_file(const std::filesystem::path& filepath) {
     auto archive = cereal::BinaryInputArchive{stream};
 
     auto scene = Scene{};
-    serialization::serialize<false>(archive, entt::forward_as_meta(scene));
+    scene.load(archive);
 
     return scene;
 }
@@ -28,6 +28,23 @@ Scene::Scene() {
     if(logger == nullptr) {
         logger = SystemInterface::get().get_logger("Scene");
     }
+}
+
+Scene::Scene(Scene&& old) noexcept : scene_objects{old.scene_objects} {
+    old.scene_objects.clear();
+}
+
+Scene& Scene::operator=(Scene&& old) noexcept {
+    this->~Scene();
+
+    scene_objects = old.scene_objects;
+    old.scene_objects = {};
+
+    return *this;
+}
+
+Scene::~Scene() {
+    remove_from_world();
 }
 
 void Scene::write_to_file(const std::filesystem::path& filepath) {
@@ -61,6 +78,8 @@ SceneObject& Scene::add_object(const std::filesystem::path& filepath, const floa
         add_object_to_world(obj);
     }
 
+    dirty = true;
+
     return obj;
 }
 
@@ -69,6 +88,8 @@ const eastl::vector<SceneObject>& Scene::get_objects() const {
 }
 
 SceneObject* Scene::find_object(eastl::string_view name) {
+    ZoneScoped;
+
     if(const auto itr = eastl::find_if(scene_objects.begin(),
                                        scene_objects.end(),
                                        [&](const auto& obj) {
@@ -80,7 +101,21 @@ SceneObject* Scene::find_object(eastl::string_view name) {
     return nullptr;
 }
 
+void Scene::remove_from_world() {
+    ZoneScoped;
+
+    auto& world = Engine::get().get_world();
+    for(auto& obj : scene_objects) {
+        if(obj.entity) {
+            world.destroy_entity(obj.entity);
+            obj.entity = {};
+        }
+    }
+}
+
 void Scene::add_object_to_world(SceneObject& object) {
+    ZoneScoped;
+
     if(object.entity.valid()) {
         return;
     }

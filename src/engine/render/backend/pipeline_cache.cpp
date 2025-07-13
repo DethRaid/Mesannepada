@@ -67,7 +67,8 @@ namespace render {
     ComputePipelineHandle PipelineCache::create_pipeline(const std::filesystem::path& shader_file_path) {
         logger->debug("Creating compute PSO {}", shader_file_path.string());
 
-        const auto instructions = *SystemInterface::get().load_file(shader_file_path);
+        const auto instructions = *SystemInterface::get().load_file(
+            SystemInterface::get().get_shaders_folder() / shader_file_path);
 
         return create_pipeline(shader_file_path.string(), instructions);
     }
@@ -671,7 +672,8 @@ namespace render {
         const auto raygen_shader_index = miss_shader_index + num_miss_shaders;
         const auto raygen_group_index = static_cast<uint32_t>(groups.size());
 
-        const auto raygen_shader_maybe = SystemInterface::get().load_file(raygen_shader_path);
+        const auto raygen_shader_maybe = SystemInterface::get().load_file(
+            SystemInterface::get().get_shaders_folder() / raygen_shader_path);
         if (!raygen_shader_maybe) {
             throw std::runtime_error{ fmt::format("Could not load raygen shader {}", raygen_shader_path.string()) };
         }

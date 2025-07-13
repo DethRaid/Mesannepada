@@ -23,11 +23,11 @@ namespace render {
 
         if (!init_count_buffer_pipeline) {
             init_count_buffer_pipeline = pipeline_cache.create_pipeline(
-                "shaders/util/init_count_buffer.comp.spv");
+                "util/init_count_buffer.comp.spv");
         }
         if (!visibility_list_to_draw_commands) {
             visibility_list_to_draw_commands = pipeline_cache.create_pipeline(
-                "shaders/util/visibility_list_to_draw_commands.comp.spv");
+                "util/visibility_list_to_draw_commands.comp.spv");
         }
 
         auto& allocator = backend.get_global_allocator();

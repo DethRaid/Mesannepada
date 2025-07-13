@@ -45,6 +45,14 @@ public:
 
     void flush_all_loggers();
 
+    /**
+     * Gets the folder where compiled shaders live. Usually exe_dir / shaders
+     */
+    std::filesystem::path get_shaders_folder() const;
+
+    /**
+     * Gets the fodler where game data lives. Usually exe_dir / data
+     */
     std::filesystem::path get_data_folder() const;
 
     /**

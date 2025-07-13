@@ -49,8 +49,8 @@ namespace rmlui {
 
         ui_pipeline = backend.begin_building_pipeline("rmlui")
                              .use_rmlui_vertex_layout()
-                             .set_vertex_shader("shaders/ui/rmlui.vert.spv")
-                             .set_fragment_shader("shaders/ui/rmlui.frag.spv")
+                             .set_vertex_shader("ui/rmlui.vert.spv")
+                             .set_fragment_shader("ui/rmlui.frag.spv")
                              .set_depth_state({.enable_depth_test = false, .enable_depth_write = false})
                              .set_blend_state(
                                  0,

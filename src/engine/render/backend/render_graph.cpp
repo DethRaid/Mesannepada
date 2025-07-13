@@ -248,7 +248,7 @@ namespace render {
 
         if (!image_copy_shader) {
             image_copy_shader = RenderBackend::get().get_pipeline_cache().create_pipeline(
-                "shaders/util/image_copy.comp.spv");
+                "util/image_copy.comp.spv");
         }
 
         const auto set = RenderBackend::get().get_transient_descriptor_allocator()

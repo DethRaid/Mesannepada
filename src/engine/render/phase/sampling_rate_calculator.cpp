@@ -12,8 +12,8 @@ namespace render {
     VRSAA::VRSAA() {
         auto& pipelines = RenderBackend::get().get_pipeline_cache();
         generate_shading_rate_image_shader = pipelines.create_pipeline(
-            "shaders/vrsaa/generate_shading_rate_image.comp.spv");
-        contrast_shader = pipelines.create_pipeline("shaders/vrsaa/contrast_detection.comp.spv");
+            "vrsaa/generate_shading_rate_image.comp.spv");
+        contrast_shader = pipelines.create_pipeline("vrsaa/contrast_detection.comp.spv");
 
         sampler = RenderBackend::get().get_global_allocator().get_sampler(
             {

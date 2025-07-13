@@ -90,9 +90,9 @@ namespace render {
         auto& backend = RenderBackend::get();
 
         auto& pipeline_cache = backend.get_pipeline_cache();
-        clear_lpv_shader = pipeline_cache.create_pipeline("shaders/gi/lpv/clear_lpv.comp.spv");
+        clear_lpv_shader = pipeline_cache.create_pipeline("gi/lpv/clear_lpv.comp.spv");
 
-        propagation_shader = pipeline_cache.create_pipeline("shaders/gi/lpv/lpv_propagate.comp.spv");
+        propagation_shader = pipeline_cache.create_pipeline("gi/lpv/lpv_propagate.comp.spv");
 
         linear_sampler = backend.get_global_allocator().get_sampler(
             {
@@ -110,24 +110,24 @@ namespace render {
             }
         );
 
-        rsm_generate_vpls_pipeline = pipeline_cache.create_pipeline("shaders/gi/lpv/rsm_generate_vpls.comp.spv");
+        rsm_generate_vpls_pipeline = pipeline_cache.create_pipeline("gi/lpv/rsm_generate_vpls.comp.spv");
 
         if(cvar_lpv_use_compute_vpl_injection.get() == 0) {
             vpl_injection_pipeline = backend.begin_building_pipeline("VPL Injection")
                                             .set_topology(VK_PRIMITIVE_TOPOLOGY_POINT_LIST)
-                                            .set_vertex_shader("shaders/gi/lpv/vpl_injection.vert.spv")
-                                            .set_fragment_shader("shaders/gi/lpv/vpl_injection.frag.spv")
+                                            .set_vertex_shader("gi/lpv/vpl_injection.vert.spv")
+                                            .set_fragment_shader("gi/lpv/vpl_injection.frag.spv")
                                             .set_num_attachments(3)
                                             .set_blend_mode(BlendMode::Additive)
                                             .build();
         } else {
-            vpl_injection_compute_pipeline = pipeline_cache.create_pipeline("shaders/gi/lpv/vpl_injection.comp.spv");
+            vpl_injection_compute_pipeline = pipeline_cache.create_pipeline("gi/lpv/vpl_injection.comp.spv");
         }
 
         inject_rsm_depth_into_gv_pipeline = backend.begin_building_pipeline("GV Injection")
                                                    .set_topology(VK_PRIMITIVE_TOPOLOGY_POINT_LIST)
-                                                   .set_vertex_shader("shaders/gi/lpv/gv_injection.vert.spv")
-                                                   .set_fragment_shader("shaders/gi/lpv/gv_injection.frag.spv")
+                                                   .set_vertex_shader("gi/lpv/gv_injection.vert.spv")
+                                                   .set_fragment_shader("gi/lpv/gv_injection.frag.spv")
                                                    .set_depth_state(
                                                        {.enable_depth_test = VK_FALSE, .enable_depth_write = VK_FALSE}
                                                    )
@@ -151,9 +151,9 @@ namespace render {
                                                      .set_topology(VK_PRIMITIVE_TOPOLOGY_POINT_LIST)
                                                      .use_imgui_vertex_layout()
                                                      .set_vertex_shader(
-                                                         "shaders/gi/lpv/inject_scene_depth_into_gv.vert.spv")
+                                                         "gi/lpv/inject_scene_depth_into_gv.vert.spv")
                                                      .set_fragment_shader(
-                                                         "shaders/gi/lpv/inject_scene_depth_into_gv.frag.spv")
+                                                         "gi/lpv/inject_scene_depth_into_gv.frag.spv")
                                                      .set_depth_state(
                                                          {.enable_depth_test = VK_FALSE, .enable_depth_write = VK_FALSE}
                                                      )
@@ -175,8 +175,8 @@ namespace render {
                                                      .build();
 
         lpv_render_shader = backend.begin_building_pipeline("LPV Rendering")
-                                   .set_vertex_shader("shaders/common/fullscreen.vert.spv")
-                                   .set_fragment_shader("shaders/gi/lpv/overlay.frag.spv")
+                                   .set_vertex_shader("common/fullscreen.vert.spv")
+                                   .set_fragment_shader("gi/lpv/overlay.frag.spv")
                                    .set_depth_state(
                                        {
                                            .enable_depth_write = false,
@@ -187,9 +187,9 @@ namespace render {
 
         vpl_visualization_pipeline = backend.begin_building_pipeline("VPL Visualization")
                                             .set_topology(VK_PRIMITIVE_TOPOLOGY_POINT_LIST)
-                                            .set_vertex_shader("shaders/gi/lpv/visualize_vpls.vert.spv")
-                                            .set_geometry_shader("shaders/gi/lpv/visualize_vpls.geom.spv")
-                                            .set_fragment_shader("shaders/gi/lpv/visualize_vpls.frag.spv")
+                                            .set_vertex_shader("gi/lpv/visualize_vpls.vert.spv")
+                                            .set_geometry_shader("gi/lpv/visualize_vpls.geom.spv")
+                                            .set_fragment_shader("gi/lpv/visualize_vpls.frag.spv")
                                             .set_depth_state({.enable_depth_write = false})
                                             .build();
 
@@ -307,8 +307,8 @@ namespace render {
 
         if(fog_pipeline == nullptr) {
             fog_pipeline = backend.begin_building_pipeline("fog")
-                                  .set_vertex_shader("shaders/common/fullscreen.vert.spv")
-                                  .set_fragment_shader("shaders/gi/lpv/fog.frag.spv")
+                                  .set_vertex_shader("common/fullscreen.vert.spv")
+                                  .set_fragment_shader("gi/lpv/fog.frag.spv")
                                   .set_blend_mode(BlendMode::Mix)
                                   .build();
         }
@@ -1141,8 +1141,8 @@ namespace render {
         auto& backend = RenderBackend::get();
         if(gv_visualization_pipeline == nullptr) {
             gv_visualization_pipeline = backend.begin_building_pipeline("gv_visualization")
-                                               .set_vertex_shader("shaders/common/fullscreen.vert.spv")
-                                               .set_fragment_shader("shaders/gi/lpv/gv_debug.frag.spv")
+                                               .set_vertex_shader("common/fullscreen.vert.spv")
+                                               .set_fragment_shader("gi/lpv/gv_debug.frag.spv")
                                                .set_depth_state(
                                                    {.enable_depth_test = false, .enable_depth_write = false})
                                                .build();

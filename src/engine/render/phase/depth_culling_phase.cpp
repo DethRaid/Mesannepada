@@ -19,7 +19,7 @@ namespace render {
         auto& backend = RenderBackend::get();
         auto& pipeline_cache = backend.get_pipeline_cache();
 
-        hi_z_culling_shader = pipeline_cache.create_pipeline("shaders/culling/hi_z_culling.comp.spv");
+        hi_z_culling_shader = pipeline_cache.create_pipeline("culling/hi_z_culling.comp.spv");
 
         //add a extension struct to enable Min mode
         VkSamplerReductionModeCreateInfoEXT create_info_reduction = {

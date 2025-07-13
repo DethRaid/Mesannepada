@@ -14,7 +14,9 @@ project(mesannepada
 # set(CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} /fsanitize=address")
 
 # Set up known folders
+# Directory for build tooling like the shaders compile script
 set(SAH_TOOLS_DIR "${CMAKE_CURRENT_LIST_DIR}/tools")
+# Directory where the game's data is stored
 set(SAH_DATA_DIR "${CMAKE_CURRENT_LIST_DIR}/data")
 set(SAH_OUTPUT_DIR "${CMAKE_BINARY_DIR}/out")
 

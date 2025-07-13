@@ -167,6 +167,10 @@ void SystemInterface::flush_all_loggers() {
     }
 }
 
+std::filesystem::path SystemInterface::get_shaders_folder() const {
+    return exe_folder / "shaders";
+}
+
 std::filesystem::path SystemInterface::get_data_folder() const {
     return exe_folder / "data";
 }

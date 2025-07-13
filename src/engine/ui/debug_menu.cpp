@@ -272,6 +272,32 @@ void DebugUI::draw_debug_window() {
     ImGui::End();
 }
 
+void DebugUI::draw_scene_unload_confirmation() {
+    if(!show_scene_confirmation) {
+        return;
+    }
+
+    auto& engine = Engine::get();
+    if(ImGui::Begin("Are you sure?", &show_scene_confirmation)) {
+        ImGui::Text("Scene %s has unsaved changes - are you sure you want to unload it?", selected_scene.c_str());
+        if(ImGui::Button("Yes I'm sure")) {
+            engine.unload_scene(selected_scene);
+        }
+        ImGui::SameLine();
+        if(ImGui::Button("Actually, save it first")) {
+            const auto scene_path = Engine::get_scene_folder() / selected_scene.c_str();
+            auto& scene = engine.get_scene(selected_scene);
+            scene.write_to_file(scene_path);
+            engine.unload_scene(selected_scene);
+        }
+        ImGui::SameLine();
+        if(ImGui::Button("Forget it")) {
+            show_scene_confirmation = false;
+        }
+    }
+    ImGui::End();
+}
+
 void DebugUI::draw_taa_menu() {
     ImGui::Text("TAA");
     ImGui::Separator();
@@ -418,10 +444,7 @@ void DebugUI::load_selected_model() {
 
     auto& engine = Engine::get();
 
-    auto& scene = engine.get_main_scene();
-    if(!selected_scene.empty()) {
-        scene = engine.get_scene(selected_scene);
-    }
+    auto& scene = selected_scene.empty() ? engine.get_environment_scene() : engine.get_scene(selected_scene);
 
     const auto& obj = scene.add_object(filename, {}, true);
     const auto new_model = obj.entity;
@@ -447,7 +470,7 @@ void DebugUI::load_selected_model() {
 }
 
 void DebugUI::draw_world_and_scene_window() {
-    const auto& engine = Engine::get();
+    auto& engine = Engine::get();
 
     if(ImGui::Begin("Scene Views")) {
         if(ImGui::BeginTabBar("SceneSelection")) {
@@ -473,19 +496,47 @@ void DebugUI::draw_world_and_scene_window() {
                     loaded_scene_names.emplace_back(name);
                 }
 
-                TODO: Get a list of all scenes, from data/game/scenes. Show them all in a list. Each one needs a button
-                to load/unload it, and a button to make it the active scene
+                auto all_scene_names = eastl::vector<eastl::string>{};
+                const auto scenes_folder = Engine::get_scene_folder();
+                for(auto const& dir_entry : std::filesystem::directory_iterator{scenes_folder}) {
+                    const auto& path = dir_entry.path();
+                    if(dir_entry.is_regular_file() && path.extension() == ".sscene") {
+                        all_scene_names.emplace_back(path.filename().string().c_str());
+                    }
+                }
 
-                Would also be cool to auto-save scenes after we edit them in-editor, if it doesn't take too long
-
-                eastl::sort(loaded_scene_names.begin(), loaded_scene_names.end());
+                eastl::sort(all_scene_names.begin(), all_scene_names.end());
 
                 if(ImGui::Button("Clear selected scene")) {
                     selected_scene = "";
                 }
 
-                for(const auto& name : loaded_scene_names) {
-                    if(ImGui::Button(name.c_str())) {
+                for(const auto& name : all_scene_names) {
+                    const auto is_loaded = eastl::find(loaded_scene_names.begin(), loaded_scene_names.end(), name)
+                                           != loaded_scene_names.end();
+                    if(is_loaded) {
+                        if(ImGui::Button("Unload")) {
+                            const auto& scene = engine.get_scene(name);
+                            if(scene.is_dirty()) {
+                                show_scene_confirmation = true;
+                            } else {
+                                engine.unload_scene(name);
+                            }
+                        }
+                    } else {
+                        if(ImGui::Button("Load  ")) {
+                            engine.load_scene(name);
+                        }
+                    }
+
+                    ImGui::SameLine();
+
+                    auto display_name = name;
+                    if(name == selected_scene) {
+                        display_name = format("%s*", name.c_str());
+                    }
+
+                    if(ImGui::Button(display_name.c_str())) {
                         selected_scene = name;
                     }
                 }
@@ -498,6 +549,8 @@ void DebugUI::draw_world_and_scene_window() {
     }
 
     ImGui::End();
+
+    draw_scene_unload_confirmation();
 }
 
 void DebugUI::draw_entity_editor_window() {

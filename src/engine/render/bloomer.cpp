@@ -20,8 +20,8 @@ namespace render {
         auto& backend = RenderBackend::get();
         auto& pipeline_cache = backend.get_pipeline_cache();
 
-        downsample_shader = pipeline_cache.create_pipeline("shaders/postprocessing/bloom_downsample.comp.spv");
-        upsample_shader = pipeline_cache.create_pipeline("shaders/postprocessing/bloom_upsample.comp.spv");
+        downsample_shader = pipeline_cache.create_pipeline("postprocessing/bloom_downsample.comp.spv");
+        upsample_shader = pipeline_cache.create_pipeline("postprocessing/bloom_upsample.comp.spv");
 
         bilinear_sampler = backend.get_global_allocator().get_sampler(
             {

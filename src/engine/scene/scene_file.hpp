@@ -38,6 +38,16 @@ public:
 
     Scene();
 
+    Scene(const Scene& other) = delete;
+
+    Scene& operator=(const Scene& other) = delete;
+
+    Scene(Scene&& old) noexcept;
+
+    Scene& operator=(Scene&& old) noexcept;
+
+    ~Scene();
+
     /**
      * Writes a SceneFile to disk
      */
@@ -63,6 +73,7 @@ public:
     template<typename Archive>
     void save(Archive& ar) {
         serialization::serialize<true>(ar, entt::meta_any(scene_objects));
+        dirty = false;
     }
 
     template<typename Archive>
@@ -75,7 +86,21 @@ public:
      */
     SceneObject* find_object(eastl::string_view name);
 
+    bool is_dirty() const {
+        return dirty;
+    }
+
+    /**
+     * Deletes all the entities that represent the SceneObjects
+     */
+    void remove_from_world();
+
 private:
+    /**
+     * Whether or not the scene ahs been modified since last being saved
+     */
+    bool dirty = false;
+
     /**
      * A map from the filepath an object was loaded from to information about it in the scene
      *

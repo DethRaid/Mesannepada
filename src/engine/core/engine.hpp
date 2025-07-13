@@ -76,6 +76,8 @@ public:
 
     const World& get_world() const;
 
+    static std::filesystem::path get_scene_folder();
+
     void create_scene(const eastl::string& name);
 
     /**
@@ -85,12 +87,18 @@ public:
     bool load_scene(const eastl::string& name);
 
     /**
+     * Unloads the scene with the specified name. Does not attempt to save it - editor tool should check if a scene is
+     * dirty before unloading
+     */
+    void unload_scene(const eastl::string& name);
+
+    /**
      * Retrieves the main scene. This is the "bones" of the world - terrain, buildings, faraway geo, etc
      */
-    Scene& get_main_scene();
+    Scene& get_environment_scene();
 
     template<class Engine>
-    constexpr auto&& get_scene(this Engine&& self, const eastl::string& name) {
+    Scene& get_scene(this Engine&& self, const eastl::string& name) {
         return self.loaded_scenes.at(name);
     }
 

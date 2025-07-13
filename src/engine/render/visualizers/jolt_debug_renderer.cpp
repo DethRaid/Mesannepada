@@ -14,14 +14,14 @@ namespace render {
         Initialize();
 
         jolt_debug_pipeline = RenderBackend::get().begin_building_pipeline("Jolt Debug")
-            .set_vertex_shader("shaders/jolt/debug.vert.spv")
-            .set_fragment_shader("shaders/jolt/debug.frag.spv")
+            .set_vertex_shader("jolt/debug.vert.spv")
+            .set_fragment_shader("jolt/debug.frag.spv")
             .add_dynamic_state(VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY)
             .build();
 
         mesh_debug_pipeline = RenderBackend::get().begin_building_pipeline("Jolt Geometry Debug")
-            .set_vertex_shader("shaders/jolt/mesh.vert.spv")
-            .set_fragment_shader("shaders/jolt/mesh.frag.spv")
+            .set_vertex_shader("jolt/mesh.vert.spv")
+            .set_fragment_shader("jolt/mesh.frag.spv")
             .add_dynamic_state(VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY)
             .add_dynamic_state(VK_DYNAMIC_STATE_POLYGON_MODE_EXT)
             .build();
