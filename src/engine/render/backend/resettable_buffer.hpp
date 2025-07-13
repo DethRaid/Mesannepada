@@ -1,6 +1,7 @@
 #pragma once
 #include "handles.hpp"
 #include "resource_allocator.hpp"
+#include "core/string_utils.hpp"
 
 namespace render {
     class RenderGraph;
@@ -11,7 +12,7 @@ namespace render {
      */
     struct ResettableBuffer {
         template <typename DataType>
-        static ResettableBuffer create(std::string_view name, ResourceAllocator& allocator, DataType initial_data);
+        static ResettableBuffer create(eastl::string_view name, ResourceAllocator& allocator, DataType initial_data);
 
         BufferHandle buffer;
 
@@ -24,12 +25,12 @@ namespace render {
 
     template <typename DataType>
     ResettableBuffer ResettableBuffer::create(
-        const std::string_view name, ResourceAllocator& allocator, DataType initial_data
+        const eastl::string_view name, ResourceAllocator& allocator, DataType initial_data
     ) {
-        auto result = ResettableBuffer{
-            .buffer = allocator.create_buffer(std::string{name}, sizeof(DataType), BufferUsage::StorageBuffer),
+        const auto result = ResettableBuffer{
+            .buffer = allocator.create_buffer(name, sizeof(DataType), BufferUsage::StorageBuffer),
             .initial_value_buffer = allocator.create_buffer(
-                fmt::format("{} initial value", name),
+                format("%s initial value", name),
                 sizeof(DataType),
                 BufferUsage::StagingBuffer),
             .data_size = sizeof(DataType)

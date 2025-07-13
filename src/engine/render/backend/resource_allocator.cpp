@@ -47,7 +47,7 @@ namespace render {
         }
     }
 
-    TextureHandle ResourceAllocator::create_texture(const std::string& name, const TextureCreateInfo& create_info) {
+    TextureHandle ResourceAllocator::create_texture(const eastl::string_view name, const TextureCreateInfo& create_info) {
         const auto& device = backend.get_device();
 
         VkImageUsageFlags vk_usage = VK_IMAGE_USAGE_SAMPLED_BIT | create_info.usage_flags;
@@ -156,13 +156,16 @@ namespace render {
                 },
             };
             result = vkCreateImageView(device, &rtv_create_info, nullptr, &texture.attachment_view);
+            if(result != VK_SUCCESS) {
+                throw std::runtime_error{fmt::format("Could not create image view")};
+            }
 
             const auto rtv_name = fmt::format("{} RTV", name);
-            backend.set_object_name(texture.attachment_view, std::string{rtv_name.c_str()});
+            backend.set_object_name(texture.attachment_view, rtv_name);
         }
 
-        backend.set_object_name(texture.image, name);
-        backend.set_object_name(texture.image_view, std::string{image_view_name.c_str()});
+        backend.set_object_name(texture.image, std::string{name.data(), name.size()});
+        backend.set_object_name(texture.image_view, image_view_name);
 
         texture.mip_views.reserve(create_info.num_mips);
         for(auto i = 0u; i < create_info.num_mips; i++) {
@@ -186,16 +189,16 @@ namespace render {
             }
 
             const auto view_name = fmt::format("{} mip {}", name, i);
-            backend.set_object_name(view, std::string{view_name.c_str()});
+            backend.set_object_name(view, view_name);
 
             texture.mip_views.emplace_back(view);
         }
 
-        auto handle = &(*textures.emplace(std::move(texture)));
+        auto handle = &*textures.emplace(std::move(texture));
         return handle;
     }
 
-    TextureHandle ResourceAllocator::create_cubemap(const std::string& name, const CubemapCreateInfo& create_info) {
+    TextureHandle ResourceAllocator::create_cubemap(const eastl::string_view name, const CubemapCreateInfo& create_info) {
         const auto& device = backend.get_device();
 
         VkImageUsageFlags vk_usage = VK_IMAGE_USAGE_SAMPLED_BIT;
@@ -289,15 +292,15 @@ namespace render {
 
         texture.attachment_view = texture.image_view;
 
-        backend.set_object_name(texture.image, name);
-        backend.set_object_name(texture.image_view, std::string{image_view_name.c_str()});
+        backend.set_object_name(texture.image, std::string{name.data(), name.size()});
+        backend.set_object_name(texture.image_view, image_view_name);
 
-        auto handle = &(*textures.emplace(std::move(texture)));
+        auto handle = &*textures.emplace(std::move(texture));
         return handle;
     }
 
     TextureHandle ResourceAllocator::create_volume_texture(
-        const std::string& name, VkFormat format, glm::uvec3 resolution,
+        const eastl::string_view name, VkFormat format, glm::uvec3 resolution,
         uint32_t num_mips, TextureUsage usage
     ) {
         const auto& device = backend.get_device();
@@ -409,12 +412,12 @@ namespace render {
             throw std::runtime_error{fmt::format("Could not create image view {} RTV", name)};
         }
 
-        backend.set_object_name(texture.image, name);
-        backend.set_object_name(texture.image_view, std::string{image_view_name.c_str()});
+        backend.set_object_name(texture.image, std::string{name.data(), name.size()});
+        backend.set_object_name(texture.image_view, image_view_name);
         const auto rtv_name = fmt::format("{} RTV", name);
-        backend.set_object_name(texture.attachment_view, std::string{rtv_name.c_str()});
+        backend.set_object_name(texture.attachment_view, rtv_name);
 
-        auto handle = &(*textures.emplace(std::move(texture)));
+        auto handle = &*textures.emplace(std::move(texture));
         return handle;
     }
 
@@ -424,10 +427,10 @@ namespace render {
         }
 
         const auto image_view_name = fmt::format("{} View", new_texture.name);
-        backend.set_object_name(new_texture.image, new_texture.name);
+        backend.set_object_name(new_texture.image, new_texture.name.c_str());
         backend.set_object_name(new_texture.image_view, std::string{image_view_name.c_str()});
 
-        auto handle = &(*textures.emplace(std::move(new_texture)));
+        const auto handle = &*textures.emplace(std::move(new_texture));
         return handle;
     }
 
@@ -439,7 +442,7 @@ namespace render {
         cur_frame_zombies.emplace_back(handle);
     }
 
-    BufferHandle ResourceAllocator::create_buffer(const std::string& name, const size_t size, const BufferUsage usage) {
+    BufferHandle ResourceAllocator::create_buffer(const eastl::string_view name, const size_t size, const BufferUsage usage) {
         logger->trace("Creating buffer {} with size {} and usage {}", name, size, to_string(usage));
 
         const auto& device = backend.get_device();
@@ -520,7 +523,7 @@ namespace render {
         };
 
         GpuBuffer buffer;
-        auto result = vmaCreateBuffer(
+        const auto result = vmaCreateBuffer(
             vma,
             &create_info,
             &vma_create_info,
@@ -532,7 +535,7 @@ namespace render {
             throw std::runtime_error{fmt::format("Could not create buffer {}", name)};
         }
 
-        backend.set_object_name(buffer.buffer, name);
+        backend.set_object_name(buffer.buffer, std::string{name.data(), name.size()});
 
         buffer.name = name;
         buffer.create_info = create_info;
@@ -543,7 +546,7 @@ namespace render {
         };
         buffer.address = vkGetBufferDeviceAddress(device, &info);
 
-        auto handle = &(*buffers.emplace(std::move(buffer)));
+        const auto handle = &*buffers.emplace(std::move(buffer));
         return handle;
     }
 
@@ -558,7 +561,7 @@ namespace render {
     }
 
     AccelerationStructureHandle ResourceAllocator::create_acceleration_structure(
-        const uint64_t acceleration_structure_size, VkAccelerationStructureTypeKHR type
+        const uint64_t acceleration_structure_size, const VkAccelerationStructureTypeKHR type
     ) {
         ZoneScoped;
         AccelerationStructure as;
@@ -588,7 +591,7 @@ namespace render {
             backend.get_device(),
             &acceleration_device_address_info);
 
-        auto handle = &(*acceleration_structures.emplace(as));
+        const auto handle = &*acceleration_structures.emplace(as);
         return handle;
     }
 
@@ -649,7 +652,7 @@ namespace render {
         {
             ZoneScopedN("Buffers");
             auto& zombie_buffers = buffer_zombie_lists[frame_idx];
-            for(auto handle : zombie_buffers) {
+            for(const auto handle : zombie_buffers) {
                 vmaDestroyBuffer(vma, handle->buffer, handle->allocation);
 
                 buffers.erase(buffers.get_iterator(handle));
@@ -660,7 +663,7 @@ namespace render {
         {
             ZoneScopedN("textures");
             auto& zombie_textures = texture_zombie_lists[frame_idx];
-            for(auto handle : zombie_textures) {
+            for(const auto handle : zombie_textures) {
                 vkDestroyImageView(device, handle->image_view, nullptr);
 
                 switch(handle->type) {

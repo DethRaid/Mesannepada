@@ -3,6 +3,7 @@
 #include <glm/common.hpp>
 #include <glm/exponential.hpp>
 
+#include "core/string_utils.hpp"
 #include "core/system_interface.hpp"
 #include "render/indirect_drawing_utils.hpp"
 #include "render/material_pipelines.hpp"
@@ -13,13 +14,14 @@
 #include "render/backend/pipeline_cache.hpp"
 #include "render/backend/render_backend.hpp"
 #include "render/backend/resource_allocator.hpp"
+#include "resources/resource_path.hpp"
 
 namespace render {
     DepthCullingPhase::DepthCullingPhase() {
         auto& backend = RenderBackend::get();
         auto& pipeline_cache = backend.get_pipeline_cache();
 
-        hi_z_culling_shader = pipeline_cache.create_pipeline("culling/hi_z_culling.comp.spv");
+        hi_z_culling_shader = pipeline_cache.create_pipeline("shader://culling/hi_z_culling.comp.spv"_res);
 
         //add a extension struct to enable Min mode
         VkSamplerReductionModeCreateInfoEXT create_info_reduction = {
@@ -169,7 +171,7 @@ namespace render {
 
         // All the primitives that are visible this frame, whether they're newly visible or not
         const auto this_frame_visible_objects = allocator.create_buffer(
-            fmt::format("Frame {} visibility mask", backend.get_current_gpu_frame()),
+            format("Frame %d visibility mask", backend.get_current_gpu_frame()),
             sizeof(uint32_t) * num_primitives,
             BufferUsage::StorageBuffer
         );

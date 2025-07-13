@@ -195,8 +195,7 @@ void DebugUI::draw_editor_menu() {
         if(ImGui::BeginMenu(menu_name.c_str())) {
             if(ImGui::MenuItem("Save", "CTRL+S")) {
                 auto& scene = Engine::get().get_scene(selected_scene);
-                scene.write_to_file(
-                    SystemInterface::get().get_data_folder() / "game" / "scenes" / selected_scene.c_str());
+                scene.write_to_file(ResourcePath{format("game://scenes/%s", selected_scene.c_str())});
             }
 
             if(ImGui::MenuItem("Open", "CTRL+O")) {
@@ -285,7 +284,7 @@ void DebugUI::draw_scene_unload_confirmation() {
         }
         ImGui::SameLine();
         if(ImGui::Button("Actually, save it first")) {
-            const auto scene_path = Engine::get_scene_folder() / selected_scene.c_str();
+            const auto scene_path = ResourcePath{format("game://scenes/%s", selected_scene.c_str())};
             auto& scene = engine.get_scene(selected_scene);
             scene.write_to_file(scene_path);
             engine.unload_scene(selected_scene);
@@ -440,7 +439,7 @@ void DebugUI::draw_gi_menu() {
 
 void DebugUI::load_selected_model() {
     const auto filenames = open_model_dialog.GetSelection();
-    const auto filename = std::filesystem::path{filenames.begin()->second};
+    const auto filename = ResourcePath{filenames.begin()->second};
 
     auto& engine = Engine::get();
 

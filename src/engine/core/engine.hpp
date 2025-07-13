@@ -32,10 +32,10 @@ public:
     ~Engine();
 
     entt::handle add_model_to_world(
-        const std::filesystem::path& model_path, const eastl::optional<entt::handle>& parent_node = eastl::nullopt
+        const ResourcePath& model_path, const eastl::optional<entt::handle>& parent_node = eastl::nullopt
         );
 
-    entt::handle add_prefab_to_world(const std::filesystem::path& prefab_path, const float4x4& transform);
+    entt::handle add_prefab_to_world(const ResourcePath& prefab_path, const float4x4& transform);
 
     template<typename PlayerType>
     void instantiate_player();
@@ -97,10 +97,9 @@ public:
      */
     Scene& get_environment_scene();
 
-    template<class Engine>
-    Scene& get_scene(this Engine&& self, const eastl::string& name) {
-        return self.loaded_scenes.at(name);
-    }
+    Scene& get_scene(const eastl::string& name);
+
+    const Scene& get_scene(const eastl::string& name) const;
 
     const eastl::unordered_map<eastl::string, Scene>& get_loaded_scenes() const;
 

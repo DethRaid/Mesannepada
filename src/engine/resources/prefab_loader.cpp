@@ -12,17 +12,18 @@ static std::shared_ptr<spdlog::logger> logger;
 
 using namespace entt::literals;
 
-entt::handle PrefabLoader::load_prefab(const std::filesystem::path& prefab_file, World& world,
+entt::handle PrefabLoader::load_prefab(const ResourcePath& prefab_file, World& world,
                                        const float4x4& transform) {
     if(logger == nullptr) {
         logger = SystemInterface::get().get_logger("PrefabLoader");
     }
 
     simdjson::ondemand::parser parser;
-    const auto json = simdjson::padded_string::load(prefab_file.string());
+    const auto absolute_prefab_path = prefab_file.to_filepath();
+    const auto json = simdjson::padded_string::load(absolute_prefab_path.string());
     auto prefab = parser.iterate(json);
     if(prefab.error() != simdjson::error_code::SUCCESS) {
-        logger->error("Could not load file {}: {}", prefab_file.string(), simdjson::error_message(prefab.error()));
+        logger->error("Could not load file {}: {}", prefab_file, simdjson::error_message(prefab.error()));
     }
 
     auto& resource_loader = Engine::get().get_resource_loader();
@@ -30,7 +31,7 @@ entt::handle PrefabLoader::load_prefab(const std::filesystem::path& prefab_file,
     entt::handle entity;
     std::string_view root_entity_name;
     if(prefab["root_entity"].get_string(root_entity_name) == simdjson::SUCCESS) {
-        const auto& model = resource_loader.get_model(root_entity_name);
+        const auto& model = resource_loader.get_model(ResourcePath{root_entity_name});
         entity = model->add_to_world(world, eastl::nullopt);
     } else {
         entity = world.create_entity();

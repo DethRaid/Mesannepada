@@ -38,8 +38,8 @@ namespace render {
         const auto& backend = RenderBackend::get();
         if(overlay_pso == nullptr) {
             overlay_pso = backend.begin_building_pipeline("rtgi_application")
-                                 .set_vertex_shader("common/fullscreen.vert.spv")
-                                 .set_fragment_shader("gi/rtgi/overlay.frag.spv")
+                                 .set_vertex_shader("shader://common/fullscreen.vert.spv"_res)
+                                 .set_fragment_shader("shader://gi/rtgi/overlay.frag.spv"_res)
                                  .set_depth_state(
                                  {
                                      .enable_depth_write = false,
@@ -51,8 +51,8 @@ namespace render {
 
         if(filter_pso == nullptr) {
             filter_pso = backend.begin_building_pipeline("rtgi_spatial_filter")
-                                .set_vertex_shader("common/fullscreen.vert.spv")
-                                .set_fragment_shader("gi/rtgi/spatial_filter.frag.spv")
+                                .set_vertex_shader("shader://common/fullscreen.vert.spv"_res)
+                                .set_fragment_shader("shader://gi/rtgi/spatial_filter.frag.spv"_res)
                                 .set_depth_state(
                                 {
                                     .enable_depth_write = false,
@@ -158,7 +158,7 @@ namespace render {
         }
         if(rtgi_pipeline == nullptr) {
             rtgi_pipeline = backend.get_pipeline_cache()
-                                   .create_ray_tracing_pipeline("gi/rtgi/rtgi.rt.spv");
+                                   .create_ray_tracing_pipeline("shader://gi/rtgi/rtgi.rt.spv"_res);
         }
 
         if(denoiser) {

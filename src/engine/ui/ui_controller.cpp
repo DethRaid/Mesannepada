@@ -17,14 +17,14 @@
 namespace ui {
     const static eastl::string CONTEXT_NAME = "game_ui";
     static constexpr auto FONT_NAMES = eastl::array{
-        "data/ui/shared/LatoLatin-Regular.ttf",
-        "data/ui/shared/LatoLatin-Italic.ttf",
-        "data/ui/shared/LatoLatin-Bold.ttf",
-        "data/ui/shared/LatoLatin-BoldItalic.ttf",
-        "data/ui/shared/NotoEmoji-Regular.ttf",
+        "ui/shared/LatoLatin-Regular.ttf",
+        "ui/shared/LatoLatin-Italic.ttf",
+        "ui/shared/LatoLatin-Bold.ttf",
+        "ui/shared/LatoLatin-BoldItalic.ttf",
+        "ui/shared/NotoEmoji-Regular.ttf",
     };
 
-    const static auto FALLBACK_FONT = "data/fonts/NotoSansCuneiform-Regular.ttf";
+    const static auto FALLBACK_FONT = "fonts/NotoSansCuneiform-Regular.ttf";
 
     static std::shared_ptr<spdlog::logger> logger = nullptr;
 
@@ -69,13 +69,13 @@ namespace ui {
         }
 
         for(const auto& font_name : FONT_NAMES) {
-            result = Rml::LoadFontFace(font_name);
+            result = Rml::LoadFontFace(SystemInterface::get().get_data_folder() / font_name);
             if(!result) {
                 logger->error("Could not load font {}", font_name);
             }
         }
 
-        result = Rml::LoadFontFace(FALLBACK_FONT, true);
+        result = Rml::LoadFontFace(SystemInterface::get().get_data_folder() / FALLBACK_FONT, true);
         if(!result) {
             logger->error("Could not load fallback font {}", FALLBACK_FONT);
         }

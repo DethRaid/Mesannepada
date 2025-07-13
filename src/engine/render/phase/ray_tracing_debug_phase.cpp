@@ -36,7 +36,7 @@ namespace render {
         auto& backend = RenderBackend::get();
 
         if (pipeline == nullptr) {
-            pipeline = backend.get_pipeline_cache().create_ray_tracing_pipeline("debug/ray_tracing.rt.raygen.spv");
+            pipeline = backend.get_pipeline_cache().create_ray_tracing_pipeline("shader://debug/ray_tracing.rt.raygen.spv"_res);
         }
 
         auto set = backend.get_transient_descriptor_allocator().build_set(pipeline, 0)

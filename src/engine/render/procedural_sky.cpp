@@ -44,15 +44,15 @@ namespace render {
 
         auto& pipelines = backend.get_pipeline_cache();
 
-        transmittance_lut_pso = pipelines.create_pipeline("sky/transmittance_lut.comp.spv");
+        transmittance_lut_pso = pipelines.create_pipeline("shader://sky/transmittance_lut.comp.spv"_res);
 
-        multiscattering_lut_pso = pipelines.create_pipeline("sky/multiscattering_lut.comp.spv");
+        multiscattering_lut_pso = pipelines.create_pipeline("shader://sky/multiscattering_lut.comp.spv"_res);
 
-        sky_view_lut_pso = pipelines.create_pipeline("sky/sky_view_lut.comp.spv");
+        sky_view_lut_pso = pipelines.create_pipeline("shader://sky/sky_view_lut.comp.spv"_res);
 
         sky_application_pso = backend.begin_building_pipeline("Hillaire Sky")
-            .set_vertex_shader("common/fullscreen.vert.spv")
-            .set_fragment_shader("sky/sky_unified.frag.spv")
+            .set_vertex_shader("shader://common/fullscreen.vert.spv"_res)
+            .set_fragment_shader("shader://sky/sky_unified.frag.spv"_res)
             .set_depth_state(
                 {
                     .enable_depth_write = false,
@@ -68,10 +68,8 @@ namespace render {
                 .maxLod = VK_LOD_CLAMP_NONE,
             });
 
-        const auto occlusion_miss_shader = *SystemInterface::get().load_file(
-            SystemInterface::get().get_shaders_folder() / "sky/sky_unified_occlusion.miss.spv");
-        const auto gi_miss_shader = *SystemInterface::get().load_file(
-            SystemInterface::get().get_shaders_folder() / "sky/sky_unified_gi.miss.spv");
+        const auto occlusion_miss_shader = *SystemInterface::get().load_file("shader://sky/sky_unified_occlusion.miss.spv"_res);
+        const auto gi_miss_shader = *SystemInterface::get().load_file("shader://sky/sky_unified_gi.miss.spv"_res);
         backend.get_pipeline_cache().add_miss_shaders(occlusion_miss_shader, gi_miss_shader);
     }
 

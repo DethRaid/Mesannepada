@@ -8,6 +8,7 @@
 
 #include "EASTL/fixed_vector.h"
 #include "resources/imodel.hpp"
+#include "resources/resource_path.hpp"
 #include "shared/prelude.h"
 
 namespace godot {
@@ -46,7 +47,7 @@ namespace godot {
      */
     class GodotScene final : public IModel {
     public:
-        static GodotScene load(const std::filesystem::path& filepath);
+        static GodotScene load(const ResourcePath& filepath);
 
         ~GodotScene() override = default;
 
@@ -58,7 +59,7 @@ namespace godot {
         eastl::optional<size_t> find_node(eastl::string_view path) const;
 
     private:
-        std::filesystem::path file_path;
+        ResourcePath file_path;
 
         Header header = {};
 

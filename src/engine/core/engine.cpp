@@ -5,6 +5,7 @@
 #include <tracy/Tracy.hpp>
 
 #include "animation/animation_event_component.hpp"
+#include "core/string_utils.hpp"
 #include "core/system_interface.hpp"
 #include "glm/gtx/matrix_decompose.hpp"
 #include "player/first_person_player.hpp"
@@ -90,22 +91,22 @@ Engine::~Engine() {
 }
 
 entt::handle Engine::add_model_to_world(
-    const std::filesystem::path& model_path, const eastl::optional<entt::handle>& parent_node
+    const ResourcePath& model_path, const eastl::optional<entt::handle>& parent_node
     ) {
     ZoneScoped;
 
-    logger->info("Beginning import of model {}", model_path.string());
+    logger->info("Beginning import of model {}", model_path);
 
     const auto& imported_model = resource_loader.get_model(model_path);
 
     const auto model_root = imported_model->add_to_world(world, parent_node);
 
-    logger->info("Loaded model {}", model_path.string());
+    logger->info("Loaded model {}", model_path);
 
     return entt::handle{world.get_registry(), model_root};
 }
 
-entt::handle Engine::add_prefab_to_world(const std::filesystem::path& prefab_path, const float4x4& transform) {
+entt::handle Engine::add_prefab_to_world(const ResourcePath& prefab_path, const float4x4& transform) {
     return prefab_loader.load_prefab(prefab_path, world, transform);
 }
 
@@ -239,7 +240,7 @@ void Engine::create_scene(const eastl::string& name) {
 
 bool Engine::load_scene(const eastl::string& name) {
     try {
-        const auto scene_file_path = get_scene_folder() / name.c_str();
+        const auto scene_file_path = ResourcePath{format("game://scenes/%s", name.c_str())};
         auto scene = Scene::load_from_file(scene_file_path);
         scene.add_new_objects_to_world();
 
@@ -258,6 +259,16 @@ void Engine::unload_scene(const eastl::string& name) {
 
 Scene& Engine::get_environment_scene() {
     return get_scene("environment.sscene");
+}
+
+Scene& Engine::get_scene(const eastl::string& name) {
+    logger->debug("Searching for scene {}", name);
+    return loaded_scenes.at(name);
+}
+
+const Scene& Engine::get_scene(const eastl::string& name) const {
+    logger->debug("Searching for scene {}", name);
+    return loaded_scenes.at(name);
 }
 
 const eastl::unordered_map<eastl::string, Scene>& Engine::get_loaded_scenes() const {
@@ -311,7 +322,7 @@ void Engine::spawn_new_game_objects() {
         ) {
             const auto transform = registry.get<TransformComponent>(entity);
             // Replace this node with the prefab
-            const auto instance = add_prefab_to_world(spawn_prefab_comp.prefab_path.c_str(),
+            const auto instance = add_prefab_to_world(spawn_prefab_comp.prefab_path,
                                                       transform.get_local_to_world());
 
             eastl::string name = "Spawned Entity";

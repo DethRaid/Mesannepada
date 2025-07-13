@@ -7,21 +7,22 @@
 #include "render/backend/pipeline_cache.hpp"
 #include "render/backend/render_backend.hpp"
 #include "render/backend/render_graph.hpp"
+#include "resources/resource_path.hpp"
 
 namespace render {
     VRSAA::VRSAA() {
         auto& pipelines = RenderBackend::get().get_pipeline_cache();
         generate_shading_rate_image_shader = pipelines.create_pipeline(
-            "vrsaa/generate_shading_rate_image.comp.spv");
-        contrast_shader = pipelines.create_pipeline("vrsaa/contrast_detection.comp.spv");
+            "shader://vrsaa/generate_shading_rate_image.comp.spv"_res);
+        contrast_shader = pipelines.create_pipeline("shader://vrsaa/contrast_detection.comp.spv"_res);
 
         sampler = RenderBackend::get().get_global_allocator().get_sampler(
-            {
-                .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-                .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                .maxLod = VK_LOD_CLAMP_NONE,
-            });
+        {
+            .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+            .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+            .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+            .maxLod = VK_LOD_CLAMP_NONE,
+        });
     }
 
     void VRSAA::init(const glm::uvec2& resolution) {
@@ -37,43 +38,44 @@ namespace render {
             shading_rate_image->create_info.extent.width, shading_rate_image->create_info.extent.height
         };
         const auto set = RenderBackend::get().get_transient_descriptor_allocator()
-            .build_set(generate_shading_rate_image_shader, 0)
-            .bind(contrast_image)
-            .bind(shading_rate_image)
-            .bind(params_buffer)
-            .build();
+                                             .build_set(generate_shading_rate_image_shader, 0)
+                                             .bind(contrast_image)
+                                             .bind(shading_rate_image)
+                                             .bind(params_buffer)
+                                             .build();
 
         graph.add_compute_dispatch(
             ComputeDispatch<glm::vec2>{
-            .name = "Calculate shading rate",
-                .descriptor_sets = { set },
-                .num_workgroups = glm::uvec3{ glm::uvec2{resolution + glm::vec2{7}} / glm::uvec2{8}, 1 },
+                .name = "Calculate shading rate",
+                .descriptor_sets = {set},
+                .num_workgroups = glm::uvec3{glm::uvec2{resolution + glm::vec2{7}} / glm::uvec2{8}, 1},
                 .compute_shader = generate_shading_rate_image_shader
-        });
+            });
 
     }
 
     void VRSAA::measure_aliasing(
         RenderGraph& graph, const TextureHandle scene_color, const TextureHandle gbuffer_depth
-    ) const {
+        ) const {
         ZoneScoped;
 
         const auto set = RenderBackend::get().get_transient_descriptor_allocator().build_set(contrast_shader, 0)
-            .bind(scene_color, sampler)
-            .bind(gbuffer_depth, sampler)
-            .bind(contrast_image)
-            .build();
+                                             .bind(scene_color, sampler)
+                                             .bind(gbuffer_depth, sampler)
+                                             .bind(contrast_image)
+                                             .build();
 
-        const auto resolution = glm::vec2{ scene_color->create_info.extent.width, scene_color->create_info.extent.height };
+        const auto resolution = glm::vec2{scene_color->create_info.extent.width,
+                                          scene_color->create_info.extent.height};
 
         graph.add_compute_dispatch(
             ComputeDispatch<glm::vec2>{
-            .name = "Contrast",
-                .descriptor_sets = { set },
+                .name = "Contrast",
+                .descriptor_sets = {set},
                 .push_constants = resolution,
-                .num_workgroups = glm::uvec3{ glm::uvec2{resolution + glm::vec2{7}} / glm::uvec2{8}, 1 },
+                .num_workgroups = glm::uvec3{glm::uvec2{resolution + glm::vec2{7}} / glm::uvec2{8}, 1},
                 .compute_shader = contrast_shader
-        });
+            });
     }
 
     TextureHandle VRSAA::get_shading_rate_image() const {
@@ -83,7 +85,7 @@ namespace render {
     void VRSAA::create_contrast_image(const glm::vec2& resolution) {
         auto& allocator = RenderBackend::get().get_global_allocator();
 
-        if (contrast_image != nullptr) {
+        if(contrast_image != nullptr) {
             allocator.destroy_texture(contrast_image);
             contrast_image = nullptr;
         }
@@ -96,17 +98,17 @@ namespace render {
                 1,
                 TextureUsage::StorageImage
             }
-        );
+            );
     }
 
     void VRSAA::create_shading_rate_image(const glm::vec2& resolution) {
         auto& allocator = RenderBackend::get().get_global_allocator();
-        if (shading_rate_image != nullptr) {
+        if(shading_rate_image != nullptr) {
             allocator.destroy_texture(shading_rate_image);
         }
 
         const auto max_texel_size = RenderBackend::get().get_max_shading_rate_texel_size();
-        if (glm::length(max_texel_size) < 1) {
+        if(glm::length(max_texel_size) < 1) {
             spdlog::error("Max shading rate texel size is 0!");
             return;
         }
@@ -121,7 +123,7 @@ namespace render {
                 1,
                 TextureUsage::ShadingRateImage
             }
-        );
+            );
     }
 
     struct ShadingRateParams {
@@ -147,12 +149,12 @@ namespace render {
         auto shading_rates = backend.get_shading_rates();
         assert(shading_rates.size() < 8);
         auto max = glm::uvec2{};
-        for (const auto& rate : shading_rates) {
+        for(const auto& rate : shading_rates) {
             max.x = std::max(max.x, rate.x);
             max.y = std::max(max.y, rate.y);
         }
         const auto num_shading_rates = static_cast<uint32_t>(shading_rates.size());
-        if (shading_rates.size() < 8) {
+        if(shading_rates.size() < 8) {
             shading_rates.resize(8);
         }
 

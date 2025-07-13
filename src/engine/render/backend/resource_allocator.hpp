@@ -1,20 +1,20 @@
 #pragma once
 
+#include <plf_colony.h>
 #include <EASTL/array.h>
-#include <EASTL/vector.h>
+#include <EASTL/string.h>
 #include <EASTL/unordered_map.h>
-
+#include <EASTL/vector.h>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
-#include <plf_colony.h>
 
-#include "extern/cityhash/city_hash.hpp"
 #include "core/object_pool.hpp"
+#include "extern/cityhash/city_hash.hpp"
 #include "render/backend/acceleration_structure.hpp"
-#include "render/backend/gpu_texture.hpp"
-#include "render/backend/handles.hpp"
 #include "render/backend/buffer.hpp"
 #include "render/backend/constants.hpp"
+#include "render/backend/gpu_texture.hpp"
+#include "render/backend/handles.hpp"
 
 namespace render {
     struct RenderPass;
@@ -159,19 +159,19 @@ namespace render {
          * @param create_info Information about how to create the texture
          * @return A handle to the texture
          */
-        TextureHandle create_texture(const std::string& name, const TextureCreateInfo& create_info);
+        TextureHandle create_texture(eastl::string_view name, const TextureCreateInfo& create_info);
 
-        TextureHandle create_cubemap(const std::string& name, const CubemapCreateInfo& create_info);
+        TextureHandle create_cubemap(eastl::string_view name, const CubemapCreateInfo& create_info);
 
         TextureHandle create_volume_texture(
-            const std::string& name, VkFormat format, glm::uvec3 resolution, uint32_t num_mips, TextureUsage usage
+            eastl::string_view name, VkFormat format, glm::uvec3 resolution, uint32_t num_mips, TextureUsage usage
         );
 
         TextureHandle emplace_texture(GpuTexture&& new_texture);
 
         void destroy_texture(TextureHandle handle);
 
-        BufferHandle create_buffer(const std::string& name, size_t size, BufferUsage usage);
+        BufferHandle create_buffer(eastl::string_view name, size_t size, BufferUsage usage);
 
         void* map_buffer(BufferHandle buffer_handle) const;
 
@@ -216,8 +216,6 @@ namespace render {
         plf::colony<GpuTexture> textures;
         plf::colony<GpuBuffer> buffers;
         plf::colony<AccelerationStructure> acceleration_structures;
-
-        eastl::unordered_map<std::string, VkRenderPass> cached_render_passes;
 
         eastl::array<eastl::vector<BufferHandle>, num_in_flight_frames> buffer_zombie_lists;
         eastl::array<eastl::vector<TextureHandle>, num_in_flight_frames> texture_zombie_lists;

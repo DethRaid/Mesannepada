@@ -1,5 +1,5 @@
 {
-    "root_entity": "data/game/characters/SK_BaseSumerian.glb",
+    "root_entity": "game://characters/SK_BaseSumerian.glb",
     "components": [
         {
             "type": "ai::BehaviorTreeComponent"

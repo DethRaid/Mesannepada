@@ -52,7 +52,7 @@ static eastl::vector<StandardVertex> read_vertex_data(const fastgltf::Primitive&
 
 static eastl::vector<uint32_t> read_index_data(const fastgltf::Primitive& primitive, const fastgltf::Asset& model);
 
-static eastl::tuple<eastl::vector<u16vec4>, eastl::vector<float4>> read_skinning_data(
+static eastl::tuple<eastl::vector<u16vec4>, eastl::vector<float4> > read_skinning_data(
     const fastgltf::Primitive& primitive, const fastgltf::Asset& asset
     );
 
@@ -92,12 +92,14 @@ glm::mat4 get_node_to_parent_matrix(const fastgltf::Node& node) {
 }
 
 GltfModel::GltfModel(
-    std::filesystem::path filepath_in,
+    ResourcePath filepath_in,
     fastgltf::Asset&& model,
     render::SarahRenderer& renderer,
     ExtrasData extras_in
     ) :
-    filepath{std::move(filepath_in)}, cached_data_path{"cache" / filepath}, asset{std::move(model)},
+    filepath{std::move(filepath_in)},
+    cached_data_path{std::filesystem::path{"cache"} / filepath.get_path().c_str()},
+    asset{std::move(model)},
     extras{eastl::move(extras_in)} {
     if(logger == nullptr) {
         logger = SystemInterface::get().get_logger("GltfModel");
@@ -110,7 +112,7 @@ GltfModel::GltfModel(
         std::filesystem::create_directories(cached_data_path);
     }
 
-    logger->info("Beginning load of model {}", filepath.string());
+    logger->info("Beginning load of model {}", filepath);
 
     validate_model();
 
@@ -118,7 +120,7 @@ GltfModel::GltfModel(
 
     calculate_bounding_sphere_and_footprint();
 
-    logger->info("Loaded model {}", filepath.string());
+    logger->info("Loaded model {}", filepath);
 }
 
 GltfModel::~GltfModel() {
@@ -178,7 +180,8 @@ entt::handle GltfModel::add_nodes_to_world(World& world, const eastl::optional<e
 
             if(node.meshIndex) {
                 if(node.skinIndex) {
-                    logger->debug("Adding skeletal mesh component to entity {}", static_cast<uint32_t>(entity.entity()));
+                    logger->debug("Adding skeletal mesh component to entity {}",
+                                  static_cast<uint32_t>(entity.entity()));
                     add_skeletal_mesh_component(entity, node, node_index);
                 } else {
                     add_static_mesh_component(entity, node, node_index);
@@ -200,8 +203,7 @@ entt::handle GltfModel::add_nodes_to_world(World& world, const eastl::optional<e
     assert(asset.scenes[*asset.defaultScene].nodeIndices.size() == 1);
     const auto root_node_index = asset.scenes[*asset.defaultScene].nodeIndices[0];
     const auto root_entity = world_entities[root_node_index];
-    const auto filename_string = filepath.string();
-    root_entity.emplace<ImportedModelComponent>(filename_string.c_str(), world_entities);
+    root_entity.emplace<ImportedModelComponent>(filepath.to_string(), world_entities);
 
     // Add our top-level entities to the scene
     if(!parent_node) {
@@ -354,8 +356,7 @@ void GltfModel::add_collider_component(
             }
 
             body_settings.mGravityFactor = rigid_body.motion->gravityFactor;
-        }
-        {
+        } {
             ZoneScopedN("create_body");
             auto& physics_scene = Engine::get().get_physics_world();
             auto& body_interface = physics_scene.get_body_interface();
@@ -420,7 +421,7 @@ JPH::Ref<JPH::Shape> GltfModel::get_collider_for_node(
                                   / "bodies"
                                   / std::to_string(JPH_VERSION_ID)
                                   / std::to_string(node_index);
-    if(exists(cached_body_path) && last_write_time(cached_body_path) > last_write_time(filepath)) {
+    if(exists(cached_body_path) && last_write_time(cached_body_path) > last_write_time(filepath.to_filepath())) {
         shape = physics::load_shape(cached_body_path);
     }
 
@@ -791,7 +792,7 @@ void GltfModel::import_skins(AnimationSystem& animation_system) {
                 bone.children.emplace_back(child_idx);
             }
         }
-         
+
         // Fix up children to refer to bones, not nodes
         for(auto& bone : skeleton.bones) {
             for(auto& child_idx : bone.children) {
@@ -937,7 +938,7 @@ void GltfModel::import_single_texture(
     const auto& image = asset.images[image_index];
 
     auto image_data = eastl::vector<std::byte>{};
-    auto image_name = std::filesystem::path{image.name};
+    auto image_name = ResourcePath{ResourcePath::Scope::File, image.name};
     auto mime_type = fastgltf::MimeType::None;
 
     std::visit(
@@ -960,21 +961,23 @@ void GltfModel::import_single_texture(
                 logger->info("Loading texture {}", uri);
 
                 // Try to load a KTX version of the texture
-                const auto texture_filepath = filepath.parent_path() / std::filesystem::path{uri};
+                const auto texture_filepath = filepath.to_filepath().parent_path() / std::filesystem::path{uri};
                 auto ktx_texture_filepath = texture_filepath;
                 ktx_texture_filepath.replace_extension("ktx2");
-                auto data_maybe = SystemInterface::get().load_file(ktx_texture_filepath);
+                const auto ktx_resource_path = ResourcePath{ResourcePath::Scope::File, ktx_texture_filepath.string()};
+                auto data_maybe = SystemInterface::get().load_file(ktx_resource_path);
                 if(data_maybe) {
                     image_data = std::move(*data_maybe);
-                    image_name = ktx_texture_filepath;
+                    image_name = ktx_resource_path;
                     mime_type = fastgltf::MimeType::KTX2;
                     return;
                 }
 
-                data_maybe = SystemInterface::get().load_file(texture_filepath);
+                const auto texture_resource_path = ResourcePath{ResourcePath::Scope::File, texture_filepath.string()};
+                data_maybe = SystemInterface::get().load_file(texture_resource_path);
                 if(data_maybe) {
                     image_data = std::move(*data_maybe);
-                    image_name = texture_filepath;
+                    image_name = texture_resource_path;
                     const auto& extension = texture_filepath.extension();
                     if(extension == ".png") {
                         mime_type = fastgltf::MimeType::PNG;
@@ -1003,7 +1006,7 @@ void GltfModel::import_single_texture(
     if(handle) {
         gltf_texture_to_texture_handle.emplace(gltf_texture_index, *handle);
     } else {
-        throw std::runtime_error{fmt::format("Could not load image {}", image_name.string())};
+        throw std::runtime_error{fmt::format("Could not load image {}", image_name)};
     }
 }
 
@@ -1219,7 +1222,7 @@ Box read_mesh_bounds(const fastgltf::Primitive& primitive, const fastgltf::Asset
     return {.min = min, .max = max};
 }
 
-eastl::tuple<eastl::vector<u16vec4>, eastl::vector<float4>> read_skinning_data(
+eastl::tuple<eastl::vector<u16vec4>, eastl::vector<float4> > read_skinning_data(
     const fastgltf::Primitive& primitive, const fastgltf::Asset& asset
     ) {
     const auto weights_index = primitive.findAttribute("WEIGHTS_0")->accessorIndex;

@@ -7,6 +7,7 @@
 #include <EASTL/vector.h>
 #include <entt/entt.hpp>
 
+#include "resources/resource_path.hpp"
 #include "serialization/serializers.hpp"
 #include "serialization/eastl/string.hpp"
 #include "serialization/eastl/unordered_map.hpp"
@@ -15,7 +16,7 @@
 class World;
 
 struct SceneObject {
-    eastl::string filepath = {};
+    ResourcePath filepath = {};
 
     float3 location = {0.f, 0.f, 0.f};
     glm::quat orientation = glm::quat{1.f, 0.f, 0.f, 0.f};
@@ -34,7 +35,7 @@ public:
     /**
      * Loads a SceneFile from disk. Does not add any entities to the world
      */
-    static Scene load_from_file(const std::filesystem::path& filepath);
+    static Scene load_from_file(const ResourcePath& filepath);
 
     Scene();
 
@@ -51,7 +52,7 @@ public:
     /**
      * Writes a SceneFile to disk
      */
-    void write_to_file(const std::filesystem::path& filepath);
+    void write_to_file(const ResourcePath& path);
 
     /**
      * Adds the objects in this SceneFile to engine's global world
@@ -66,7 +67,7 @@ public:
      * \param add_to_world Whether to immediately add the model to the engine's world, or not
      * \return A reference to the newly-added scene object
      */
-    SceneObject& add_object(const std::filesystem::path& filepath, float3 location, bool add_to_world = false);
+    SceneObject& add_object(const ResourcePath& filepath, float3 location, bool add_to_world = false);
 
     const eastl::vector<SceneObject>& get_objects() const;
 
@@ -84,7 +85,7 @@ public:
     /**
      * Tries to find a SceneObject with the given name. Returns nullptr on failure
      */
-    SceneObject* find_object(eastl::string_view name);
+    SceneObject* find_object(const ResourcePath& name);
 
     bool is_dirty() const {
         return dirty;

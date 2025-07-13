@@ -18,9 +18,9 @@ namespace render {
         logger = SystemInterface::get().get_logger("TextureLoader");
     }
 
-    eastl::optional<TextureHandle> TextureLoader::load_texture(const std::filesystem::path& filepath, const TextureType type) {
+    eastl::optional<TextureHandle> TextureLoader::load_texture(const ResourcePath& filepath, const TextureType type) {
         // Check if we already have the texture
-        if (const auto itr = loaded_textures.find(filepath.string()); itr != loaded_textures.end()) {
+        if (const auto itr = loaded_textures.find(filepath); itr != loaded_textures.end()) {
             return itr->second;
         }
 
@@ -30,16 +30,12 @@ namespace render {
             .load_file(filepath)
             .and_then(
                 [&](const eastl::vector<std::byte>& data) {
-                    if (filepath.extension() == ".ktx" || filepath.extension() == ".ktx2") {
-                       throw std::runtime_error{"Cannot load KTX textures"};
-                   } else {
-                       return upload_texture_stbi(filepath, data, type);
-                   }
+                    return upload_texture_stbi(filepath, data, type);
                 });
     }
 
     eastl::optional<TextureHandle> TextureLoader::upload_texture_stbi(
-        const std::filesystem::path& filepath, const eastl::vector<std::byte>& data, const TextureType type
+        const ResourcePath& filepath, const eastl::vector<std::byte>& data, const TextureType type
     ) {
         ZoneScoped;
 
@@ -56,7 +52,7 @@ namespace render {
             4
         );
         if (decoded_data == nullptr) {
-            logger->error("Cannot decode texture {}: {}", filepath.string(), stbi_failure_reason());
+            logger->error("Cannot decode texture {}: {}", filepath, stbi_failure_reason());
             return eastl::nullopt;
         }
 
@@ -81,7 +77,7 @@ namespace render {
             }();
         auto& allocator = backend.get_global_allocator();
         const auto handle = allocator.create_texture(
-            filepath.string(),
+            filepath.to_string(),
             {
                 format,
                 glm::uvec2{loaded_texture.width, loaded_texture.height},
@@ -89,7 +85,7 @@ namespace render {
                 TextureUsage::StaticImage
             }
         );
-        loaded_textures.emplace(filepath.string(), handle);
+        loaded_textures.emplace(filepath, handle);
 
         auto& upload_queue = backend.get_upload_queue();
         upload_queue.enqueue(
@@ -125,7 +121,7 @@ namespace render {
 
             logger->info(
                 "Added queue transfer barrier for image {} (Vulkan handle {})",
-                filepath.string(),
+                filepath,
                 static_cast<void*>(handle->image));
         }
 

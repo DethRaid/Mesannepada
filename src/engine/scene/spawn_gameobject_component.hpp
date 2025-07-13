@@ -10,5 +10,5 @@ struct SpwanPrefabComponent {
     /**
      * Path to the game object JSON file
      */
-    eastl::string prefab_path;
+    ResourcePath prefab_path;
 };

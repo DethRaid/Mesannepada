@@ -32,7 +32,7 @@ namespace ui {
 
         my_model = data_model_constructor.GetModelHandle();
 
-        load_document("data/ui/main_menu/main_menu.rml");
+        load_document(SystemInterface::get().get_data_folder() / "ui/main_menu/main_menu.rml");
 
         my_model.DirtyVariable("has_existing_save");
 

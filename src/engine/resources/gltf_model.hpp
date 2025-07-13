@@ -44,7 +44,7 @@ struct ExtrasData {
 class GltfModel : public IModel {
 public:
     GltfModel(
-        std::filesystem::path filepath_in, fastgltf::Asset&& model, render::SarahRenderer& renderer,
+        ResourcePath filepath_in, fastgltf::Asset&& model, render::SarahRenderer& renderer,
         ExtrasData extras_in
     );
 
@@ -75,7 +75,7 @@ private:
     /**
      * Filepath to the glTF file itself
      */
-    std::filesystem::path filepath;
+    ResourcePath filepath;
 
     /**
      * Filepath to the file's cached data. This is a folder with the same name as the glTF file, but with the extension removed

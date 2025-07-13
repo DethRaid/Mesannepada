@@ -2,16 +2,16 @@
 
 #include <filesystem>
 
+#include <volk.h>
 #include <EASTL/optional.h>
 #include <EASTL/span.h>
 #include <EASTL/string.h>
 #include <EASTL/unordered_map.h>
 #include <EASTL/vector.h>
-#include <volk.h>
 
 #include "render/backend/graphics_pipeline.hpp"
 #include "render/backend/handles.hpp"
-
+#include "resources/resource_path.hpp"
 
 struct SpvReflectDescriptorSet;
 struct SpvReflectBlockVariable;
@@ -114,11 +114,11 @@ namespace render {
          *
          * Calling this method multiple times is a problem
          */
-        GraphicsPipelineBuilder& set_vertex_shader(const std::filesystem::path& vertex_path);
+        GraphicsPipelineBuilder& set_vertex_shader(const ResourcePath& vertex_path);
 
-        GraphicsPipelineBuilder& set_geometry_shader(const std::filesystem::path& geometry_path);
+        GraphicsPipelineBuilder& set_geometry_shader(const ResourcePath& geometry_path);
 
-        GraphicsPipelineBuilder& set_fragment_shader(const std::filesystem::path& fragment_path);
+        GraphicsPipelineBuilder& set_fragment_shader(const ResourcePath& fragment_path);
 
         GraphicsPipelineBuilder& set_depth_state(const DepthStencilState& depth_stencil);
 

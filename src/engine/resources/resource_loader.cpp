@@ -18,40 +18,38 @@ ResourceLoader::ResourceLoader() : parser{
     }
 }
 
-eastl::shared_ptr<IModel> ResourceLoader::get_model(const std::filesystem::path& model_path) {
-    const auto model_path_string = eastl::string{model_path.string().c_str()};
-
+eastl::shared_ptr<IModel> ResourceLoader::get_model(const ResourcePath& model_path) {
     // If the model is already loaded, return it
-    if(const auto itr = loaded_models.find(model_path_string); itr != loaded_models.end()) {
+    if(const auto itr = loaded_models.find(model_path); itr != loaded_models.end()) {
         return itr->second;
     }
 
-    if(model_path.extension() == ".tscn") {
+    if(model_path.ends_with(".tscn")) {
         load_godot_scene(model_path);
-    } else if(model_path.extension() == ".glb" || model_path.extension() == ".gltf") {
+    } else if(model_path.ends_with(".glb") || model_path.ends_with(".gltf")) {
         load_gltf_model(model_path);
     }
 
-    return loaded_models.at(model_path_string);
+    return loaded_models.at(model_path);
 }
 
-void ResourceLoader::load_gltf_model(const std::filesystem::path& model_path) {
+void ResourceLoader::load_gltf_model(const ResourcePath& model_path) {
     ZoneScoped;
 
-    const auto model_path_string = eastl::string{model_path.string().c_str()};
+    logger->info("Beginning load of model {}", model_path);
 
-    logger->info("Beginning load of model {}", model_path.string());
+    const auto full_model_path = model_path.to_filepath();
 
-    if(!exists(model_path)) {
-        logger->error("Scene file {} does not exist!", model_path.string());
-        throw std::runtime_error{"Scene does not exist"};
+    if(!exists(full_model_path)) {
+        logger->error("Model file {} does not exist!", model_path);
+        throw std::runtime_error{"Model does not exist"};
     }
 
-    if(!model_path.has_parent_path()) {
-        logger->warn("Scene path {} has no parent path!", model_path.string());
+    if(!full_model_path.has_parent_path()) {
+        logger->warn("Model path {} has no parent path!", full_model_path.string());
     }
 
-    auto data = fastgltf::GltfDataBuffer::FromPath(model_path);
+    auto data = fastgltf::GltfDataBuffer::FromPath(full_model_path);
 
     ExtrasData extras_data;
     parser.setExtrasParseCallback(
@@ -81,10 +79,10 @@ void ResourceLoader::load_gltf_model(const std::filesystem::path& model_path) {
             }
         });
     parser.setUserPointer(&extras_data);
-    auto gltf = parser.loadGltf(data.get(), model_path.parent_path(), fastgltf::Options::LoadExternalBuffers);
+    auto gltf = parser.loadGltf(data.get(), full_model_path.parent_path(), fastgltf::Options::LoadExternalBuffers);
 
     if(gltf.error() != fastgltf::Error::None) {
-        logger->error("Could not load scene {}: {}", model_path.string(), fastgltf::getErrorMessage(gltf.error()));
+        logger->error("Could not load scene {}: {}", model_path, fastgltf::getErrorMessage(gltf.error()));
         throw std::runtime_error{"Invalid glTF!"};
     }
 
@@ -94,14 +92,12 @@ void ResourceLoader::load_gltf_model(const std::filesystem::path& model_path) {
         std::move(gltf.get()),
         renderer,
         eastl::move(extras_data));
-    loaded_models.emplace(model_path_string, eastl::move(imported_model));
+    loaded_models.emplace(model_path, eastl::move(imported_model));
 }
 
-void ResourceLoader::load_godot_scene(const std::filesystem::path& scene_path) {
+void ResourceLoader::load_godot_scene(const ResourcePath& scene_path) {
     ZoneScoped;
 
-    const auto scene_path_string = eastl::string{scene_path.string().c_str()};
-
     auto scene = godot::GodotScene::load(scene_path);
-    loaded_models.emplace(scene_path_string, eastl::make_shared<godot::GodotScene>(scene));
+    loaded_models.emplace(scene_path, eastl::make_shared<godot::GodotScene>(scene));
 }

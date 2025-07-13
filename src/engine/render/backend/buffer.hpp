@@ -1,13 +1,13 @@
 #pragma once
 
-#include <string>
-
 #include <vk_mem_alloc.h>
+#include <EASTL/string.h>
+
 #include "render/backend/device_address.hpp"
 
 namespace render {
     struct GpuBuffer {
-        std::string name;
+        eastl::string name;
 
         VkBufferCreateInfo create_info;
 

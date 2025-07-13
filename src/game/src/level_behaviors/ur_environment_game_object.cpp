@@ -14,7 +14,7 @@ UrEnvironmentGameObject::UrEnvironmentGameObject(const entt::handle entity) :
 
     // TODO: The main scene file should load the Ur environment, and also load this game object
     auto& main_scene = engine.get_environment_scene();
-    main_scene.add_object("data/game/environments/Ur.tscn", float3{}, true);
+    main_scene.add_object("game://environments/Ur.tscn"_res, float3{}, true);
 
     const auto gltf_entity = engine.get_world().find_entity("SM_UrEnvironment");
     if(!gltf_entity) {

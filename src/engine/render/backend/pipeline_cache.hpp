@@ -21,7 +21,7 @@ namespace render {
 
         GraphicsPipelineHandle create_pipeline(const GraphicsPipelineBuilder& pipeline_builder);
 
-        ComputePipelineHandle create_pipeline(const std::filesystem::path& shader_file_path);
+        ComputePipelineHandle create_pipeline(const ResourcePath& shader_file_path);
 
         ComputePipelineHandle create_pipeline(std::string_view pipeline_name, eastl::span<const std::byte> instructions);
 
@@ -46,7 +46,7 @@ namespace render {
          */
         HitGroupHandle add_hit_group(const HitGroupBuilder& shader_group);
 
-        RayTracingPipelineHandle create_ray_tracing_pipeline(const std::filesystem::path& raygen_shader_path, bool skip_gi_miss_shader = false);
+        RayTracingPipelineHandle create_ray_tracing_pipeline(const ResourcePath& raygen_shader_path, bool skip_gi_miss_shader = false);
 
         /**
          * Destroys all the pipelines in the cache

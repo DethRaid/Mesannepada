@@ -11,6 +11,7 @@
 #include <simdjson.h>
 #include "shared/prelude.h"
 
+class ResourcePath;
 class World;
 
 /**
@@ -32,7 +33,7 @@ public:
      * @param world The scene to add the prefab to
      * @param transform Initial transformation matrix
      */
-    entt::handle load_prefab(const std::filesystem::path& prefab_file, World& world,
+    entt::handle load_prefab(const ResourcePath& prefab_file, World& world,
                              const float4x4& transform = float4x4{1.f});
 
     /**

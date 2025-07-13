@@ -15,7 +15,7 @@ namespace render {
         };
 
         for (auto layer_idx = 0; layer_idx < num_layers; layer_idx++) {
-            const auto filepath = std::filesystem::path{ fmt::format("{}_{}.png", base_filename.c_str(), layer_idx) };
+            const auto filepath = ResourcePath{ fmt::format("res://{}_{}.png", base_filename.c_str(), layer_idx) };
             const auto layer_texture = loader.load_texture(filepath, TextureType::Data);
             new_texture.layers[layer_idx] = *layer_texture;
         }

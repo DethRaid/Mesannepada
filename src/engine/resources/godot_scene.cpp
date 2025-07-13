@@ -34,7 +34,7 @@ namespace godot {
     template<typename ValueType>
     static ValueType get_value(eastl::string_view str, eastl::string_view key);
 
-    GodotScene GodotScene::load(const std::filesystem::path &filepath) {
+    GodotScene GodotScene::load(const ResourcePath& filepath) {
         if (logger == nullptr) {
             logger = SystemInterface::get().get_logger("GodotScene");
         }
@@ -66,8 +66,8 @@ namespace godot {
         node_entities.reserve(nodes.size());
         const auto root_entity = add_node_to_world(world_in, 0, node_entities);
 
-        const auto filepath_string = file_path.string();
-        root_entity.emplace<ImportedModelComponent>(filepath_string.c_str(), node_entities);
+        const auto filepath_string = file_path.to_string();
+        root_entity.emplace<ImportedModelComponent>(filepath_string, node_entities);
 
         if (!parent_node) {
             world_in.add_top_level_entities(eastl::array{root_entity});
@@ -287,14 +287,13 @@ namespace godot {
         node_entities[node_index] = entity;
 
         if (const auto itr = node.metadata.find("spawn_gameobject"); itr != node.metadata.end()) {
-            entity.emplace<SpwanPrefabComponent>(itr->second);
+            entity.emplace<SpwanPrefabComponent>(ResourcePath{itr->second});
         }
 
         if (node.instance) {
             const auto &resource = external_resources.at(*node.instance);
             const auto resource_path = resource.path.substr(6); // Lop off "res://"
-            auto full_resource_path = std::filesystem::path{"data"} / "game" / resource_path.c_str();
-            full_resource_path.make_preferred();
+            auto full_resource_path = ResourcePath{format("game://%s", resource_path.c_str())};
             auto &resources = Engine::get().get_resource_loader();
             const auto instanced_model = resources.get_model(full_resource_path);
             instanced_model->add_to_world(world, entity);

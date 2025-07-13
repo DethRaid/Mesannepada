@@ -16,6 +16,7 @@
 #include "core/engine.hpp"
 #include "input/player_input_manager.hpp"
 #include "render/backend/render_backend.hpp"
+#include "resources/resource_path.hpp"
 #include "ui/ui_controller.hpp"
 
 static void on_glfw_key(GLFWwindow* window, const int key, const int scancode, const int action, const int mods) {
@@ -76,11 +77,14 @@ void SystemInterface::set_ui_controller(ui::Controller* ui_controller_in) {
     ui_controller = ui_controller_in;
 }
 
-ui::Controller& SystemInterface::get_ui_controller() const { return *ui_controller; }
+ui::Controller& SystemInterface::get_ui_controller() const {
+    return *ui_controller;
+}
 
 SystemInterface::SystemInterface(
     std::filesystem::path exe_folder_in
-) :  exe_folder{std::move(exe_folder_in)} {
+    ) :
+    exe_folder{std::move(exe_folder_in)} {
     logger = SystemInterface::get_logger("SystemInterface");
 }
 
@@ -131,14 +135,14 @@ VkSurfaceKHR SystemInterface::get_surface() {
     // Create surface
     VkSurfaceKHR surface = VK_NULL_HANDLE;
     const auto result = glfwCreateWindowSurface(render::RenderBackend::get().get_instance(), window, nullptr, &surface);
-    if (result != VK_SUCCESS) {
+    if(result != VK_SUCCESS) {
         logger->error("Could not create Vulkan surface: {}", string_VkResult(result));
     }
 
     return surface;
 }
 
-static eastl::vector<std::shared_ptr<spdlog::logger>> all_loggers{};
+static eastl::vector<std::shared_ptr<spdlog::logger> > all_loggers{};
 
 std::shared_ptr<spdlog::logger> SystemInterface::get_logger(const std::string& name) {
     auto sinks = eastl::vector<spdlog::sink_ptr>{
@@ -167,6 +171,10 @@ void SystemInterface::flush_all_loggers() {
     }
 }
 
+std::filesystem::path SystemInterface::get_working_directory() const {
+    return exe_folder;
+}
+
 std::filesystem::path SystemInterface::get_shaders_folder() const {
     return exe_folder / "shaders";
 }
@@ -182,9 +190,9 @@ std::filesystem::path SystemInterface::get_data_folder() const {
 std::filesystem::path SystemInterface::get_write_folder() {
     // TODO: https://specifications.freedesktop.org/basedir-spec/latest/
 #if defined(__linux__)
-    const char *homedir;
+    const char* homedir;
 
-    if ((homedir = getenv("HOME")) == nullptr) {
+    if((homedir = getenv("HOME")) == nullptr) {
         homedir = getpwuid(getuid())->pw_dir;
     }
 
@@ -214,12 +222,12 @@ std::filesystem::path SystemInterface::get_write_folder() {
 #endif
 }
 
-eastl::optional<eastl::vector<std::byte>> SystemInterface::load_file(const std::filesystem::path& filepath) {
+eastl::optional<eastl::vector<std::byte> > SystemInterface::load_file(const ResourcePath& filepath) {
     // TODO: Integrate physfs and add the executable's directory to the search paths?
 
     auto* file = open_file(filepath);
-    if (!file) {
-        spdlog::warn("Could not open file {}", filepath.string());
+    if(!file) {
+        spdlog::warn("Could not open resource {}", filepath.to_string());
         return eastl::nullopt;
     }
 
@@ -235,8 +243,9 @@ eastl::optional<eastl::vector<std::byte>> SystemInterface::load_file(const std::
     return file_data;
 }
 
-FILE* SystemInterface::open_file(const std::filesystem::path& filepath) {
-    const auto path_string = filepath.string();
+FILE* SystemInterface::open_file(const ResourcePath& resource_path) {
+    const auto resolved_path = resource_path.to_filepath();
+    const auto path_string = resolved_path.string();
     FILE* file = nullptr;
 #if _WIN32
     const auto result = fopen_s(&file, path_string.c_str(), "rb");
@@ -246,7 +255,7 @@ FILE* SystemInterface::open_file(const std::filesystem::path& filepath) {
 #else
     file = fopen(path_string.c_str(), "rb");
     if(file == nullptr) {
-        logger->error("Could not open file {}: {}", filepath.string(), strerror(errno));
+        logger->error("Could not open file {}: {}", resolved_path, strerror(errno));
     }
 #endif
 
@@ -255,7 +264,7 @@ FILE* SystemInterface::open_file(const std::filesystem::path& filepath) {
 
 void SystemInterface::write_file(
     const std::filesystem::path& filepath, const void* data, const uint32_t data_size
-) {
+    ) {
     if(filepath.has_parent_path()) {
         std::filesystem::create_directories(filepath.parent_path());
     }
@@ -316,7 +325,7 @@ void SystemInterface::request_window_close() {
 
 void SystemInterface::on_glfw_key(
     GLFWwindow* window_in, const int key, const int scancode, const int action, const int mods
-) {
+    ) {
     if(ui_controller->in_blocking_ui()) {
         ui_controller->on_glfw_key(window_in, key, scancode, action, mods);
     } else {
@@ -380,7 +389,7 @@ void SystemInterface::on_glfw_key(
 
 void SystemInterface::on_glfw_mouse_button(
     GLFWwindow* window, const int button, const int action, const int mods
-) const {
+    ) const {
     if(ui_controller->in_blocking_ui()) {
         ui_controller->on_glfw_mouse_button(window, button, action, mods);
     } else {

@@ -191,8 +191,8 @@ namespace render {
         const auto& backend = RenderBackend::get();
         tonemapping_pipeline = backend
                                .begin_building_pipeline("Scene Upscale")
-                               .set_vertex_shader("common/fullscreen.vert.spv")
-                               .set_fragment_shader("ui/tonemapping.frag.spv")
+                               .set_vertex_shader("shader://common/fullscreen.vert.spv"_res)
+                               .set_fragment_shader("shader://ui/tonemapping.frag.spv"_res)
                                .set_depth_state(
                                    DepthStencilState{
                                        .enable_depth_test = false,
@@ -204,8 +204,8 @@ namespace render {
         imgui_pipeline = backend
                          .begin_building_pipeline("ImGUI")
                          .use_imgui_vertex_layout()
-                         .set_vertex_shader("ui/imgui.vert.spv")
-                         .set_fragment_shader("ui/imgui.frag.spv")
+                         .set_vertex_shader("shader://ui/imgui.vert.spv"_res)
+                         .set_fragment_shader("shader://ui/imgui.frag.spv"_res)
                          .set_depth_state({.enable_depth_test = false, .enable_depth_write = false})
                          .set_blend_state(
                              0,

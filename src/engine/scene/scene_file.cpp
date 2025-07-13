@@ -12,9 +12,10 @@
 
 static std::shared_ptr<spdlog::logger> logger;
 
-Scene Scene::load_from_file(const std::filesystem::path& filepath) {
+Scene Scene::load_from_file(const ResourcePath& path) {
     ZoneScoped;
 
+    const auto filepath = path.to_filepath();
     auto stream = std::ifstream{filepath, std::ios::binary};
     auto archive = cereal::BinaryInputArchive{stream};
 
@@ -30,7 +31,8 @@ Scene::Scene() {
     }
 }
 
-Scene::Scene(Scene&& old) noexcept : scene_objects{old.scene_objects} {
+Scene::Scene(Scene&& old) noexcept :
+    scene_objects{old.scene_objects} {
     old.scene_objects.clear();
 }
 
@@ -47,14 +49,15 @@ Scene::~Scene() {
     remove_from_world();
 }
 
-void Scene::write_to_file(const std::filesystem::path& filepath) {
+void Scene::write_to_file(const ResourcePath& path) {
     ZoneScoped;
 
-    if(!std::filesystem::exists(filepath.parent_path())) {
-        std::filesystem::create_directories(filepath.parent_path());
+    const auto os_path = path.to_filepath();
+    if(!std::filesystem::exists(os_path.parent_path())) {
+        std::filesystem::create_directories(os_path.parent_path());
     }
 
-    auto stream = std::ofstream{filepath, std::ios::binary};
+    auto stream = std::ofstream{os_path, std::ios::binary};
     auto archive = cereal::BinaryOutputArchive{stream};
 
     save(archive);
@@ -66,11 +69,11 @@ void Scene::add_new_objects_to_world() {
     }
 }
 
-SceneObject& Scene::add_object(const std::filesystem::path& filepath, const float3 location, const bool add_to_world
+SceneObject& Scene::add_object(const ResourcePath& filepath, const float3 location, const bool add_to_world
     ) {
     logger->info("Adding object {} to the scene", filepath);
     auto& obj = scene_objects.emplace_back(SceneObject{
-        .filepath = filepath.string().c_str(),
+        .filepath = filepath,
         .location = location
     });
 
@@ -87,7 +90,7 @@ const eastl::vector<SceneObject>& Scene::get_objects() const {
     return scene_objects;
 }
 
-SceneObject* Scene::find_object(eastl::string_view name) {
+SceneObject* Scene::find_object(const ResourcePath& name) {
     ZoneScoped;
 
     if(const auto itr = eastl::find_if(scene_objects.begin(),
@@ -120,23 +123,24 @@ void Scene::add_object_to_world(SceneObject& object) {
         return;
     }
 
-    logger->info("Adding object {} to the world", object.filepath.c_str());
+    logger->info("Adding object {} to the world", object.filepath);
 
     auto& engine = Engine::get();
 
-    const auto filepath = eastl::string_view{object.filepath};
-    if(filepath.ends_with(".glb") || filepath.ends_with(".gltf") || filepath.ends_with(".tscn")) {
-        object.entity = engine.add_model_to_world(object.filepath.c_str());
+    if(object.filepath.ends_with(".glb")
+       || object.filepath.ends_with(".gltf")
+       || object.filepath.ends_with(".tscn")) {
+        object.entity = engine.add_model_to_world(object.filepath);
         object.entity.patch<TransformComponent>([&](TransformComponent& transform) {
             transform.location = object.location;
             transform.rotation = object.orientation;
             transform.scale = object.scale;
         });
 
-    } else if(filepath.ends_with(".sprefab")) {
+    } else if(object.filepath.ends_with(".sprefab")) {
         const auto transform_mat = glm::translate(float4x4{1.f}, object.location) *
                                    glm::mat4{object.orientation} *
                                    glm::scale(object.scale);
-        object.entity = engine.add_prefab_to_world(object.filepath.c_str(), transform_mat);
+        object.entity = engine.add_prefab_to_world(object.filepath, transform_mat);
     }
 }

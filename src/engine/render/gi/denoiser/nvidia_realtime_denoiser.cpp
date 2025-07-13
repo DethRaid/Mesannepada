@@ -119,7 +119,7 @@ namespace render {
 
         if(linearize_depth_shader == nullptr) {
             linearize_depth_shader = RenderBackend::get().get_pipeline_cache()
-                                                         .create_pipeline("gi/rtgi/linearize_depth.comp.spv");
+                                                         .create_pipeline("shader://gi/rtgi/linearize_depth.comp.spv"_res);
         }
 
         if(linear_depth_texture == nullptr) {
@@ -231,7 +231,7 @@ namespace render {
         if(validation_overlay_shader == nullptr) {
             validation_overlay_shader = RenderBackend::get()
                                         .get_pipeline_cache()
-                                        .create_pipeline("gi/rtgi/nrd_validation_overlay.comp.spv");
+                                        .create_pipeline("shader://gi/rtgi/nrd_validation_overlay.comp.spv"_res);
         }
 
         const auto set = validation_overlay_shader->begin_building_set(0)

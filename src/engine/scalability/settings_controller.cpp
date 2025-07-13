@@ -7,7 +7,7 @@
 #include "core/issue_breakpoint.hpp"
 #include "core/toml_config.hpp"
 
-static constexpr auto SCALABILITY_FILE_NAME = "data/config/scalability.toml";
+static constexpr auto SCALABILITY_FILE_NAME = "config/scalability.toml";
 
 static std::shared_ptr<spdlog::logger> logger;
 
@@ -16,7 +16,7 @@ SettingsController::SettingsController() {
         logger = SystemInterface::get().get_logger("SettingsController");
     }
     try {
-        auto* scalability_file = SystemInterface::get().open_file(SCALABILITY_FILE_NAME);
+        auto* scalability_file = SystemInterface::get().open_file(ResourcePath{ResourcePath::Scope::Resource, SCALABILITY_FILE_NAME});
         scalability_data = toml::parse(scalability_file, SCALABILITY_FILE_NAME);
     } catch(const std::exception& e) {
         logger->error(e.what());

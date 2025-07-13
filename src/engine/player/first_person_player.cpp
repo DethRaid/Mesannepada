@@ -71,7 +71,7 @@ FirstPersonPlayer::FirstPersonPlayer(const entt::handle entity) :
         });
     world.parent_entity_to_entity(hold_target, root_entity);
 
-    engine.add_model_to_world("data/game/SM_PlayerArms.glb", root_entity);
+    engine.add_model_to_world("game://SM_PlayerArms.glb"_res, root_entity);
 }
 
 void FirstPersonPlayer::set_worldspace_location(const float3 location_in) const {

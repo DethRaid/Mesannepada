@@ -13,6 +13,7 @@
 #include "pipeline_cache.hpp"
 #include "console/cvars.hpp"
 #include "core/system_interface.hpp"
+#include "resources/resource_path.hpp"
 #include "shared/vertex_data.hpp"
 
 namespace render {
@@ -198,19 +199,18 @@ namespace render {
         return *this;
     }
 
-    GraphicsPipelineBuilder& GraphicsPipelineBuilder::set_vertex_shader(const std::filesystem::path& vertex_path) {
+    GraphicsPipelineBuilder& GraphicsPipelineBuilder::set_vertex_shader(const ResourcePath& vertex_path) {
         if(vertex_shader) {
             throw std::runtime_error{"Vertex shader already loaded set"};
         }
-        const auto vertex_shader_maybe = SystemInterface::get().load_file(
-            SystemInterface::get().get_shaders_folder() / vertex_path);
+        const auto vertex_shader_maybe = SystemInterface::get().load_file(vertex_path);
 
         if(!vertex_shader_maybe) {
             throw std::runtime_error{"Could not load vertex shader"};
         }
 
         vertex_shader = *vertex_shader_maybe;
-        vertex_shader_name = vertex_path.string();
+        vertex_shader_name = vertex_path.to_string().c_str();
 
         const auto shader_module = spv_reflect::ShaderModule{
             vertex_shader->size(),
@@ -250,19 +250,18 @@ namespace render {
         return *this;
     }
 
-    GraphicsPipelineBuilder& GraphicsPipelineBuilder::set_geometry_shader(const std::filesystem::path& geometry_path) {
+    GraphicsPipelineBuilder& GraphicsPipelineBuilder::set_geometry_shader(const ResourcePath& geometry_path) {
         if(geometry_shader) {
             throw std::runtime_error{"Geometry shader already set!"};
         }
 
-        const auto geometry_shader_maybe = SystemInterface::get().load_file(
-            SystemInterface::get().get_shaders_folder() / geometry_path);
+        const auto geometry_shader_maybe = SystemInterface::get().load_file(geometry_path);
         if(!geometry_shader_maybe) {
             throw std::runtime_error{"Could not load geometry shader"};
         }
 
         geometry_shader = *geometry_shader_maybe;
-        geometry_shader_name = geometry_path.string().c_str();
+        geometry_shader_name = geometry_path.to_string().c_str();
 
         const auto shader_module = spv_reflect::ShaderModule{
             geometry_shader->size(),
@@ -285,20 +284,19 @@ namespace render {
         return *this;
     }
 
-    GraphicsPipelineBuilder& GraphicsPipelineBuilder::set_fragment_shader(const std::filesystem::path& fragment_path) {
+    GraphicsPipelineBuilder& GraphicsPipelineBuilder::set_fragment_shader(const ResourcePath& fragment_path) {
         if(fragment_shader) {
             throw std::runtime_error{"Fragment shader already set"};
         }
 
-        const auto fragment_shader_maybe = SystemInterface::get().load_file(
-            SystemInterface::get().get_shaders_folder() / fragment_path);
+        const auto fragment_shader_maybe = SystemInterface::get().load_file(fragment_path);
 
         if(!fragment_shader_maybe) {
             throw std::runtime_error{"Could not load fragment shader"};
         }
 
         fragment_shader = *fragment_shader_maybe;
-        fragment_shader_name = fragment_path.string().c_str();
+        fragment_shader_name = fragment_path.to_string().c_str();
 
         logger->trace("Beginning reflection on fragment shader {}", fragment_shader_name);
 
