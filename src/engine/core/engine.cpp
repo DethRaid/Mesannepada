@@ -79,7 +79,11 @@ Engine::Engine() :
 
     update_resolution();
 
-    create_scene("environment.sscene");
+    if(!load_scene("environment.sscene")) {
+        create_scene("environment.sscene");
+    }
+
+    instantiate_player();
 
     logger->info("HELLO HUMAN");
 }
@@ -110,6 +114,17 @@ entt::handle Engine::add_prefab_to_world(const ResourcePath& prefab_path, const 
     return prefab_loader.load_prefab(prefab_path, world, transform);
 }
 
+entt::handle Engine::instantiate_player() {
+    player = world.create_entity();
+    player.emplace<EntityInfoComponent>("Player");
+    player.emplace<TransformComponent>();
+    player.emplace<FirstPersonPlayerComponent>().init(player);
+
+    player_input.set_controlled_entity(player);
+
+    return player;
+}
+
 void Engine::update_resolution() const {
     const auto& screen_resolution = SystemInterface::get().get_resolution();
     renderer->set_output_resolution(screen_resolution);
@@ -127,6 +142,12 @@ void Engine::tick() {
     SystemInterface::get().poll_input(player_input);
 
     player_input.tick(delta_time, world);
+
+    if(player) {
+        player.get<FirstPersonPlayerComponent>().tick(delta_time);
+    }
+
+    game_instance->tick(delta_time);
 
     auto& registry = world.get_registry();
     registry.view<GameObjectComponent>().each(
@@ -196,10 +217,9 @@ void Engine::give_player_full_control() {
             transform.cached_parent_to_world = float4x4{1.f};
             transform.set_local_transform(local_to_world);
         });
-    registry.patch<GameObjectComponent>(
+    registry.patch<FirstPersonPlayerComponent>(
         player,
-        [&](const GameObjectComponent& comp) {
-            auto& fp_player = static_cast<FirstPersonPlayer&>(*comp.game_object);
+        [&](FirstPersonPlayerComponent& fp_player) {
             const auto& transform = registry.get<TransformComponent>(player);
 
             fp_player.set_worldspace_location(transform.location);

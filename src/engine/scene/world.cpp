@@ -61,7 +61,7 @@ const entt::registry& World::get_registry() const {
     return registry;
 }
 
-void World::parent_entity_to_entity(const entt::handle child, const entt::handle parent) {
+void World::parent_entity_to_entity(const entt::entity child, const entt::entity parent) {
     if(!registry.valid(child)) {
         logger->error("No child set, unable to parent!");
         return;
@@ -89,7 +89,7 @@ void World::parent_entity_to_entity(const entt::handle child, const entt::handle
             propagate_transform(child, transform.get_local_to_world());
         });
 
-    top_level_entities.erase(child.entity());
+    top_level_entities.erase(child);
 }
 
 void World::add_top_level_entities(const eastl::span<const entt::handle> entities) {

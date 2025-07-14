@@ -27,6 +27,7 @@
 #include "core/generated_entity_component.hpp"
 #include "core/visitor.hpp"
 #include "physics/collider_component.hpp"
+#include "player/player_parent_component.hpp"
 #include "render/basic_pbr_material.hpp"
 #include "render/sarah_renderer.hpp"
 #include "render/texture_loader.hpp"
@@ -505,18 +506,11 @@ JPH::Ref<JPH::Shape> GltfModel::create_jolt_shape(const fastgltf::Collider& coll
 entt::handle GltfModel::add_to_world(World& world_in, const eastl::optional<entt::handle>& parent_node) const {
     const auto root_entity = add_nodes_to_world(world_in, parent_node);
 
-    // I'm slightly sorry, future Sarah
     if(extras.player_parent_node != std::numeric_limits<size_t>::max()) {
         const auto& gltf_model_component = world_in.get_registry().get<ImportedModelComponent>(root_entity);
-        const auto player = Engine::get().get_player();
-        world_in.parent_entity_to_entity(
-            player,
-            gltf_model_component.node_to_entity.at(extras.player_parent_node));
-        world_in.get_registry().patch<GameObjectComponent>(
-            player,
-            [&](const GameObjectComponent& comp) {
-                comp.game_object->enabled = false;
-            });
+        const auto player_parent_entity = gltf_model_component.node_to_entity.at(extras.player_parent_node);
+
+        player_parent_entity.emplace<PlayerParentComponent>();
     }
 
     return root_entity;
@@ -541,7 +535,7 @@ size_t GltfModel::find_node(const eastl::string_view name) const {
 }
 
 void GltfModel::validate_model() {
-    // This ain't no summer came. We got rules!
+    // This ain't no summer camp. We got rules!
     assert(asset.skins.size() < 2);
 
     auto num_skinned_nodes = 0;

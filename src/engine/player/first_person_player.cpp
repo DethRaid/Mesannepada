@@ -9,9 +9,8 @@
 #include "scene/camera_component.hpp"
 #include "scene/transform_component.hpp"
 
-FirstPersonPlayer::FirstPersonPlayer(const entt::handle entity) :
-    GameObject{entity} {
-    name = "FirstPersonPlayer";
+void FirstPersonPlayerComponent::init(const entt::handle entity) {
+    root_entity = entity;
     auto& engine = Engine::get();
     auto& world = engine.get_world();
 
@@ -74,17 +73,17 @@ FirstPersonPlayer::FirstPersonPlayer(const entt::handle entity) :
     engine.add_model_to_world("game://SM_PlayerArms.glb"_res, root_entity);
 }
 
-void FirstPersonPlayer::set_worldspace_location(const float3 location_in) const {
+void FirstPersonPlayerComponent::set_worldspace_location(const float3 location_in) const {
     character->SetPosition(to_jolt(location_in));
 }
 
-void FirstPersonPlayer::set_pitch_and_yaw(const float pitch_in, const float yaw_in) {
+void FirstPersonPlayerComponent::set_pitch_and_yaw(const float pitch_in, const float yaw_in) {
     pitch = pitch_in;
     yaw = yaw_in;
 }
 
 // based on https://github.com/jrouwe/JoltPhysics/blob/master/Samples/Tests/Character/CharacterVirtualTest.cpp
-void FirstPersonPlayer::handle_input(
+void FirstPersonPlayerComponent::handle_input(
     const float delta_time, const float3 player_movement_input, const float delta_pitch, const float delta_yaw,
     const bool jump
     ) {
@@ -153,9 +152,7 @@ void FirstPersonPlayer::handle_input(
     // TODO: Swap between crouched and standing shapes on crouch input
 }
 
-void FirstPersonPlayer::tick(const float delta_time, World& world) {
-    GameObject::tick(delta_time, world);
-
+void FirstPersonPlayerComponent::tick(const float delta_time) {
     // Update character simulation
 
     const auto& physics = Engine::get().get_physics_world();

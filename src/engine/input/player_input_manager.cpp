@@ -59,9 +59,8 @@ void PlayerInputManager::tick(const float delta_time, World& world) {
         }
     }
 
-    const auto& player_go = registry.get<GameObjectComponent>(controlled_entity);
-    auto* player = static_cast<FirstPersonPlayer*>(player_go.game_object.get());
-    player->handle_input(delta_time, player_movement_input, player_rotation_input.y, player_rotation_input.x, jump);
+    auto& player = registry.get<FirstPersonPlayerComponent>(controlled_entity);
+    player.handle_input(delta_time, player_movement_input, player_rotation_input.y, player_rotation_input.x, jump);
 
     player_movement_input = {};
     player_rotation_input = {};

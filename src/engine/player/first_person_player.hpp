@@ -6,6 +6,7 @@
 #include <Jolt/Physics/Collision/Shape/Shape.h>
 #include <Jolt/Physics/Character/CharacterVirtual.h>
 
+#include "animation/animation_system.hpp"
 #include "shared/prelude.h"
 #include "behavior/game_object.hpp"
 
@@ -16,9 +17,11 @@ struct TransformComponent;
  * The first-person player loads a glTF file describing its camera location, hold target, etc. It sets up the root
  * entity with the physics character controller, adds the player input component, etc
  */
-class FirstPersonPlayer : public GameObject {
+class FirstPersonPlayerComponent {
 public:
-    FirstPersonPlayer(entt::handle entity);
+    bool enabled = true;
+
+    void init(entt::handle entity);
 
     void set_worldspace_location(float3 location_in) const;
 
@@ -33,7 +36,7 @@ public:
      */
     void handle_input(float delta_time, float3 player_movement_input, float delta_pitch, float delta_yaw, bool jump);
 
-    void tick(float delta_time, World& world) override;
+    void tick(float delta_time);
 
 private:
 #pragma region Configuration
@@ -64,6 +67,8 @@ private:
 
     static constexpr float jump_speed = 4.f;
 #pragma endregion
+
+    entt::handle root_entity;
 
     /**
      * Velocity we want the player to move at. The actual velocity may be a little more or less than that, depending on

@@ -65,7 +65,7 @@ public:
 
     const entt::registry& get_registry() const;
 
-    void parent_entity_to_entity(entt::handle child, entt::handle parent);
+    void parent_entity_to_entity(entt::entity child, entt::entity parent);
 
     void add_top_level_entities(eastl::span<const entt::handle> entities);
 

@@ -12,6 +12,7 @@
 #include "physics/collider_component.hpp"
 #include "reflection/editor_ui.hpp"
 #include "../serialization/glm.hpp"
+#include "player/first_person_player.hpp"
 #include "reflection/reflection_macros.hpp"
 #include "render/components/light_component.hpp"
 #include "resources/model_components.hpp"
@@ -133,6 +134,8 @@ namespace reflection {
 
         REFLECT_COMPONENT(AnimationEventComponent)
             DATA(AnimationEventComponent, animation_to_play);
+
+        REFLECT_COMPONENT(FirstPersonPlayerComponent);
 
         entt::meta_factory<ResourcePath>()
             DATA(ResourcePath, scope)

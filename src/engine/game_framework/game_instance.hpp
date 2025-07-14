@@ -14,6 +14,11 @@ public:
      *
      * @see reflection::ReflectionSubsystem::register_types
      */
-    virtual void register_reflection_types() {};
+    virtual void register_reflection_types() {}
+
+    /**
+     * Ticks the game. This should call game-specific systems, such as updating the player's class or other game types
+     */
+    virtual void tick(float delta_time) {}
 };
 

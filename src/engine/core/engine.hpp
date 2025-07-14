@@ -18,8 +18,10 @@
 #include "physics/physics_scene.hpp"
 #include "resources/prefab_loader.hpp"
 #include "resources/resource_loader.hpp"
+#include "scene/entity_info_component.hpp"
 #include "scene/world.hpp"
 #include "scene/scene_file.hpp"
+#include "scene/transform_component.hpp"
 
 class SystemInterface;
 
@@ -37,8 +39,7 @@ public:
 
     entt::handle add_prefab_to_world(const ResourcePath& prefab_path, const float4x4& transform);
 
-    template<typename PlayerType>
-    void instantiate_player();
+    entt::handle instantiate_player();
 
     /**
      * Reads the window resolution from the system interface, and updates the renderer for the new resolution
@@ -166,12 +167,6 @@ private:
      */
     eastl::unordered_map<eastl::string, Scene> loaded_scenes;
 };
-
-template<typename PlayerType>
-void Engine::instantiate_player() {
-    player = world.create_game_object<PlayerType>("Player");
-    player_input.set_controlled_entity(player);
-}
 
 template<typename GameInstanceType>
 void Engine::initialize_game_instance() {
