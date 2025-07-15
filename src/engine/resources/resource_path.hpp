@@ -5,6 +5,9 @@
 #include <EASTL/string.h>
 #include <spdlog/fmt/bundled/base.h>
 
+#include "serialization/eastl/string.hpp"
+#include "serialization/glm.hpp"
+
 /**
  * A path to a resource. Automatically resolved to one of our known directories when you get the filepath
  *
@@ -15,12 +18,7 @@
  *  - file:// is a generic file, either relative to the working directory or an absolute filepath
  */
 struct ResourcePath {
-    enum class Scope {
-        File,
-        Resource,
-        Shader,
-        Game
-    };
+    enum class Scope { File, Resource, Shader, Game };
 
     static ResourcePath file(const std::string_view path_in) {
         return ResourcePath{Scope::File, path_in};
@@ -59,9 +57,14 @@ struct ResourcePath {
     Scope scope = Scope::File;
 
     eastl::string path = {};
+
+    template<typename Archive>
+    void serialize(Archive& ar) {
+        ar(scope, path);
+    }
 };
 
-ResourcePath operator ""_res(const char* path, size_t size);
+ResourcePath operator""_res(const char* path, size_t size);
 
 template<>
 struct fmt::formatter<ResourcePath> : formatter<const char*> {
@@ -74,7 +77,7 @@ struct fmt::formatter<ResourcePath> : formatter<const char*> {
 template<>
 struct eastl::hash<ResourcePath> {
     size_t operator()(const ResourcePath& path) const {
-        uint32_t  result = 2166136261U; // Fallout New Vegas 1 hash
+        uint32_t result = 2166136261U; // Fallout New Vegas 1 hash
         result = (result * 16777619) ^ eastl::hash<uint32_t>{}(static_cast<uint32_t>(path.get_scope()));
         result = (result * 16777619) ^ eastl::hash<const char*>{}(path.get_path().c_str());
         return result;

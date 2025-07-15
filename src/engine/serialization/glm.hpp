@@ -7,6 +7,16 @@
 
 namespace glm {
     template<typename Archive>
+    void serialize(Archive& ar, float3& value) {
+        ar(value.x, value.y, value.z);
+    }
+
+    template<typename Archive>
+    void serialize(Archive& ar, quat& value) {
+        ar(value.w, value.x, value.y, value.z);
+    }
+
+    template<typename Archive>
     void serialize(Archive& ar, float4x4& value);
 
     template<typename Archive>
@@ -17,4 +27,4 @@ namespace glm {
             }
         }
     }
-}
+} // namespace glm

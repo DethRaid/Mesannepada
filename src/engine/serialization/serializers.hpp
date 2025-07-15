@@ -65,9 +65,10 @@ namespace serialization {
                 sequence.resize(size);
             }
 
-            if(sequence.size() > 0 && sequence.value_type().traits<reflection::Traits>() &
-               reflection::Traits::Trivial) {
-                // Assume the sequence container is contiguous and can be treated like a binary blob. This is likely true
+            if(sequence.size() > 0 &&
+               sequence.value_type().traits<reflection::Traits>() & reflection::Traits::Trivial) {
+                // Assume the sequence container is contiguous and can be treated like a binary blob. This is likely
+                // true
                 auto* vp = const_cast<void*>(sequence.begin().base().data());
                 auto binary = cereal::binary_data(vp, sequence.size() * sequence.value_type().size_of());
                 ar(binary);
@@ -110,4 +111,4 @@ namespace serialization {
             }
         }
     }
-}
+} // namespace serialization

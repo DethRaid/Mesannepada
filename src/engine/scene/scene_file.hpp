@@ -2,8 +2,6 @@
 
 #include <filesystem>
 
-#include <plf_colony.h>
-#include <EASTL/string.h>
 #include <EASTL/vector.h>
 #include <entt/entt.hpp>
 #include <spdlog/logger.h>
@@ -117,7 +115,7 @@ private:
      *
      * This map doesn't contain any actual entity handles until you add the scene file to a world
      */
-    eastl::vector<SceneObject> scene_objects;
+    eastl::vector<SceneObject> scene_objects = {};
 
     static void add_object_to_world(SceneObject& object);
 };

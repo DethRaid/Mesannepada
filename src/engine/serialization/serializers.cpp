@@ -46,10 +46,6 @@ namespace serialization {
         SERIALIZE_SCALAR(uint16_t);
         SERIALIZE_SCALAR(int32_t);
         SERIALIZE_SCALAR(uint32_t);
-
-        entt::meta_factory<float4x4>()
-            .func<glm::serialize<cereal::BinaryInputArchive> >("serialize_from_binary"_hs)
-            .func<glm::serialize<cereal::BinaryOutputArchive> >("serialize_to_binary"_hs);
     }
 
     template<typename Archive>

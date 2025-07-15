@@ -192,11 +192,15 @@ std::filesystem::path SystemInterface::get_write_folder() {
 #if defined(__linux__)
     const char* homedir;
 
+    if(homedir = getenv("XDG_DATA_HOME"); homedir) {
+        return homedir;
+    }
+
     if((homedir = getenv("HOME")) == nullptr) {
         homedir = getpwuid(getuid())->pw_dir;
     }
 
-    return std::filesystem::path{homedir} / ".mesannepada";
+    return std::filesystem::path{homedir} / ".local" / "share" / "mesannepada";
 #else
     PWSTR folder_path;
     const auto result = SHGetKnownFolderPath(FOLDERID_SavedGames, 0, nullptr, &folder_path);

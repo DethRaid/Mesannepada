@@ -34,7 +34,7 @@ namespace render {
     private:
         RenderBackend& backend;
 
-        VkDescriptorPool descriptor_pool;
+        VkDescriptorPool descriptor_pool = {};
 
         DescriptorSet descriptor_set;
 

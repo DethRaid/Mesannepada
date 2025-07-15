@@ -6,6 +6,7 @@
 #include <EASTL/string_view.h>
 #include <EASTL/vector.h>
 #include <entt/entt.hpp>
+#include <spdlog/spdlog.h>
 
 #include "animation/animation_system.hpp"
 #include "behavior/game_object.hpp"
@@ -89,21 +90,26 @@ template <typename GameObjectType>
 entt::handle World::create_game_object(
     const eastl::string_view name, const eastl::optional<entt::handle>& parent_node
 ) {
-    const auto entity = create_entity();
-    const auto& game_object = add_component(
-        entity,
-        GameObjectComponent{
-            .game_object = eastl::make_shared<GameObjectType>(entity)
-        });
-    game_object->name = name;
+    try {
+        const auto entity = create_entity();
+        const auto& game_object = add_component(
+            entity,
+            GameObjectComponent{
+                .game_object = eastl::make_shared<GameObjectType>(entity)
+            });
+        game_object->name = name;
 
-    if(parent_node) {
-        parent_entity_to_entity(entity, *parent_node);
-    } else {
-        add_top_level_entities(eastl::array{entity});
+        if(parent_node) {
+            parent_entity_to_entity(entity, *parent_node);
+        } else {
+            add_top_level_entities(eastl::array{entity});
+        }
+
+        return entity;
+    } catch(const std::exception& e) {
+        spdlog::error("Could not create entity {}: {}", name, e.what());
+        return {};
     }
-
-    return entity;
 }
 
 template <typename ComponentType>
