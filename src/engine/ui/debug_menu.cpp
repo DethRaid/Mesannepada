@@ -207,7 +207,7 @@ void DebugUI::draw_editor_menu() {
                     .path = SystemInterface::get().get_data_folder().string(),
                     .flags = ImGuiFileDialogFlags_Default | ImGuiFileDialogFlags_DisableCreateDirectoryButton
                 };
-                open_model_dialog.OpenDialog("open_model_dialog", "Open Packaged Model", ".glb,.gltf", config);
+                open_model_dialog.OpenDialog("open_model_dialog", "Open Packaged Model", ".glb,.gltf,.tscn", config);
             }
 
             if(ImGui::MenuItem("Add Prefab")) {
@@ -504,6 +504,7 @@ void DebugUI::draw_world_and_scene_window() {
                     loaded_scene_names.emplace_back(name);
                 }
 
+                // Add all the scenes on disk to the scene list
                 auto all_scene_names = eastl::vector<eastl::string>{};
                 const auto scenes_folder = Engine::get_scene_folder();
                 for(auto const& dir_entry : std::filesystem::directory_iterator{scenes_folder}) {
@@ -513,11 +514,15 @@ void DebugUI::draw_world_and_scene_window() {
                     }
                 }
 
-                eastl::sort(all_scene_names.begin(), all_scene_names.end());
-
-                if(ImGui::Button("Clear selected scene")) {
-                    selected_scene = "";
+                // Add all the scenes in memory to the scene list, if they're not already there
+                for(const auto& name : loaded_scene_names) {
+                    if(eastl::find(all_scene_names.begin(), all_scene_names.end(), name) == all_scene_names.end()) {
+                        all_scene_names.emplace_back(name);
+                    }
                 }
+
+                // Sort them so I don't go insane
+                eastl::sort(all_scene_names.begin(), all_scene_names.end());
 
                 for(const auto& name : all_scene_names) {
                     const auto is_loaded = eastl::find(loaded_scene_names.begin(), loaded_scene_names.end(), name)
@@ -702,20 +707,6 @@ bool DebugUI::draw_component_helper(
 void DebugUI::draw_entity(entt::entity entity, const entt::registry& registry, const eastl::string& prefix) {
     ImGui::PushID(static_cast<int32_t>(entity));
 
-    auto object_name = eastl::string{eastl::string::CtorSprintf{}, "%d", static_cast<uint32_t>(entity)};
-    if(const auto* entity_info = registry.try_get<EntityInfoComponent>(entity)) {
-        object_name = entity_info->name;
-    } else if(const auto* game_object = registry.try_get<GameObjectComponent>(entity)) {
-        object_name = game_object->game_object->name;
-    }
-    ImGui::Text("%sEntity %s", prefix.c_str(), object_name.c_str());
-
-    ImGui::SameLine();
-    if(ImGui::Button("Edit")) {
-        selected_entity = entity;
-        show_entity_editor = true;
-    }
-
     const auto& transform = registry.get<TransformComponent>(entity);
 
     auto& children_expanded = expansion_map[static_cast<uint32_t>(entity)];
@@ -726,13 +717,26 @@ void DebugUI::draw_entity(entt::entity entity, const entt::registry& registry, c
         if(ImGui::ArrowButton(id.c_str(), children_expanded ? ImGuiDir_Down : ImGuiDir_Right)) {
             children_expanded = !children_expanded;
         }
-        ImGui::SameLine();
+    } else {
+        ImGui::Text("   ");
     }
-    ImGui::Text(
-        "%s%u %s",
-        prefix.c_str(),
-        static_cast<uint32_t>(transform.children.size()),
-        transform.children.size() > 1 ? "children" : "child");
+
+    ImGui::SameLine();
+
+    auto object_name = eastl::string{eastl::string::CtorSprintf{}, "%d", static_cast<uint32_t>(entity)};
+    if(const auto* entity_info = registry.try_get<EntityInfoComponent>(entity)) {
+        object_name = entity_info->name;
+    } else if(const auto* game_object = registry.try_get<GameObjectComponent>(entity)) {
+        object_name = game_object->game_object->name;
+    }
+    ImGui::Text("%sEntity %s", prefix.c_str(), object_name.c_str());
+
+    ImGui::SameLine();
+
+    if(ImGui::Button("Edit")) {
+        selected_entity = entity;
+        show_entity_editor = true;
+    }
 
     if(children_expanded) {
         for(const auto child : transform.children) {
