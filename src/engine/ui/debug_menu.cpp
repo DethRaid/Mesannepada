@@ -70,6 +70,8 @@ DebugUI::DebugUI(render::SarahRenderer& renderer_in) :
 #if SAH_USE_STREAMLINE
     use_ray_reconstruction = *CVarSystem::Get()->GetIntCVar("r.DLSS-RR.Enabled") != 0;
 #endif
+
+    new_scene_name.resize(256);
 }
 
 DebugUI::~DebugUI() {
@@ -495,6 +497,14 @@ void DebugUI::draw_world_and_scene_window() {
             }
 
             if(ImGui::BeginTabItem("Scenes")) {
+                if(ImGui::Button("New Scene")) {
+                    engine.create_scene(eastl::string{new_scene_name.data()});
+                    new_scene_name.clear();
+                    new_scene_name.resize(256);
+                }
+                ImGui::SameLine();
+                ImGui::InputText("Scene Name", new_scene_name.data(), new_scene_name.size(), ImGuiInputTextFlags_CharsNoBlank);
+
                 const auto& loaded_scenes = engine.get_loaded_scenes();
 
                 auto loaded_scene_names = eastl::vector<eastl::string>{};
@@ -764,6 +774,7 @@ void DebugUI::activate_style_dxhr() {
     style = ImGuiStyle{};
 
     // from https://github.com/ocornut/imgui/issues/707#issuecomment-622934113
+    // Edited a little bit
     ImVec4* colors = style.Colors;
 
     colors[ImGuiCol_Text] = ImVec4(0.92f, 0.92f, 0.92f, 1.00f);
@@ -820,12 +831,12 @@ void DebugUI::activate_style_dxhr() {
     style.IndentSpacing = 12;
     style.ScrollbarSize = 10;
 
-    style.WindowRounding = 4;
-    style.FrameRounding = 4;
-    style.PopupRounding = 4;
-    style.ScrollbarRounding = 6;
-    style.GrabRounding = 4;
-    style.TabRounding = 4;
+    // style.WindowRounding = 4;
+    // style.FrameRounding = 4;
+    // style.PopupRounding = 4;
+    // style.ScrollbarRounding = 6;
+    // style.GrabRounding = 4;
+    // style.TabRounding = 4;
 
     style.DisplaySafeAreaPadding = ImVec2(4, 4);
 }

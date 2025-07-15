@@ -78,6 +78,7 @@ private:
     eastl::string scene_to_unload = {};
     void draw_scene_unload_confirmation();
 
+    eastl::vector<char> new_scene_name;
     void draw_world_and_scene_window();
 
     eastl::string selected_scene = {};
