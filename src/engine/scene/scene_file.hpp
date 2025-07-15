@@ -108,7 +108,7 @@ private:
     inline static std::shared_ptr<spdlog::logger> logger = {};
 
     /**
-     * Whether or not the scene ahs been modified since last being saved
+     * Whether or not the scene has been modified since last being saved
      */
     bool dirty = false;
 
