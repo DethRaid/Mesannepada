@@ -158,7 +158,7 @@ namespace render {
             for(const auto& cmd : imgui_command_list->CmdBuffer) {
                 const auto scissor_start = glm::vec2{cmd.ClipRect.x, cmd.ClipRect.y} - display_pos;
                 const auto scissor_end = glm::vec2{cmd.ClipRect.z, cmd.ClipRect.w} - display_pos;
-                commands.set_scissor_rect(scissor_start, scissor_end);
+                commands.set_scissor_rect(glm::max(scissor_start, float2{0}), scissor_end);
 
                 if(cmd.GetTexID() != 0) {
                     commands.bind_descriptor_set(0,

@@ -46,7 +46,7 @@ namespace render {
          */
         eastl::vector<size_t> inactive_blases;
 
-        bool is_dirty = false;
+        bool is_dirty = true;
         AccelerationStructureHandle acceleration_structure = {};
 
         /**

@@ -18,25 +18,28 @@ namespace render {
         logger = SystemInterface::get().get_logger("TextureLoader");
     }
 
-    eastl::optional<TextureHandle> TextureLoader::load_texture(const ResourcePath& filepath, const TextureType type) {
+    eastl::optional<TextureHandle> TextureLoader::load_texture(const ResourcePath& filepath, const TextureType type,
+                                                               const VkImageUsageFlags usage_flags
+        ) {
         // Check if we already have the texture
-        if (const auto itr = loaded_textures.find(filepath); itr != loaded_textures.end()) {
+        if(const auto itr = loaded_textures.find(filepath); itr != loaded_textures.end()) {
             return itr->second;
         }
 
         ZoneScoped;
 
         return SystemInterface::get()
-            .load_file(filepath)
-            .and_then(
-                [&](const eastl::vector<std::byte>& data) {
-                    return upload_texture_stbi(filepath, data, type);
-                });
+               .load_file(filepath)
+               .and_then(
+                   [&](const eastl::vector<std::byte>& data) {
+                       return upload_texture_stbi(filepath, data, type, usage_flags);
+                   });
     }
 
     eastl::optional<TextureHandle> TextureLoader::upload_texture_stbi(
-        const ResourcePath& filepath, const eastl::vector<std::byte>& data, const TextureType type
-    ) {
+        const ResourcePath& filepath, const eastl::vector<std::byte>& data, const TextureType type,
+        const VkImageUsageFlags usage_flags
+        ) {
         ZoneScoped;
 
         auto& backend = RenderBackend::get();
@@ -50,8 +53,8 @@ namespace render {
             &loaded_texture.height,
             &num_components,
             4
-        );
-        if (decoded_data == nullptr) {
+            );
+        if(decoded_data == nullptr) {
             logger->error("Cannot decode texture {}: {}", filepath, stbi_failure_reason());
             return eastl::nullopt;
         }
@@ -60,12 +63,12 @@ namespace render {
             decoded_data,
             reinterpret_cast<uint8_t*>(decoded_data) +
             loaded_texture.width * loaded_texture.height * 4
-        );
+            );
 
         stbi_image_free(decoded_data);
 
         const auto format = [&] {
-            switch (type) {
+            switch(type) {
             case TextureType::Color:
                 return VK_FORMAT_R8G8B8A8_SRGB;
 
@@ -74,17 +77,18 @@ namespace render {
             }
 
             return VK_FORMAT_R8G8B8A8_UNORM;
-            }();
+        }();
         auto& allocator = backend.get_global_allocator();
         const auto handle = allocator.create_texture(
             filepath.to_string(),
             {
-                format,
-                glm::uvec2{loaded_texture.width, loaded_texture.height},
-                1,
-                TextureUsage::StaticImage
+                .format = format,
+                .resolution = glm::uvec2{loaded_texture.width, loaded_texture.height},
+                .num_mips = 1,
+                .usage = TextureUsage::StaticImage,
+                .usage_flags = usage_flags
             }
-        );
+            );
         loaded_textures.emplace(filepath, handle);
 
         auto& upload_queue = backend.get_upload_queue();
@@ -96,7 +100,7 @@ namespace render {
             }
             );
 
-        if (backend.has_separate_transfer_queue()) {
+        if(backend.has_separate_transfer_queue()) {
             backend.add_transfer_barrier(
                 VkImageMemoryBarrier2{
                     .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
@@ -117,7 +121,7 @@ namespace render {
                         .layerCount = 1
                     }
                 }
-            );
+                );
 
             logger->info(
                 "Added queue transfer barrier for image {} (Vulkan handle {})",

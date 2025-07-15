@@ -102,7 +102,7 @@ namespace render {
         }
 
         auto* write_ptr = allocator.map_buffer(instances_buffer);
-        std::memcpy(write_ptr, instances.data(), instances_buffer->create_info.size);
+        std::memcpy(write_ptr, instances.data(), instances.size() * sizeof(VkAccelerationStructureInstanceKHR));
 
         graph.add_transition_pass(
             {

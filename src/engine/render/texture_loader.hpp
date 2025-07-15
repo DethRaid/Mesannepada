@@ -25,7 +25,9 @@ namespace render {
          * @param filepath The path to the texture
          * @param type The type of the texture
          */
-        eastl::optional<TextureHandle> load_texture(const ResourcePath& filepath, TextureType type);
+        eastl::optional<TextureHandle> load_texture(const ResourcePath& filepath, TextureType type,
+                                                    VkImageUsageFlags usage_flags = 0
+            );
 
         /**
          * Uploads a KTX texture from memory
@@ -35,7 +37,7 @@ namespace render {
          */
         eastl::optional<TextureHandle> upload_texture_ktx(
             const ResourcePath& filepath, const eastl::vector<std::byte>& data
-        );
+            );
 
         /**
          * Uploads a PNG file from memory
@@ -45,8 +47,9 @@ namespace render {
          * @param type The type of the texture
          */
         eastl::optional<TextureHandle> upload_texture_stbi(
-            const ResourcePath& filepath, const eastl::vector<std::byte>& data, TextureType type
-        );
+            const ResourcePath& filepath, const eastl::vector<std::byte>& data, TextureType type,
+            VkImageUsageFlags usage_flags = 0
+            );
 
     private:
         std::shared_ptr<spdlog::logger> logger;

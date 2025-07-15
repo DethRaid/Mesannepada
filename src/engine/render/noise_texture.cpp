@@ -7,21 +7,24 @@
 #include "texture_loader.hpp"
 
 namespace render {
-    NoiseTexture NoiseTexture::create(const std::string& base_filename, const uint32_t num_layers, TextureLoader& loader) {
+    NoiseTexture NoiseTexture::create(const std::string& base_filename, const uint32_t num_layers, TextureLoader& loader
+        ) {
         auto new_texture = NoiseTexture{
             .layers = eastl::vector<TextureHandle>(num_layers),
             .resolution = {128, 128},
-            .num_layers = num_layers,
+            .num_layers = num_layers
         };
 
-        for (auto layer_idx = 0; layer_idx < num_layers; layer_idx++) {
-            const auto filepath = ResourcePath{ fmt::format("res://{}_{}.png", base_filename.c_str(), layer_idx) };
-            const auto layer_texture = loader.load_texture(filepath, TextureType::Data);
+        for(auto layer_idx = 0; layer_idx < num_layers; layer_idx++) {
+            const auto filepath = ResourcePath{fmt::format("res://{}_{}.png", base_filename.c_str(), layer_idx)};
+            const auto layer_texture = loader.load_texture(filepath, TextureType::Data, VK_IMAGE_USAGE_STORAGE_BIT);
             new_texture.layers[layer_idx] = *layer_texture;
         }
 
         return new_texture;
     }
 
-    TextureHandle NoiseTexture::get_layer(const uint32_t index) const { return layers[index % num_layers]; }
+    TextureHandle NoiseTexture::get_layer(const uint32_t index) const {
+        return layers[index % num_layers];
+    }
 }

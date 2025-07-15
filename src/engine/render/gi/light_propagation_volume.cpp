@@ -283,7 +283,7 @@ namespace render {
                                            .bind(view_buffer)
                                            .bind(ao_tex, linear_sampler)
                                            .bind(sun_buffer)
-                                           .bind(noise_tex)TODO: Give this texture storage bit
+                                           .bind(noise_tex)
                                            .build();
 
         commands.bind_descriptor_set(1, lpv_descriptor);
