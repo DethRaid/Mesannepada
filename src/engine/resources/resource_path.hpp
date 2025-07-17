@@ -6,7 +6,6 @@
 #include <spdlog/fmt/bundled/base.h>
 
 #include "serialization/eastl/string.hpp"
-#include "serialization/glm.hpp"
 
 /**
  * A path to a resource. Automatically resolved to one of our known directories when you get the filepath
@@ -20,8 +19,12 @@
 struct ResourcePath {
     enum class Scope { File, Resource, Shader, Game };
 
-    static ResourcePath file(const std::string_view path_in) {
+    static ResourcePath file(const std::filesystem::path& path_in) {
         return ResourcePath{Scope::File, path_in};
+    }
+
+    static ResourcePath game(const std::filesystem::path& path) {
+        return ResourcePath{Scope::Game, path};
     }
 
     ResourcePath() = default;
@@ -36,8 +39,8 @@ struct ResourcePath {
     /**
      * Constructs a resource path with an explicit scope
      */
-    explicit ResourcePath(const Scope scope_in, const std::string_view path_in) :
-        scope{scope_in}, path{path_in.data(), path_in.size()} {
+    explicit ResourcePath(const Scope scope_in, std::filesystem::path path_in) :
+        scope{scope_in}, path{eastl::move(path_in)} {
     }
 
     bool operator==(const ResourcePath& other) const;
@@ -52,16 +55,29 @@ struct ResourcePath {
         return scope;
     }
 
-    const eastl::string& get_path() const;
+    const std::filesystem::path& get_path() const {
+        return path;
+    }
 
     Scope scope = Scope::File;
 
-    eastl::string path = {};
+    std::filesystem::path path = {};
 
     template<typename Archive>
-    void serialize(Archive& ar) {
-        ar(scope, path);
+    void save(Archive& ar) const {
+        const auto& str = to_string();
+        ar(str);
     }
+
+    template<typename Archive>
+    void load(Archive& ar) {
+        auto str = eastl::string{};
+        ar(str);
+        parse_from_string(str);
+    }
+
+private:
+    void parse_from_string(eastl::string_view str);
 };
 
 ResourcePath operator""_res(const char* path, size_t size);

@@ -438,9 +438,7 @@ void DebugUI::draw_gi_menu() {
     }
 }
 
-void DebugUI::load_selected_model() {
-    const auto filename = ResourcePath{};
-
+void DebugUI::load_selected_model(const ResourcePath& filename) {
     auto& engine = Engine::get();
 
     auto& scene = selected_scene.empty() ? engine.get_environment_scene() : engine.get_scene(selected_scene);
@@ -565,7 +563,8 @@ void DebugUI::draw_world_and_scene_window() {
     draw_scene_unload_confirmation();
 }
 
-void DebugUI::draw_files(const std::filesystem::path& pwd, const std::filesystem::path& base_folder) {
+void DebugUI::draw_files(const std::filesystem::path& pwd, const std::filesystem::path& base_folder,
+    const eastl::string& prefix) {
     auto folders = eastl::vector<std::filesystem::path>{};
     auto files = eastl::vector<std::filesystem::path>{};
     const auto pwd_full_path = base_folder / pwd;
@@ -583,26 +582,34 @@ void DebugUI::draw_files(const std::filesystem::path& pwd, const std::filesystem
 
     for(const auto& folder : folders) {
         auto& is_dir_open = is_directory_open[folder];
-        const auto folder_name_string = folder.string();
-        if(ImGui::ArrowButton(folder_name_string.c_str(), is_dir_open ? ImGuiDir_Down : ImGuiDir_Right)) {
+        const auto folder_name_key = folder.string();
+        ImGui::Text(prefix.c_str());
+        ImGui::SameLine();
+        if(ImGui::ArrowButton(folder_name_key.c_str(), is_dir_open ? ImGuiDir_Down : ImGuiDir_Right)) {
             is_dir_open = !is_dir_open;
         }
         ImGui::SameLine();
-        ImGui::Text(folder_name_string.c_str());
+        const auto folder_name = folder.stem();
+        ImGui::Text(folder_name.string().c_str());
         if(is_dir_open) {
-            draw_files(folder, base_folder);
+            draw_files(folder, base_folder, prefix + "  ");
         }
     }
 
     for(const auto& file : files) {
-        ImGui::Text(file.string().c_str());
+        ImGui::Text("%s\t%s", prefix.c_str(), file.filename().string().c_str());
+        ImGui::SameLine();
+        const auto id = format("Add##%s", file.string().c_str());
+        if(ImGui::Button(id.c_str())) {
+            load_selected_model(ResourcePath::game(file.string()));
+        }
     }
 }
 
 void DebugUI::draw_object_selector() {
     if(ImGui::Begin("Object Selector")) {
         const auto base_folder = SystemInterface::get().get_data_folder() / "game";
-        draw_files(".", base_folder);
+        draw_files(".", base_folder, "");
     }
     ImGui::End();
 }
@@ -758,7 +765,7 @@ void DebugUI::draw_entity(entt::entity entity, const entt::registry& registry, c
             children_expanded = !children_expanded;
         }
     } else {
-        ImGui::Text("   ");
+        ImGui::Text("\t");
     }
 
     ImGui::SameLine();

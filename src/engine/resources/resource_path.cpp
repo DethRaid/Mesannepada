@@ -4,23 +4,7 @@
 #include "core/system_interface.hpp"
 
 ResourcePath::ResourcePath(const eastl::string_view path_in) {
-    if(path_in.starts_with("file://")) {
-        scope = Scope::File;
-        path = {path_in.begin() + 7, path_in.end()};
-    } else if(path_in.starts_with("res://")) {
-        scope = Scope::Resource;
-        path = {path_in.begin() + 6, path_in.end()};
-    } else if(path_in.starts_with("shader://")) {
-        scope = Scope::Shader;
-        path = {path_in.begin() + 9, path_in.end()};
-    } else if(path_in.starts_with("game://")) {
-        scope = Scope::Game;
-        path = {path_in.begin() + 7, path_in.end()};
-    } else {
-        // No explicit scope, or an unrecognized scope. Assume it's a generic file
-        scope = Scope::File;
-        path = path_in;
-    }
+    parse_from_string(path_in);
 }
 
 ResourcePath::ResourcePath(const std::string_view path_in) :
@@ -47,7 +31,7 @@ bool ResourcePath::operator==(const ResourcePath& other) const {
 }
 
 bool ResourcePath::ends_with(const eastl::string_view end) const {
-    return eastl::string_view{path}.ends_with(end);
+    return path.extension() == std::string_view{end.data(), end.size()};
 }
 
 std::filesystem::path ResourcePath::to_filepath() const {
@@ -67,16 +51,33 @@ std::filesystem::path ResourcePath::to_filepath() const {
         break;
     }
 
-    return base_path.empty() ? std::filesystem::path{path.c_str()} : base_path / path.c_str();
+    return base_path.empty() ? path : base_path / path;
 }
 
 eastl::string ResourcePath::to_string() const {
-    return format("%s%s", ::to_string(scope), path.c_str());
+    return format("%s%s", ::to_string(scope), path.string().c_str());
 }
 
-const eastl::string& ResourcePath::get_path() const {return path;
+void ResourcePath::parse_from_string(const eastl::string_view str) {
+    if(str.starts_with("file://")) {
+        scope = Scope::File;
+        path = std::string{str.begin() + 7, str.end()};
+    } else if(str.starts_with("res://")) {
+        scope = Scope::Resource;
+        path = std::string{str.begin() + 6, str.end()};
+    } else if(str.starts_with("shader://")) {
+        scope = Scope::Shader;
+        path = std::string{str.begin() + 9, str.end()};
+    } else if(str.starts_with("game://")) {
+        scope = Scope::Game;
+        path = std::string{str.begin() + 7, str.end()};
+    } else {
+        // No explicit scope, or an unrecognized scope. Assume it's a generic file
+        scope = Scope::File;
+        path = std::string{str.begin(), str.end()};
+    }
 }
 
-ResourcePath operator ""_res(const char* path, size_t size) {
+ResourcePath operator ""_res(const char* path, const size_t size) {
     return ResourcePath{eastl::string_view{path, size}};
 }

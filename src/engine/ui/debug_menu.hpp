@@ -66,7 +66,7 @@ private:
 
     static void draw_perf_info_window();
 
-    void load_selected_model();
+    void load_selected_model(const ResourcePath& filename);
 
     void draw_taa_menu();
 
@@ -83,7 +83,8 @@ private:
 
     eastl::unordered_map<std::filesystem::path, bool> is_directory_open;
 
-    void draw_files(const std::filesystem::path& pwd, const std::filesystem::path& base_folder);
+    void draw_files(const std::filesystem::path& pwd, const std::filesystem::path& base_folder,
+        const eastl::string& prefix);
 
     /**
      * Draws a window that lets you add objects to the scene
