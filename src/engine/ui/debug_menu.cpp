@@ -101,17 +101,11 @@ void DebugUI::draw() {
 
         draw_world_and_scene_window();
 
+        draw_object_selector();
+
         draw_debug_window();
 
         draw_entity_editor_window();
-
-        if(open_model_dialog.Display("open_model_dialog")) {
-            open_model_dialog.Close();
-
-            if(open_model_dialog.IsOk()) {
-                load_selected_model();
-            }
-        }
     }
 
     ImGui::Render();
@@ -205,11 +199,7 @@ void DebugUI::draw_editor_menu() {
             }
 
             if(ImGui::MenuItem("Add Packaged Model")) {
-                const auto config = IGFD::FileDialogConfig{
-                    .path = SystemInterface::get().get_data_folder().string(),
-                    .flags = ImGuiFileDialogFlags_Default | ImGuiFileDialogFlags_DisableCreateDirectoryButton
-                };
-                open_model_dialog.OpenDialog("open_model_dialog", "Open Packaged Model", ".glb,.gltf,.tscn", config);
+// TODO: Show my thing
             }
 
             if(ImGui::MenuItem("Add Prefab")) {
@@ -449,8 +439,7 @@ void DebugUI::draw_gi_menu() {
 }
 
 void DebugUI::load_selected_model() {
-    const auto filenames = open_model_dialog.GetSelection();
-    const auto filename = ResourcePath{filenames.begin()->second};
+    const auto filename = ResourcePath{};
 
     auto& engine = Engine::get();
 
@@ -499,8 +488,7 @@ void DebugUI::draw_world_and_scene_window() {
             if(ImGui::BeginTabItem("Scenes")) {
                 if(ImGui::Button("New Scene")) {
                     engine.create_scene(eastl::string{new_scene_name.data()});
-                    new_scene_name.clear();
-                    new_scene_name.resize(256);
+                    memset(new_scene_name.data(), '\0', new_scene_name.size());
                 }
                 ImGui::SameLine();
                 ImGui::InputText("Scene Name", new_scene_name.data(), new_scene_name.size(), ImGuiInputTextFlags_CharsNoBlank);
@@ -575,6 +563,48 @@ void DebugUI::draw_world_and_scene_window() {
     ImGui::End();
 
     draw_scene_unload_confirmation();
+}
+
+void DebugUI::draw_files(const std::filesystem::path& pwd, const std::filesystem::path& base_folder) {
+    auto folders = eastl::vector<std::filesystem::path>{};
+    auto files = eastl::vector<std::filesystem::path>{};
+    const auto pwd_full_path = base_folder / pwd;
+    for(const auto& entry : std::filesystem::directory_iterator{pwd_full_path}) {
+        const auto relative_path = std::filesystem::relative(entry.path(), base_folder);
+        if(entry.is_regular_file()) {
+            files.emplace_back(relative_path);
+        } else if(entry.is_directory()) {
+            folders.emplace_back(relative_path);
+        }
+    }
+
+    eastl::sort(folders.begin(), folders.end());
+    eastl::sort(files.begin(), files.end());
+
+    for(const auto& folder : folders) {
+        auto& is_dir_open = is_directory_open[folder];
+        const auto folder_name_string = folder.string();
+        if(ImGui::ArrowButton(folder_name_string.c_str(), is_dir_open ? ImGuiDir_Down : ImGuiDir_Right)) {
+            is_dir_open = !is_dir_open;
+        }
+        ImGui::SameLine();
+        ImGui::Text(folder_name_string.c_str());
+        if(is_dir_open) {
+            draw_files(folder, base_folder);
+        }
+    }
+
+    for(const auto& file : files) {
+        ImGui::Text(file.string().c_str());
+    }
+}
+
+void DebugUI::draw_object_selector() {
+    if(ImGui::Begin("Object Selector")) {
+        const auto base_folder = SystemInterface::get().get_data_folder() / "game";
+        draw_files(".", base_folder);
+    }
+    ImGui::End();
 }
 
 void DebugUI::draw_entity_editor_window() {
