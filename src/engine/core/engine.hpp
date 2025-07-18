@@ -102,7 +102,13 @@ public:
 
     const Scene& get_scene(const eastl::string& name) const;
 
-    const eastl::unordered_map<eastl::string, Scene>& get_loaded_scenes() const;
+    eastl::unordered_map<eastl::string, Scene>& get_loaded_scenes() {
+        return loaded_scenes;
+    }
+
+    const eastl::unordered_map<eastl::string, Scene>& get_loaded_scenes() const{
+        return loaded_scenes;
+    }
 
     physics::PhysicsWorld& get_physics_world();
 

@@ -1,6 +1,7 @@
 #include "debug_menu.hpp"
 
 #include <imgui.h>
+#include <ImGuizmo.h>
 #include <magic_enum.hpp>
 #include <imgui_impl_glfw.h>
 #if SAH_USE_STREAMLINE
@@ -84,6 +85,8 @@ void DebugUI::draw() {
 
     ImGui::NewFrame();
 
+    ImGuizmo::BeginFrame();
+
     apply_theme();
 
     if(ImGui::IsKeyChordPressed(ImGuiKey_D | ImGuiMod_Alt)) {
@@ -101,11 +104,15 @@ void DebugUI::draw() {
 
         draw_world_and_scene_window();
 
-        draw_object_selector();
+        draw_model_selector();
 
         draw_debug_window();
 
         draw_entity_editor_window();
+
+        if(selected_entity) {
+            draw_guizmos(selected_entity);
+        }
     }
 
     ImGui::Render();
@@ -187,24 +194,16 @@ void DebugUI::create_font_texture() {
 
 void DebugUI::draw_editor_menu() {
     if(ImGui::BeginMainMenuBar()) {
-        const auto menu_name = format("Scene %s", selected_scene.c_str());
-        if(ImGui::BeginMenu(menu_name.c_str())) {
-            if(ImGui::MenuItem("Save", "CTRL+S")) {
-                auto& scene = Engine::get().get_scene(selected_scene);
-                scene.write_to_file(ResourcePath{format("game://scenes/%s", selected_scene.c_str())});
+        if(ImGui::BeginMenu("Scene")) {
+            if(ImGui::MenuItem("Save all Scenes", "CTRL+S")) {
+                auto& scenes = Engine::get().get_loaded_scenes();
+                for(auto& [name, scene] : scenes) {
+                    scene.write_to_file(ResourcePath{format("game://scenes/%s", name.c_str())});
+                }
             }
 
-            if(ImGui::MenuItem("Open", "CTRL+O")) {
-                // open_world();
-            }
-
-            if(ImGui::MenuItem("Add Packaged Model")) {
-// TODO: Show my thing
-            }
-
-            if(ImGui::MenuItem("Add Prefab")) {
-                // Show a menu that lets us select a prefab. We can put all the prefabs in data/game/prefabs/ to make life
-                // easier. We'll send a ray from the player's camera and spawn the prefab at whatever it intersects with
+            if(ImGui::MenuItem("Add Model")) {
+                    show_model_selector = true;
             }
 
             ImGui::EndMenu();
@@ -472,8 +471,8 @@ void DebugUI::draw_world_and_scene_window() {
     if(ImGui::Begin("Scene Views")) {
         if(ImGui::BeginTabBar("SceneSelection")) {
             if(ImGui::BeginTabItem("Entities")) {
-                const auto& world = engine.get_world();
-                const auto& registry = world.get_registry();
+                auto& world = engine.get_world();
+                auto& registry = world.get_registry();
 
                 const auto& roots = world.get_top_level_entities();
                 for(const auto root : roots) {
@@ -598,16 +597,26 @@ void DebugUI::draw_files(const std::filesystem::path& pwd, const std::filesystem
 
     for(const auto& file : files) {
         ImGui::Text("%s\t%s", prefix.c_str(), file.filename().string().c_str());
-        ImGui::SameLine();
-        const auto id = format("Add##%s", file.string().c_str());
-        if(ImGui::Button(id.c_str())) {
-            load_selected_model(ResourcePath::game(file.string()));
+        if(file.extension() == ".glb" || file.extension() == ".gltf" || file.extension() == ".tscn") {
+            ImGui::SameLine();
+
+            const auto& style = ImGui::GetStyle();
+            const float button_width = ImGui::CalcTextSize("Add").x + style.FramePadding.x * 2.f;
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - button_width);
+            const auto id = format("Add##%s", file.string().c_str());
+            if(ImGui::Button(id.c_str())) {
+                load_selected_model(ResourcePath::game(file.string()));
+            }
         }
     }
 }
 
-void DebugUI::draw_object_selector() {
-    if(ImGui::Begin("Object Selector")) {
+void DebugUI::draw_model_selector() {
+    if(!show_model_selector) {
+        return;
+    }
+
+    if(ImGui::Begin("Object Selector"), &show_model_selector) {
         const auto base_folder = SystemInterface::get().get_data_folder() / "game";
         draw_files(".", base_folder, "");
     }
@@ -616,7 +625,7 @@ void DebugUI::draw_object_selector() {
 
 void DebugUI::draw_entity_editor_window() {
     if(ImGui::Begin("Entity Editor")) {
-        ImGui::PushID(static_cast<int>(selected_entity));
+        ImGui::PushID(static_cast<int>(selected_entity.entity()));
 
         auto& registry = Engine::get().get_world().get_registry();
 
@@ -642,6 +651,25 @@ void DebugUI::draw_entity_editor_window() {
     }
 
     ImGui::End();
+}
+
+void DebugUI::draw_guizmos(const entt::handle entity) {
+    static auto cur_operation = ImGuizmo::OPERATION::UNIVERSAL;
+    static auto cur_mode = ImGuizmo::MODE::WORLD;
+
+    if(ImGui::IsKeyPressed(ImGuiKey_Q)) {
+        cur_operation = ImGuizmo::OPERATION::UNIVERSAL;
+    } else if(ImGui::IsKeyPressed(ImGuiKey_W)) {
+        cur_operation == ImGuizmo::OPERATION::TRANSLATE;
+    } else if(ImGui::IsKeyPressed(ImGuiKey_E)) {
+        cur_operation = ImGuizmo::OPERATION::ROTATE;
+    } else if(ImGui::IsKeyPressed(ImGuiKey_R)) {
+        cur_operation = ImGuizmo::OPERATION::SCALE;
+    }
+
+    if(auto* trans = entity.try_get<TransformComponent>()) {
+
+    }
 }
 
 bool DebugUI::draw_component_helper(
@@ -751,7 +779,7 @@ bool DebugUI::draw_component_helper(
     return changed;
 }
 
-void DebugUI::draw_entity(entt::entity entity, const entt::registry& registry, const eastl::string& prefix) {
+void DebugUI::draw_entity(entt::entity entity, entt::registry& registry, const eastl::string& prefix) {
     ImGui::PushID(static_cast<int32_t>(entity));
 
     const auto& transform = registry.get<TransformComponent>(entity);
@@ -781,7 +809,7 @@ void DebugUI::draw_entity(entt::entity entity, const entt::registry& registry, c
     ImGui::SameLine();
 
     if(ImGui::Button("Edit")) {
-        selected_entity = entity;
+        selected_entity =entt::handle{registry, entity};
         show_entity_editor = true;
     }
 

@@ -115,6 +115,18 @@ void Scene::remove_from_world() {
     }
 }
 
+void Scene::sync_transforms_from_world() {
+    for(auto& obj : scene_objects) {
+        if(obj.entity) {
+            if(const auto* trans = obj.entity.try_get<TransformComponent>()) {
+                obj.location = trans->location;
+                obj.orientation = trans->rotation;
+                obj.scale = trans->scale;
+            }
+        }
+    }
+}
+
 void Scene::add_object_to_world(SceneObject& object) {
     ZoneScoped;
 

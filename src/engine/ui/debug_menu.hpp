@@ -11,6 +11,9 @@
 #include <entt/entt.hpp>
 #include <vulkan/vulkan.h>
 
+#include "animation/animation_system.hpp"
+#include "animation/animation_system.hpp"
+#include "animation/animation_system.hpp"
 #include "core/stl_eastl_adapters.hpp"
 #include "core/system_interface.hpp"
 #include "render/backend/handles.hpp"
@@ -86,17 +89,20 @@ private:
     void draw_files(const std::filesystem::path& pwd, const std::filesystem::path& base_folder,
         const eastl::string& prefix);
 
+    bool show_model_selector = true;
     /**
      * Draws a window that lets you add objects to the scene
      */
-    void draw_object_selector();
+    void draw_model_selector();
 
     eastl::string selected_scene = {};
 
-    entt::entity selected_entity = {};
+    entt::handle selected_entity = {};
     bool show_entity_editor = false;
 
     void draw_entity_editor_window();
+
+    void draw_guizmos(entt::handle entity);
 
     static bool draw_component_helper(
         entt::entity entity, entt::meta_any instance, const entt::meta_custom& custom, bool readonly, int& gui_id
@@ -107,7 +113,7 @@ private:
      */
     eastl::unordered_map<uint32_t, bool> expansion_map;
 
-    void draw_entity(entt::entity entity, const entt::registry& registry, const eastl::string& prefix = "");
+    void draw_entity(entt::entity entity, entt::registry& registry, const eastl::string& prefix = "");
 
     static void draw_combo_box(const std::string& name, eastl::span<const std::string> items, int& selected_item);
 

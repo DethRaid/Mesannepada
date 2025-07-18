@@ -76,6 +76,7 @@ public:
 
     template<typename Archive>
     void save(Archive& ar) {
+        sync_transforms_from_world();
         logger->info("Saving {} objects", scene_objects.size());
         ar(scene_objects);
         dirty = false;
@@ -116,6 +117,11 @@ private:
      * This map doesn't contain any actual entity handles until you add the scene file to a world
      */
     eastl::vector<SceneObject> scene_objects = {};
+
+    /**
+     * Updates the transforms of all SceneObjects with the transform in the ECS
+     */
+    void sync_transforms_from_world();
 
     static void add_object_to_world(SceneObject& object);
 };
