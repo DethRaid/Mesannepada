@@ -174,7 +174,7 @@ namespace render {
             }
         };
 
-        if (cvar_ray_reconstruction.Get() != 0) {
+        if (cvar_ray_reconstruction.get() != 0) {
             pack_dlss_rr_inputs(graph, gbuffer);
 
             textures.emplace_back(
@@ -254,7 +254,7 @@ namespace render {
                     const auto& output_resolution = color_out->get_resolution();
 
                     auto feature = sl::kFeatureDLSS;
-                    if (cvar_ray_reconstruction.Get() != 0) {
+                    if (cvar_ray_reconstruction.get() != 0) {
                         auto dlssd_options = sl::DLSSDOptions{};
                         dlssd_options.mode = dlss_mode;
                         dlssd_options.outputWidth = output_resolution.x;
@@ -302,8 +302,8 @@ namespace render {
 
         if (dlss_rr_packing_pipeline == nullptr) {
             dlss_rr_packing_pipeline = backend.begin_building_pipeline("dlss_rr_input_packing")
-                .set_vertex_shader("common/fullscreen.vert.spv")
-                .set_fragment_shader("dlss/dlss_rr_packing.frag.spv")
+                .set_vertex_shader("shader://common/fullscreen.vert.spv"_res)
+                .set_fragment_shader("shader://dlss/dlss_rr_packing.frag.spv"_res)
                 .set_depth_state({ .enable_depth_test = false, .enable_depth_write = false })
                 .set_num_attachments(3)
                 .build();

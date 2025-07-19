@@ -24,7 +24,7 @@ ResourcePath::ResourcePath(const eastl::string_view path_in) {
 }
 
 ResourcePath::ResourcePath(const std::string_view path_in) :
-    ResourcePath{eastl::string_view{path_in.begin(), path_in.size()}} {
+    ResourcePath{eastl::string_view{path_in.data(), path_in.size()}} {
 }
 
 static const char* to_string(const ResourcePath::Scope scope) {
@@ -46,7 +46,7 @@ bool ResourcePath::operator==(const ResourcePath& other) const {
     return scope == other.scope && path == other.path;
 }
 
-bool ResourcePath::ends_with(eastl::string_view end) const {
+bool ResourcePath::ends_with(const eastl::string_view end) const {
     return eastl::string_view{path}.ends_with(end);
 }
 

@@ -329,30 +329,6 @@ else()
         glfw)
 endif()
 
-
-FetchContent_Declare(
-        ImGuiFileDialog
-        GIT_REPOSITORY  https://github.com/aiekick/ImGuiFileDialog.git
-        GIT_TAG         dba9ab725f0f42cbef1bfd3f7678156091cce659
-)
-FetchContent_GetProperties(ImGuiFileDialog)
-if(ImGuiFileDialog_POPULATED)
-    message("ImGuiFileDialog automatically populated")
-else()
-    FetchContent_MakeAvailable(ImGuiFileDialog)
-    add_library(imguifiledialog STATIC 
-        ${ImGuiFileDialog_SOURCE_DIR}/ImGuiFileDialog.cpp
-        ${ImGuiFileDialog_SOURCE_DIR}/ImGuiFileDialog.h
-        ${ImGuiFileDialog_SOURCE_DIR}/ImGuiFileDialogConfig.h
-        )
-    target_include_directories(imguifiledialog PUBLIC 
-        ${ImGuiFileDialog_SOURCE_DIR}
-        )
-    target_link_libraries(imguifiledialog PUBLIC 
-        imgui
-        )
-endif()
-
 FetchContent_Declare(
         imguizmo
         GIT_REPOSITORY  https://github.com/CedricGuillemet/ImGuizmo.git
@@ -367,10 +343,8 @@ else()
         ${imguizmo_SOURCE_DIR}/GraphEditor.cpp
         ${imguizmo_SOURCE_DIR}/ImCurveEdit.cpp
         ${imguizmo_SOURCE_DIR}/ImGradient.cpp
+        ${imguizmo_SOURCE_DIR}/ImGuizmo.cpp
         ${imguizmo_SOURCE_DIR}/ImSequencer.cpp
-        ${imguizmo_SOURCE_DIR}/GraphEditor.cpp
-        ${imguizmo_SOURCE_DIR}/GraphEditor.cpp
-        ${imguizmo_SOURCE_DIR}/GraphEditor.cpp
         )
     target_include_directories(imguizmo PUBLIC 
         ${imguizmo_SOURCE_DIR}

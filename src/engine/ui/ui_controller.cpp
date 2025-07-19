@@ -69,13 +69,13 @@ namespace ui {
         }
 
         for(const auto& font_name : FONT_NAMES) {
-            result = Rml::LoadFontFace(SystemInterface::get().get_data_folder() / font_name);
+            result = Rml::LoadFontFace((SystemInterface::get().get_data_folder() / font_name).string());
             if(!result) {
                 logger->error("Could not load font {}", font_name);
             }
         }
 
-        result = Rml::LoadFontFace(SystemInterface::get().get_data_folder() / FALLBACK_FONT, true);
+        result = Rml::LoadFontFace((SystemInterface::get().get_data_folder() / FALLBACK_FONT).string(), true);
         if(!result) {
             logger->error("Could not load fallback font {}", FALLBACK_FONT);
         }

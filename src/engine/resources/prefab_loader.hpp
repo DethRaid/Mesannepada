@@ -7,11 +7,11 @@
 #include <EASTL/functional.h>
 #include <entt/entity/registry.hpp>
 #include <EASTL/unordered_map.h>
-
 #include <simdjson.h>
+
+#include "resources/resource_path.hpp"
 #include "shared/prelude.h"
 
-class ResourcePath;
 class World;
 
 /**

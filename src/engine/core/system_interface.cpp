@@ -254,7 +254,7 @@ FILE* SystemInterface::open_file(const ResourcePath& resource_path) {
 #if _WIN32
     const auto result = fopen_s(&file, path_string.c_str(), "rb");
     if (result != 0) {
-        logger->error("Could not open file {}: error code {}", filepath.string(), result);
+        logger->error("Could not open file {}: error code {}", resource_path, result);
     }
 #else
     file = fopen(path_string.c_str(), "rb");
@@ -276,7 +276,7 @@ void SystemInterface::write_file(
     auto file = std::ofstream{filepath, std::ios::binary};
 
     if(!file.is_open()) {
-        spdlog::error("Could not open file {} for writing", filepath.string());
+        spdlog::error("Could not open file {} for writing", filepath);
         return;
     }
 

@@ -37,7 +37,7 @@ struct ResourcePath {
      * Constructs a resource path with an explicit scope
      */
     explicit ResourcePath(const Scope scope_in, const std::string_view path_in) :
-        scope{scope_in}, path{path_in.begin(), path_in.size()} {
+        scope{scope_in}, path{path_in.data(), path_in.size()} {
     }
 
     bool operator==(const ResourcePath& other) const;
