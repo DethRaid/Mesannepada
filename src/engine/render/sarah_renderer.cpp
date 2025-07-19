@@ -560,6 +560,10 @@ namespace render {
         frame_count++;
     }
 
+    const SceneView& SarahRenderer::get_player_view() const {
+        return world->get_player_view();
+    }
+
     void SarahRenderer::measure_exposure(RenderGraph& render_graph) {
         ZoneScoped;
 

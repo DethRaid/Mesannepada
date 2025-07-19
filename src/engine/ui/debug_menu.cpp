@@ -1,9 +1,15 @@
 #include "debug_menu.hpp"
 
 #include <imgui.h>
+
 #include <ImGuizmo.h>
-#include <magic_enum.hpp>
 #include <imgui_impl_glfw.h>
+#include <magic_enum.hpp>
+#include <EASTL/sort.h>
+#include <GLFW/glfw3.h>
+#include <Jolt/Jolt.h>
+#include <Jolt/Physics/Collision/CastResult.h>
+#include <Jolt/Physics/Collision/RayCast.h>
 #if SAH_USE_STREAMLINE
 #include <sl.h>
 #include <sl_dlss.h>
@@ -17,6 +23,8 @@
 
 #include "console/cvars.hpp"
 #include "core/engine.hpp"
+#include "core/glm_jph_conversions.hpp"
+#include "core/string_utils.hpp"
 #include "core/system_interface.hpp"
 #include "physics/collider_component.hpp"
 #include "reflection/reflection_types.hpp"
@@ -27,17 +35,8 @@
 #include "render/components/static_mesh_component.hpp"
 #include "render/visualizers/visualizer_type.hpp"
 #include "scene/camera_component.hpp"
-#include "scene/transform_component.hpp"
-
-#include <GLFW/glfw3.h>
-
-#include "ImGuiFileDialog.h"
-#include "EASTL/sort.h"
-#include "Jolt/Physics/Collision/CastResult.h"
-#include "Jolt/Physics/Collision/RayCast.h"
-#include "core/glm_jph_conversions.hpp"
-#include "core/string_utils.hpp"
 #include "scene/entity_info_component.hpp"
+#include "scene/transform_component.hpp"
 
 static auto cvar_imgui_theme = AutoCVar_Int{"ui.Imgui.Theme", "What theme to use for Dear ImGUI UI elements", 3};
 
@@ -203,7 +202,7 @@ void DebugUI::draw_editor_menu() {
             }
 
             if(ImGui::MenuItem("Add Model")) {
-                    show_model_selector = true;
+                show_model_selector = true;
             }
 
             ImGui::EndMenu();
@@ -488,7 +487,10 @@ void DebugUI::draw_world_and_scene_window() {
                     memset(new_scene_name.data(), '\0', new_scene_name.size());
                 }
                 ImGui::SameLine();
-                ImGui::InputText("Scene Name", new_scene_name.data(), new_scene_name.size(), ImGuiInputTextFlags_CharsNoBlank);
+                ImGui::InputText("Scene Name",
+                                 new_scene_name.data(),
+                                 new_scene_name.size(),
+                                 ImGuiInputTextFlags_CharsNoBlank);
 
                 const auto& loaded_scenes = engine.get_loaded_scenes();
 
@@ -563,7 +565,8 @@ void DebugUI::draw_world_and_scene_window() {
 }
 
 void DebugUI::draw_files(const std::filesystem::path& pwd, const std::filesystem::path& base_folder,
-    const eastl::string& prefix) {
+                         const eastl::string& prefix
+    ) {
     auto folders = eastl::vector<std::filesystem::path>{};
     auto files = eastl::vector<std::filesystem::path>{};
     const auto pwd_full_path = base_folder / pwd;
@@ -667,8 +670,14 @@ void DebugUI::draw_guizmos(const entt::handle entity) {
         cur_operation = ImGuizmo::OPERATION::SCALE;
     }
 
-    if(auto* trans = entity.try_get<TransformComponent>()) {
+    const ImGuiIO& io = ImGui::GetIO();
+    ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
 
+    if(auto* trans = entity.try_get<TransformComponent>()) {
+        const auto& view = Engine::get().get_renderer().get_player_view();
+        auto matrix = trans->get_local_to_parent();
+        ImGuizmo::Manipulate(&view.get_view()[0][0], &view.get_projection()[0][0], cur_operation, cur_mode, &matrix[0][0]);
+        trans->set_local_transform(matrix);
     }
 }
 
@@ -809,7 +818,7 @@ void DebugUI::draw_entity(entt::entity entity, entt::registry& registry, const e
     ImGui::SameLine();
 
     if(ImGui::Button("Edit")) {
-        selected_entity =entt::handle{registry, entity};
+        selected_entity = entt::handle{registry, entity};
         show_entity_editor = true;
     }
 

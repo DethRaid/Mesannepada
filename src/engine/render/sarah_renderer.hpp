@@ -67,6 +67,8 @@ namespace render {
          */
         void render();
 
+        const SceneView& get_player_view() const;
+
         TextureLoader& get_texture_loader();
 
         MaterialStorage& get_material_storage();
