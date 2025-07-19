@@ -46,7 +46,7 @@ struct fastgltf::ElementTraits<glm::quat> : fastgltf::ElementTraits<fastgltf::ma
 
 static std::shared_ptr<spdlog::logger> logger;
 
-static bool front_face_ccw = true;
+static bool front_face_ccw = false;
 
 static eastl::vector<StandardVertex> read_vertex_data(const fastgltf::Primitive& primitive, const fastgltf::Asset& model
     );
@@ -609,6 +609,7 @@ void GltfModel::import_materials(
 
         material.double_sided = gltf_material.doubleSided;
         material.front_face_ccw = front_face_ccw;
+        logger->info("Added material with front_face_ccw={}", material.front_face_ccw);
 
         material.gpu_data.base_color_tint = glm::vec4(
             glm::make_vec4(gltf_material.pbrData.baseColorFactor.data())
@@ -1274,9 +1275,7 @@ void copy_vertex_data_to_vector(
             attribute_accessor,
             [&](const glm::vec4& tangent, const size_t idx) {
                 vertices[idx].tangent = tangent;
-                if(tangent.w < 0) {
-                    front_face_ccw = false;
-                }
+                front_face_ccw = tangent.w < 0;
             });
     }
 

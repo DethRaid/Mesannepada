@@ -7,20 +7,8 @@ out gl_PerVertex {
 layout(location = 0) out vec2 texcoord;
 
 void main() {
-    if(gl_VertexIndex == 0) {
-        gl_Position = vec4(-1.f, -1.f, 0.f, 1);
-        texcoord = vec2(0.f, 1.f);
-
-    } else if(gl_VertexIndex == 1) {
-        gl_Position = vec4(-1.f, 3.f, 0.f, 1);
-        texcoord = vec2(0.f, -1.f);
-
-    } else if(gl_VertexIndex == 2) {
-        gl_Position = vec4(3.f, -1.f, 0.f, 1);
-        texcoord = vec2(2.f, 1.f);
-
-    } else {
-        gl_Position = vec4(0.f);
-        texcoord = vec2(0.f, 0.f);
-    }
+    float       x = (gl_VertexIndex & 2);
+    float       y = (gl_VertexIndex & 1);
+    gl_Position = vec4 (2, 4, 0, 1) * vec4 (x, y, 0, 1) - vec4 (1, 1, 0, 0);
+    texcoord = vec2(1, 2) * vec2(x, y);
 }

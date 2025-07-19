@@ -185,7 +185,7 @@ float4 main_fs(float4 fragcoord: SV_Position) {
     // Screen position for the ray
     float2 location_screen = (fragcoord.xy + 0.5) / view_data.render_resolution.xy;
 
-    float4 location_clipspace = float4(location_screen, 1.f, 1.f);
+    float4 location_clipspace = float4(location_screen * 2.0 - 1.0, 1.f, 1.f);
     float4 location_viewspace = mul(view_data.inverse_projection, location_clipspace);
     location_viewspace /= location_viewspace.w;
     float3 view_vector_worldspace = -normalize(mul(view_data.inverse_view, float4(location_viewspace.xyz, 0)).xyz);

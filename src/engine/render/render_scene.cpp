@@ -482,7 +482,7 @@ namespace render {
         commands.bind_pipeline(solid_pso);
 
         commands.set_cull_mode(VK_CULL_MODE_BACK_BIT);
-        commands.set_front_face(VK_FRONT_FACE_CLOCKWISE);
+        commands.set_front_face(VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
         commands.draw_indexed_indirect(
             drawbuffers.commands,
@@ -507,7 +507,7 @@ namespace render {
         commands.bind_pipeline(masked_pso);
 
         commands.set_cull_mode(VK_CULL_MODE_NONE);
-        commands.set_front_face(VK_FRONT_FACE_CLOCKWISE);
+        commands.set_front_face(VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
         commands.draw_indexed_indirect(
             draw_buffers.commands,
