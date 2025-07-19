@@ -1,5 +1,6 @@
 #include "debug_menu.hpp"
 
+// Must be before Imguizmo
 #include <imgui.h>
 
 #include <ImGuizmo.h>
@@ -10,6 +11,7 @@
 #include <Jolt/Jolt.h>
 #include <Jolt/Physics/Collision/CastResult.h>
 #include <Jolt/Physics/Collision/RayCast.h>
+#include <glm/gtc/type_ptr.hpp>
 #if SAH_USE_STREAMLINE
 #include <sl.h>
 #include <sl_dlss.h>
@@ -673,11 +675,16 @@ void DebugUI::draw_guizmos(const entt::handle entity) {
     const ImGuiIO& io = ImGui::GetIO();
     ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
 
-    if(auto* trans = entity.try_get<TransformComponent>()) {
+    ImGuizmo::SetDrawlist(ImGui::GetForegroundDrawList());
+
+    if(const auto* trans = entity.try_get<TransformComponent>()) {
         const auto& view = Engine::get().get_renderer().get_player_view();
         auto matrix = trans->get_local_to_parent();
-        ImGuizmo::Manipulate(&view.get_view()[0][0], &view.get_projection()[0][0], cur_operation, cur_mode, &matrix[0][0]);
-        trans->set_local_transform(matrix);
+        if(ImGuizmo::Manipulate(glm::value_ptr(view.get_view()), glm::value_ptr(view.get_projection()), cur_operation, cur_mode, glm::value_ptr(matrix))) {
+            entity.patch<TransformComponent>([&](auto& transform) {
+                transform.set_local_transform(matrix);
+            });
+        }
     }
 }
 
