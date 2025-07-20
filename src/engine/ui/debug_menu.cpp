@@ -675,12 +675,16 @@ void DebugUI::draw_guizmos(const entt::handle entity) {
     const ImGuiIO& io = ImGui::GetIO();
     ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
 
-    ImGuizmo::SetDrawlist(ImGui::GetForegroundDrawList());
+    ImGuizmo::SetDrawlist(ImGui::GetBackgroundDrawList());
 
     if(const auto* trans = entity.try_get<TransformComponent>()) {
         const auto& view = Engine::get().get_renderer().get_player_view();
+        const auto& view_matrix = view.get_view();
+        // Intentionally reverse near and far to get reversed Z
+        // We need a finite projection matrix because ImGuizmo dies otherwise. This cost me multiple days
+        const auto proj_matrix = glm::perspective(glm::radians(view.get_fov()), view.get_aspect_ratio(), 20000.f, view.get_near());
         auto matrix = trans->get_local_to_parent();
-        if(ImGuizmo::Manipulate(glm::value_ptr(view.get_view()), glm::value_ptr(view.get_projection()), cur_operation, cur_mode, glm::value_ptr(matrix))) {
+        if(ImGuizmo::Manipulate(glm::value_ptr(view_matrix), glm::value_ptr(proj_matrix), cur_operation, cur_mode, glm::value_ptr(matrix))) {
             entity.patch<TransformComponent>([&](auto& transform) {
                 transform.set_local_transform(matrix);
             });

@@ -31,8 +31,14 @@ namespace render {
 
         void set_mip_bias(float mip_bias);
 
+        /**
+         * Gets the near clip plane
+         */
         float get_near() const;
 
+        /**
+         * Gets the field of view, in degrees
+         */
         float get_fov() const;
 
         float get_aspect_ratio() const;

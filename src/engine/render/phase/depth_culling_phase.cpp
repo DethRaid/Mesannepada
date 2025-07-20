@@ -8,7 +8,6 @@
 #include "render/indirect_drawing_utils.hpp"
 #include "render/material_pipelines.hpp"
 #include "render/material_storage.hpp"
-#include "render/mesh_drawer.hpp"
 #include "render/mesh_storage.hpp"
 #include "render/render_scene.hpp"
 #include "render/backend/pipeline_cache.hpp"

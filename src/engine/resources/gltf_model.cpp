@@ -1275,7 +1275,7 @@ void copy_vertex_data_to_vector(
             attribute_accessor,
             [&](const glm::vec4& tangent, const size_t idx) {
                 vertices[idx].tangent = tangent;
-                front_face_ccw = tangent.w < 0;
+                front_face_ccw = tangent.w > 0;
             });
     }
 
