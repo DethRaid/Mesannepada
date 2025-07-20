@@ -7,7 +7,6 @@
 [ext_resource type="PackedScene" uid="uid://fisjhgtodtmf" path="res://boats/SM_CoracleA.glb" id="5_i3nh5"]
 [ext_resource type="PackedScene" uid="uid://cm0a6fasf6avr" path="res://boats/LoadedCoracle.tscn" id="6_3qbx4"]
 [ext_resource type="PackedScene" uid="uid://bx5ajkftq7l6n" path="res://boats/SM_ReedBoat_Sailing.glb" id="7_ix7af"]
-[ext_resource type="PackedScene" uid="uid://cfmni0d22t8j7" path="res://tests/SM_Deccer_Cubes_Textured_Animated.glb" id="8_ix7af"]
 
 [node name="Node3D" type="Node3D"]
 
@@ -83,8 +82,5 @@ transform = Transform3D(0.847808, 0, 0.530304, 0, 1, 0, -0.530304, 0, 0.847808, 
 
 [node name="SM_ReedBoat_Sailing" parent="SM_ReedBoat_Sailing2" instance=ExtResource("7_ix7af")]
 transform = Transform3D(-0.447369, 0, 0.89435, 0, 1, 0, -0.89435, 0, -0.447369, -197.363, 3.46701, 70.7944)
-
-[node name="SM_Deccer_Cubes_Textured_Animated" parent="." instance=ExtResource("8_ix7af")]
-transform = Transform3D(0.350616, 0, 0.936519, 0, 1, 0, -0.936519, 0, 0.350616, -180.947, 35.2052, -162.67)
 
 [editable path="SM_UrEnvironment"]
