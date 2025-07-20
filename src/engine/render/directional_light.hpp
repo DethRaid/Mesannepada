@@ -13,7 +13,7 @@ namespace render {
     struct NoiseTexture;
     struct GBuffer;
     class ResourceUploadQueue;
-    class RenderScene;
+    class RenderWorld;
     class RenderGraph;
     struct DescriptorSet;
     class ResourceAllocator;
@@ -51,7 +51,7 @@ namespace render {
 
         glm::vec3 get_direction() const;
 
-        void render_shadows(RenderGraph& graph, const GBuffer& gbuffer, const RenderScene& scene, TextureHandle noise);
+        void render_shadows(RenderGraph& graph, const GBuffer& gbuffer, const RenderWorld& world, TextureHandle noise);
 
         /**
          * Gets the resources that are used in the lighting pass
@@ -95,14 +95,14 @@ namespace render {
          * Rasterizes the cascaded shadow maps for this light, and then samples them for the shadow mask texture
          */
         void render_shadowmaps(
-            RenderGraph& graph, const GBuffer& gbuffer, const RenderScene& scene
+            RenderGraph& graph, const GBuffer& gbuffer, const RenderWorld& world
         );
 
         /**
          * Ray traces shadows for this light, writing the results to the shadow mask texture
          */
         void ray_trace_shadows(
-            RenderGraph& graph, const GBuffer& gbuffer, const RenderScene& scene, TextureHandle noise
+            RenderGraph& graph, const GBuffer& gbuffer, const RenderWorld& world, TextureHandle noise
         );
     };
 }

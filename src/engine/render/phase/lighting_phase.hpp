@@ -14,7 +14,7 @@ namespace render {
     struct DescriptorSet;
     class RenderGraph;
     class CommandBuffer;
-    class RenderScene;
+    class RenderWorld;
     class RenderBackend;
     class SceneView;
     class LightPropagationVolume;
@@ -31,7 +31,7 @@ namespace render {
 
         void render(
             RenderGraph& render_graph,
-            const RenderScene& scene,
+            const RenderWorld& world,
             const GBuffer& gbuffer,
             TextureHandle lit_scene_texture,
             TextureHandle ao_texture,

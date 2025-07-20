@@ -5,12 +5,14 @@
 
 #include "core/engine.hpp"
 #include "core/issue_breakpoint.hpp"
-#include "core/spawn_gameobject_component.hpp"
+#include "scene/spawn_gameobject_component.hpp"
+#include "core/generated_entity_component.hpp"
 #include "core/string_utils.hpp"
 #include "core/system_interface.hpp"
 #include "resources/model_components.hpp"
+#include "scene/entity_info_component.hpp"
 #include "scene/game_object_component.hpp"
-#include "scene/scene.hpp"
+#include "scene/world.hpp"
 #include "scene/transform_component.hpp"
 
 using namespace entt::literals;
@@ -32,7 +34,7 @@ namespace godot {
     template<typename ValueType>
     static ValueType get_value(eastl::string_view str, eastl::string_view key);
 
-    GodotScene GodotScene::load(const std::filesystem::path &filepath) {
+    GodotScene GodotScene::load(const ResourcePath& filepath) {
         if (logger == nullptr) {
             logger = SystemInterface::get().get_logger("GodotScene");
         }
@@ -54,22 +56,23 @@ namespace godot {
 
         scene.load_nodes(eastl::string_view{file_string.begin() + new_start, file_string.size() - new_start});
 
-        return eastl::move(scene);
+        return scene;
     }
 
-    entt::handle GodotScene::add_to_scene(Scene &scene_in, const eastl::optional<entt::entity> &parent_node) const {
+    entt::handle GodotScene::add_to_world(World &world_in, const eastl::optional<entt::handle> &parent_node) const {
         // Traverse the node tree, creating EnTT entities for each node. Hook up parent/child relationships as we go.
         // Save a map from node index to node entity for future use. Load external models
         eastl::vector<entt::handle> node_entities;
         node_entities.reserve(nodes.size());
-        const auto root_entity = add_node_to_scene(scene_in, 0, node_entities);
+        const auto root_entity = add_node_to_world(world_in, 0, node_entities);
 
-        root_entity.emplace<ImportedModelComponent>(node_entities);
+        const auto filepath_string = file_path.to_string();
+        root_entity.emplace<ImportedModelComponent>(filepath_string, node_entities);
 
         if (!parent_node) {
-            scene_in.add_top_level_entities(eastl::array{root_entity.entity()});
+            world_in.add_top_level_entities(eastl::array{root_entity});
         } else {
-            scene_in.parent_entity_to_entity(root_entity, *parent_node);
+            world_in.parent_entity_to_entity(root_entity, *parent_node);
         }
 
         return root_entity;
@@ -268,39 +271,37 @@ namespace godot {
         }
     }
 
-    entt::handle GodotScene::add_node_to_scene(
-        Scene &scene, const size_t node_index, eastl::vector<entt::handle> &node_entities
+    entt::handle GodotScene::add_node_to_world(
+        World &world, const size_t node_index, eastl::vector<entt::handle> &node_entities
     ) const {
         const auto &node = nodes.at(node_index);
         // Create this node
-        const auto entity = scene.create_game_object(node.name);
-        entity.patch<TransformComponent>(
-            [&](TransformComponent &transform) {
-                transform.local_to_parent = node.transform;
-            });
+        const auto entity = world.create_entity();
+        entity.emplace<EntityInfoComponent>(node.name);
+        entity.emplace<TransformComponent>().set_local_transform(node.transform);
+        entity.emplace<GeneratedEntityComponent>();
 
         if (node_entities.size() <= node_index) {
             node_entities.resize(node_index + 1);
         }
         node_entities[node_index] = entity;
 
-        if (auto itr = node.metadata.find("spawn_gameobject"); itr != node.metadata.end()) {
-            entity.emplace<SpwanPrefabComponent>(itr->second);
+        if (const auto itr = node.metadata.find("spawn_gameobject"); itr != node.metadata.end()) {
+            entity.emplace<SpwanPrefabComponent>(ResourcePath{itr->second});
         }
 
         if (node.instance) {
             const auto &resource = external_resources.at(*node.instance);
             const auto resource_path = resource.path.substr(6); // Lop off "res://"
-            auto full_resource_path = std::filesystem::path{"data"} / "game" / resource_path.c_str();
-            full_resource_path.make_preferred();
+            auto full_resource_path = ResourcePath{format("game://%s", resource_path.c_str())};
             auto &resources = Engine::get().get_resource_loader();
             const auto instanced_model = resources.get_model(full_resource_path);
-            instanced_model->add_to_scene(scene, entity.entity());
+            instanced_model->add_to_world(world, entity);
         }
 
         for (const auto &child_node: node.children) {
-            const auto child_entity = add_node_to_scene(scene, child_node, node_entities);
-            scene.parent_entity_to_entity(child_entity, entity);
+            const auto child_entity = add_node_to_world(world, child_node, node_entities);
+            world.parent_entity_to_entity(child_entity, entity);
         }
 
         return entity;

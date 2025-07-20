@@ -5,6 +5,7 @@
 #include "render/texture_loader.hpp"
 #include "render/backend/command_buffer.hpp"
 #include "render/backend/render_backend.hpp"
+#include "resources/resource_path.hpp"
 
 namespace rmlui {
     constexpr static VkDeviceSize MAX_NUM_VERTICES = 65536;
@@ -49,8 +50,8 @@ namespace rmlui {
 
         ui_pipeline = backend.begin_building_pipeline("rmlui")
                              .use_rmlui_vertex_layout()
-                             .set_vertex_shader("shaders/ui/rmlui.vert.spv")
-                             .set_fragment_shader("shaders/ui/rmlui.frag.spv")
+                             .set_vertex_shader("shader://ui/rmlui.vert.spv"_res)
+                             .set_fragment_shader("shader://ui/rmlui.frag.spv"_res)
                              .set_depth_state({.enable_depth_test = false, .enable_depth_write = false})
                              .set_blend_state(
                                  0,
@@ -139,7 +140,7 @@ namespace rmlui {
     }
 
     Rml::TextureHandle Renderer::LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source) {
-        const auto texture_maybe = texture_loader.load_texture(std::filesystem::path{source}, render::TextureType::Color);
+        const auto texture_maybe = texture_loader.load_texture(ResourcePath::file(source), render::TextureType::Color);
         if(!texture_maybe) {
             logger->error("Could not load texture {}", source);
             return 0;

@@ -185,7 +185,7 @@ float4 main_fs(float4 fragcoord: SV_Position) {
     // Screen position for the ray
     float2 location_screen = (fragcoord.xy + 0.5) / view_data.render_resolution.xy;
 
-    float4 location_clipspace = float4(location_screen, 1.f, 1.f);
+    float4 location_clipspace = float4(location_screen * 2.0 - 1.0, 1.f, 1.f);
     float4 location_viewspace = mul(view_data.inverse_projection, location_clipspace);
     location_viewspace /= location_viewspace.w;
     float3 view_vector_worldspace = -normalize(mul(view_data.inverse_view, float4(location_viewspace.xyz, 0)).xyz);
@@ -213,10 +213,10 @@ void main_miss(inout uint payload) {
 [vk::binding(1, 0)]
 ConstantBuffer<SunLightConstants> sun_light;
 
-[vk::binding(9, 0)]
+[vk::binding(11, 0)]
 Sampler2D transmittance_lut;
 
-[vk::binding(10, 0)]
+[vk::binding(12, 0)]
 Sampler2D sky_view_lut;
 
 [shader("miss")]

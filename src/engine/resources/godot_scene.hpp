@@ -8,6 +8,7 @@
 
 #include "EASTL/fixed_vector.h"
 #include "resources/imodel.hpp"
+#include "resources/resource_path.hpp"
 #include "shared/prelude.h"
 
 namespace godot {
@@ -46,11 +47,11 @@ namespace godot {
      */
     class GodotScene final : public IModel {
     public:
-        static GodotScene load(const std::filesystem::path& filepath);
+        static GodotScene load(const ResourcePath& filepath);
 
         ~GodotScene() override = default;
 
-        entt::handle add_to_scene(Scene& scene_in, const eastl::optional<entt::entity>& parent_node) const override;
+        entt::handle add_to_world(World& world_in, const eastl::optional<entt::handle>& parent_node) const override;
 
         /**
          * Finds the node with the specified path
@@ -58,7 +59,7 @@ namespace godot {
         eastl::optional<size_t> find_node(eastl::string_view path) const;
 
     private:
-        std::filesystem::path file_path;
+        ResourcePath file_path;
 
         Header header = {};
 
@@ -81,8 +82,8 @@ namespace godot {
          */
         void load_nodes(eastl::string_view string);
 
-        entt::handle add_node_to_scene(
-            Scene& scene, size_t node_index, eastl::vector<entt::handle>& node_entities
+        entt::handle add_node_to_world(
+            World& world, size_t node_index, eastl::vector<entt::handle>& node_entities
         ) const;
     };
 }

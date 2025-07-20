@@ -1,17 +1,19 @@
 #pragma once
 
-#include <EASTL/vector.h>
 #include <EASTL/memory.h>
+#include <EASTL/unique_ptr.h>
+#include <EASTL/vector.h>
 
-#include "render/gi/global_illuminator.hpp"
-#include "render/gi/irradiance_cache.hpp"
 #include "render/backend/buffer_usage_token.hpp"
 #include "render/backend/handles.hpp"
 #include "render/backend/texture_usage_token.hpp"
+#include "render/gi/denoiser/nvidia_realtime_denoiser.hpp"
+#include "render/gi/global_illuminator.hpp"
+#include "render/gi/irradiance_cache.hpp"
 
 namespace render {
     class ProceduralSky;
-    class RenderScene;
+    class RenderWorld;
     class CommandBuffer;
     struct DescriptorSet;
     class SceneView;
@@ -21,7 +23,7 @@ namespace render {
     /**
      * Uses ray tracing to calculate global illumination
      */
-    class RayTracedGlobalIllumination : public IGlobalIlluminator {
+    class RayTracedGlobalIllumination final : public IGlobalIlluminator {
     public:
         static bool should_render();
 
@@ -30,12 +32,12 @@ namespace render {
         ~RayTracedGlobalIllumination() override;
 
         void pre_render(
-            RenderGraph& graph, const SceneView& view, const RenderScene& scene, TextureHandle noise_tex
+            RenderGraph& graph, const SceneView& view, const RenderWorld& world, TextureHandle noise_tex
         ) override;
 
         void post_render(
-            RenderGraph& graph, const SceneView& view, const RenderScene& scene, const GBuffer& gbuffer,
-            TextureHandle noise_tex
+            RenderGraph& graph, const SceneView& view, const RenderWorld& world, const GBuffer& gbuffer,
+             TextureHandle motion_vectors, TextureHandle noise_tex
         ) override;
 
         /**
@@ -56,7 +58,7 @@ namespace render {
         ) const override;
 
         void render_volumetrics(
-            RenderGraph& render_graph, const SceneView& player_view, const RenderScene& scene, const GBuffer& gbuffer,
+            RenderGraph& render_graph, const SceneView& player_view, const RenderWorld& world, const GBuffer& gbuffer,
             TextureHandle lit_scene_handle
         ) override;
 
@@ -72,15 +74,27 @@ namespace render {
 
         /**
          * Per-pixel irradiance, calculated by ray tracing
+         *
+         * RGB = irradiance, A = ray distance
          */
         TextureHandle ray_irradiance = nullptr;
+
+        /**
+         * Irradiance but denoised!
+         */
+        TextureHandle denoised_irradiance = nullptr;
 
 #if SAH_USE_IRRADIANCE_CACHE
         eastl::unique_ptr<IrradianceCache> irradiance_cache = nullptr;
 #endif
 
+        eastl::unique_ptr<NvidiaRealtimeDenoiser> denoiser;
+        TextureHandle denoiser_data = nullptr;
+
         static inline RayTracingPipelineHandle rtgi_pipeline = nullptr;
 
         static inline GraphicsPipelineHandle overlay_pso = nullptr;
+
+        static inline GraphicsPipelineHandle filter_pso = nullptr;
     };
 }

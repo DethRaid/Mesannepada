@@ -1,6 +1,7 @@
 #pragma once
 
 #include <entt/entity/entity.hpp>
+#include <EASTL/string.h>
 #include <EASTL/vector.h>
 
 #include "animation/skeleton.hpp"
@@ -11,5 +12,13 @@
  * original data work with the entity tree
  */
 struct ImportedModelComponent {
+    /**
+     * File path that this model was imported from
+     */
+    eastl::string filepath;
+
+    /**
+     * Mapping from node index from the file to enTT handle in-engine
+     */
     eastl::vector<entt::handle> node_to_entity;
 };

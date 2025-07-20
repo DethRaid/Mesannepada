@@ -7,7 +7,7 @@
 
 #include "animation/animation_system.hpp"
 #include "audio/audio_controller.hpp"
-#include "behavior/game_object.hpp"
+#include "core/performance_tracker.hpp"
 #include "game_framework/game_instance.hpp"
 #include "input/player_input_manager.hpp"
 #include "render/sarah_renderer.hpp"
@@ -18,8 +18,10 @@
 #include "physics/physics_scene.hpp"
 #include "resources/prefab_loader.hpp"
 #include "resources/resource_loader.hpp"
-#include "scene/game_object_component.hpp"
-#include "scene/scene.hpp"
+#include "scene/entity_info_component.hpp"
+#include "scene/world.hpp"
+#include "scene/scene_file.hpp"
+#include "scene/transform_component.hpp"
 
 class SystemInterface;
 
@@ -31,19 +33,20 @@ public:
 
     ~Engine();
 
-    entt::handle add_model_to_scene(
-        const std::filesystem::path& scene_path, const eastl::optional<entt::handle>& parent_node = eastl::nullopt
-    );
+    entt::handle add_model_to_world(
+        const ResourcePath& model_path, const eastl::optional<entt::handle>& parent_node = eastl::nullopt
+        );
 
-    template <typename PlayerType>
-    void instantiate_player();
+    entt::handle add_prefab_to_world(const ResourcePath& prefab_path, const float4x4& transform);
+
+    entt::handle instantiate_player();
 
     /**
      * Reads the window resolution from the system interface, and updates the renderer for the new resolution
      */
     void update_resolution() const;
 
-    template <typename GameInstanceType>
+    template<typename GameInstanceType>
     void initialize_game_instance();
 
     void tick();
@@ -70,17 +73,52 @@ public:
      */
     void give_player_full_control();
 
-    Scene& get_scene();
+    World& get_world();
 
-    const Scene& get_scene() const;
+    const World& get_world() const;
 
-    physics::PhysicsScene& get_physics_scene();
+    static std::filesystem::path get_scene_folder();
+
+    void create_scene(const eastl::string& name);
+
+    /**
+     * Tries to load the scene with the specified name, and add it to the world
+     * @return True if success, false if not
+     */
+    bool load_scene(const eastl::string& name);
+
+    /**
+     * Unloads the scene with the specified name. Does not attempt to save it - editor tool should check if a scene is
+     * dirty before unloading
+     */
+    void unload_scene(const eastl::string& name);
+
+    /**
+     * Retrieves the main scene. This is the "bones" of the world - terrain, buildings, faraway geo, etc
+     */
+    Scene& get_environment_scene();
+
+    Scene& get_scene(const eastl::string& name);
+
+    const Scene& get_scene(const eastl::string& name) const;
+
+    eastl::unordered_map<eastl::string, Scene>& get_loaded_scenes() {
+        return loaded_scenes;
+    }
+
+    const eastl::unordered_map<eastl::string, Scene>& get_loaded_scenes() const{
+        return loaded_scenes;
+    }
+
+    physics::PhysicsWorld& get_physics_world();
 
     AnimationSystem& get_animation_system();
 
     ResourceLoader& get_resource_loader();
 
     entt::handle get_player() const;
+
+    const PerformanceTracker& get_perf_tracker() const;
 
 private:
     std::chrono::high_resolution_clock::time_point application_start_time;
@@ -97,13 +135,13 @@ private:
 
     eastl::unique_ptr<audio::Controller> audio_controller;
 
-    Scene scene;
+    World world;
 
     PrefabLoader prefab_loader;
 
-    physics::PhysicsScene physics_scene;
+    physics::PhysicsWorld physics_world;
 
-    eastl::unique_ptr<render::RenderScene> render_scene;
+    eastl::unique_ptr<render::RenderWorld> render_world;
 
     SettingsController scalability;
 
@@ -119,28 +157,24 @@ private:
 
     entt::handle player = {};
 
-    /**
-     * Registers all the components with the EnTT reflector
-     *
-     * TODO: Codegen or macros?
-     */
-    void register_components();
-
     void update_time();
+
+    PerformanceTracker perf_tracker;
+
+    void update_perf_tracker();
 
     /**
      * Spawns new GameObjects from SpawnGameObject components
      */
     void spawn_new_game_objects();
+
+    /**
+     * Map of all scenes that have been loaded into memory
+     */
+    eastl::unordered_map<eastl::string, Scene> loaded_scenes;
 };
 
-template <typename PlayerType>
-void Engine::instantiate_player() {
-    player = scene.create_game_object<PlayerType>("Player");
-    player_input.set_controlled_entity(player);
-}
-
-template <typename GameInstanceType>
+template<typename GameInstanceType>
 void Engine::initialize_game_instance() {
     game_instance = eastl::make_unique<GameInstanceType>();
 }

@@ -7,11 +7,12 @@
 #include <EASTL/functional.h>
 #include <entt/entity/registry.hpp>
 #include <EASTL/unordered_map.h>
-
 #include <simdjson.h>
+
+#include "resources/resource_path.hpp"
 #include "shared/prelude.h"
 
-class Scene;
+class World;
 
 /**
  * Loads prefabs from disk. ez
@@ -29,10 +30,10 @@ public:
      * Loads a prefab from disk and places it into the scene, using the provided transform for its initial position
      *
      * @param prefab_file The JSON file which describes the prefab
-     * @param scene The scene to add the prefab to
+     * @param world The scene to add the prefab to
      * @param transform Initial transformation matrix
      */
-    entt::handle load_prefab(const std::filesystem::path& prefab_file, Scene& scene,
+    entt::handle load_prefab(const ResourcePath& prefab_file, World& world,
                              const float4x4& transform = float4x4{1.f});
 
     /**

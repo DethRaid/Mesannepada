@@ -71,7 +71,7 @@ struct SkeletalPrimitiveDataGPU {
     BoneTransformsPointer bone_transforms;
 };
 
-#if __cplusplus
+#if defined(__cplusplus)
 static_assert(sizeof(PrimitiveDataGPU) == 200);
 static_assert(200 % alignof(PrimitiveDataGPU) == 0);
 #endif

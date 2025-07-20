@@ -6,20 +6,20 @@
 #include "core/engine.hpp"
 #include "render/components/skeletal_mesh_component.hpp"
 #include "resources/model_components.hpp"
-#include "scene/scene.hpp"
+#include "scene/world.hpp"
 #include "scene/transform_component.hpp"
 
 static std::shared_ptr<spdlog::logger> logger;
 
-AnimationSystem::AnimationSystem(Scene& scene_in) :
-    scene{scene_in} {
+AnimationSystem::AnimationSystem(World& world_in) :
+    world{world_in} {
     if(logger == nullptr) {
         logger = SystemInterface::get().get_logger("AnimationSystem");
     }
 }
 
 void AnimationSystem::tick(float delta_time) {
-    auto& registry = scene.get_registry();
+    auto& registry = world.get_registry();
 
     const auto current_time = Engine::get().get_current_time();
 
@@ -33,7 +33,7 @@ void AnimationSystem::tick(float delta_time) {
                 registry.patch<TransformComponent>(
                     entity,
                     [&](TransformComponent& trans) {
-                        trans.local_to_parent = animator.animator.sample(current_time);
+                        trans.set_local_transform(animator.animator.sample(current_time));
                     });
             }
         });
@@ -68,6 +68,7 @@ void AnimationSystem::tick(float delta_time) {
 }
 
 void AnimationSystem::add_animation(SkeletonHandle skeleton, const eastl::string& name, Animation&& animation) {
+    logger->info("Adding animation {}", name.c_str());
     if(animations.find(skeleton) == animations.end()) {
         animations.emplace(skeleton, AnimationMap{});
     }
@@ -96,7 +97,7 @@ void AnimationSystem::play_animation_on_entity(const entt::handle entity, const 
         logger->error("Could not find an animation named {}, unable to play!", animation_name.c_str());
     }
 
-    auto& registry = scene.get_registry();
+    auto& registry = world.get_registry();
     const auto& gltf_component = registry.get<ImportedModelComponent>(entity);
 
     const auto start_time = Engine::get().get_current_time();

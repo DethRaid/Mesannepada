@@ -4,7 +4,7 @@
 
 #include "player/first_person_player.hpp"
 #include "scene/game_object_component.hpp"
-#include "scene/scene.hpp"
+#include "scene/world.hpp"
 
 static std::shared_ptr<spdlog::logger> logger;
 
@@ -34,12 +34,12 @@ void PlayerInputManager::set_controlled_entity(const entt::entity entity) {
     controlled_entity = entity;
 }
 
-void PlayerInputManager::tick(const float delta_time, Scene& scene) {
+void PlayerInputManager::tick(const float delta_time, World& world) {
     if(!enabled) {
         return;
     }
 
-    auto& registry = scene.get_registry();
+    auto& registry = world.get_registry();
 
     if(!registry.valid(controlled_entity)) {
         return;
@@ -59,9 +59,8 @@ void PlayerInputManager::tick(const float delta_time, Scene& scene) {
         }
     }
 
-    const auto& player_go = registry.get<GameObjectComponent>(controlled_entity);
-    auto* player = static_cast<FirstPersonPlayer*>(player_go.game_object.get());
-    player->handle_input(delta_time, player_movement_input, player_rotation_input.y, player_rotation_input.x, jump);
+    auto& player = registry.get<FirstPersonPlayerComponent>(controlled_entity);
+    player.handle_input(delta_time, player_movement_input, player_rotation_input.y, player_rotation_input.x, jump);
 
     player_movement_input = {};
     player_rotation_input = {};

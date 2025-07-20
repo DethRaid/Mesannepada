@@ -2,9 +2,10 @@
 
 #include "backend/pipeline_cache.hpp"
 #include "console/cvars.hpp"
-#include "render/backend/render_graph.hpp"
-#include "render/backend/render_backend.hpp"
 #include "core/system_interface.hpp"
+#include "render/backend/render_backend.hpp"
+#include "render/backend/render_graph.hpp"
+#include "resources/resource_path.hpp"
 
 namespace render {
     static auto cvar_num_bloom_mips = AutoCVar_Int{ "r.bloom.NumMips", "Number of mipmaps in the bloom chain", 6 };
@@ -20,8 +21,8 @@ namespace render {
         auto& backend = RenderBackend::get();
         auto& pipeline_cache = backend.get_pipeline_cache();
 
-        downsample_shader = pipeline_cache.create_pipeline("shaders/postprocessing/bloom_downsample.comp.spv");
-        upsample_shader = pipeline_cache.create_pipeline("shaders/postprocessing/bloom_upsample.comp.spv");
+        downsample_shader = pipeline_cache.create_pipeline("shader://postprocessing/bloom_downsample.comp.spv"_res);
+        upsample_shader = pipeline_cache.create_pipeline("shader://postprocessing/bloom_upsample.comp.spv"_res);
 
         bilinear_sampler = backend.get_global_allocator().get_sampler(
             {
@@ -66,7 +67,7 @@ namespace render {
                     commands.bind_pipeline(downsample_shader);
 
                     // We gonna rock down to electric avenue
-                    for (auto pass = 0u; pass < cvar_num_bloom_mips.Get() - 1; pass++) {
+                    for (auto pass = 0u; pass < cvar_num_bloom_mips.get() - 1; pass++) {
                         dispatch_size /= glm::uvec2{2};
 
                         logger->trace("Bloom downsample pass {}", pass);
@@ -279,7 +280,7 @@ namespace render {
             {
                 create_info.format,
                 bloom_tex_resolution,
-                static_cast<uint32_t>(cvar_num_bloom_mips.Get()),
+                static_cast<uint32_t>(cvar_num_bloom_mips.get()),
                 TextureUsage::StorageImage
             }
         );

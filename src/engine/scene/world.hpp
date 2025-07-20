@@ -6,7 +6,9 @@
 #include <EASTL/string_view.h>
 #include <EASTL/vector.h>
 #include <entt/entt.hpp>
+#include <spdlog/spdlog.h>
 
+#include "animation/animation_system.hpp"
 #include "behavior/game_object.hpp"
 #include "scene/game_object_component.hpp"
 #include "shared/prelude.h"
@@ -17,9 +19,20 @@
  * Various subsystems such as rendering or physics may maintain their own scenes. In those cases, this scene stores
  * handles to objects in the subsystem's scenes
  */
-class Scene {
+class World {
 public:
-    Scene();
+    /**
+     * Tried to find an entity with the provided name within the children tree of the provided entity
+     *
+     * Does NOT check the given entity. If that's the one you want - well, you already have it!
+     *
+     * @param entity Entity to search the children of
+     * @param child_name Name to search for. Must match exactly
+     * @return Handle to the found entity, or an empty handle if the child can't be found
+     */
+    static entt::handle find_child(entt::handle entity, eastl::string_view child_name);
+
+    World();
 
     /**
      * Creates a generic entity
@@ -33,6 +46,13 @@ public:
     entt::handle create_game_object(
         eastl::string_view name, const eastl::optional<entt::handle>& parent_node = eastl::nullopt
     );
+
+    /**
+     * Attempts to find an entity with the provided name in the world
+     *
+     * This is relatively expensive, it should be called sparingly
+     */
+    entt::handle find_entity(eastl::string_view name);
 
     void destroy_entity(entt::entity entity);
 
@@ -48,11 +68,11 @@ public:
 
     void parent_entity_to_entity(entt::entity child, entt::entity parent);
 
-    void add_top_level_entities(eastl::span<const entt::entity> entities);
+    void add_top_level_entities(eastl::span<const entt::handle> entities);
 
     void propagate_transforms(float delta_time);
 
-    const eastl::unordered_set<entt::entity>& get_top_level_entities() const; 
+    const eastl::unordered_set<entt::entity>& get_top_level_entities() const;
 
 private:
     entt::registry registry;
@@ -67,27 +87,32 @@ private:
 };
 
 template <typename GameObjectType>
-entt::handle Scene::create_game_object(
+entt::handle World::create_game_object(
     const eastl::string_view name, const eastl::optional<entt::handle>& parent_node
 ) {
-    const auto entity = create_entity();
-    const auto& game_object = add_component(
-        entity,
-        GameObjectComponent{
-            .game_object = eastl::make_shared<GameObjectType>(entity)
-        });
-    game_object->name = name;
+    try {
+        const auto entity = create_entity();
+        const auto& game_object = add_component(
+            entity,
+            GameObjectComponent{
+                .game_object = eastl::make_shared<GameObjectType>(entity)
+            });
+        game_object->name = name;
 
-    if(parent_node) {
-        parent_entity_to_entity(entity, *parent_node);
-    } else {
-        add_top_level_entities(eastl::array{entity.entity()});
+        if(parent_node) {
+            parent_entity_to_entity(entity, *parent_node);
+        } else {
+            add_top_level_entities(eastl::array{entity});
+        }
+
+        return entity;
+    } catch(const std::exception& e) {
+        spdlog::error("Could not create entity {}: {}", name, e.what());
+        return {};
     }
-
-    return entity;
 }
 
 template <typename ComponentType>
-ComponentType& Scene::add_component(entt::entity entity, ComponentType component) {
+ComponentType& World::add_component(entt::entity entity, ComponentType component) {
     return registry.get_or_emplace<ComponentType>(entity, eastl::move(component));
 }

@@ -17,14 +17,14 @@
 namespace ui {
     const static eastl::string CONTEXT_NAME = "game_ui";
     static constexpr auto FONT_NAMES = eastl::array{
-        "data/ui/shared/LatoLatin-Regular.ttf",
-        "data/ui/shared/LatoLatin-Italic.ttf",
-        "data/ui/shared/LatoLatin-Bold.ttf",
-        "data/ui/shared/LatoLatin-BoldItalic.ttf",
-        "data/ui/shared/NotoEmoji-Regular.ttf",
+        "ui/shared/LatoLatin-Regular.ttf",
+        "ui/shared/LatoLatin-Italic.ttf",
+        "ui/shared/LatoLatin-Bold.ttf",
+        "ui/shared/LatoLatin-BoldItalic.ttf",
+        "ui/shared/NotoEmoji-Regular.ttf",
     };
 
-    const static auto FALLBACK_FONT = "data/fonts/NotoSansCuneiform-Regular.ttf";
+    const static auto FALLBACK_FONT = "fonts/NotoSansCuneiform-Regular.ttf";
 
     static std::shared_ptr<spdlog::logger> logger = nullptr;
 
@@ -59,7 +59,7 @@ namespace ui {
             logger->error("Could not initialize RmlUI context");
         }
 
-        if(cvar_enable_ui_debugger.Get()) {
+        if(cvar_enable_ui_debugger.get()) {
             result = Rml::Debugger::Initialise(context);
             if(!result) {
                 logger->error("Could not initialize RmlUI debugger");
@@ -69,13 +69,13 @@ namespace ui {
         }
 
         for(const auto& font_name : FONT_NAMES) {
-            result = Rml::LoadFontFace(font_name);
+            result = Rml::LoadFontFace((SystemInterface::get().get_data_folder() / font_name).string());
             if(!result) {
                 logger->error("Could not load font {}", font_name);
             }
         }
 
-        result = Rml::LoadFontFace(FALLBACK_FONT, true);
+        result = Rml::LoadFontFace((SystemInterface::get().get_data_folder() / FALLBACK_FONT).string(), true);
         if(!result) {
             logger->error("Could not load fallback font {}", FALLBACK_FONT);
         }
@@ -86,7 +86,7 @@ namespace ui {
             screens.pop();
         }
 
-        if(cvar_enable_ui_debugger.Get()) {
+        if(cvar_enable_ui_debugger.get()) {
             Rml::Debugger::Shutdown();
         }
         Rml::RemoveContext(CONTEXT_NAME.c_str());
@@ -145,7 +145,7 @@ namespace ui {
                     break;
                 }
             }
-            if(glfw_key == GLFW_KEY_F8 && cvar_enable_ui_debugger.Get()) {
+            if(glfw_key == GLFW_KEY_F8 && cvar_enable_ui_debugger.get()) {
                 debugger_visible = !debugger_visible;
                 Rml::Debugger::SetVisible(debugger_visible);
                 break;

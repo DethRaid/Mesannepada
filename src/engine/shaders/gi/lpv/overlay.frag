@@ -34,6 +34,8 @@ layout(set = 1, binding = 6) uniform SunUniformBuffer {
     SunLightConstants sun_light;
 };
 
+layout(set = 1, binding = 7, rgba16f) uniform readonly image2D noise;
+
 layout(push_constant) uniform Constants {
     uint num_cascades;
     float exposure;
@@ -92,7 +94,7 @@ void main() {
     vec3 viewspace_position = get_viewspace_position();
     vec4 worldspace_position = view_info.inverse_view * vec4(viewspace_position, 1.0);
 
-    vec3 view_position = vec3(-view_info.view[3].xyz);
+    vec3 view_position = vec3(view_info.inverse_view[0][3], view_info.inverse_view[1][3], view_info.inverse_view[2][3]);
     vec3 worldspace_view_vector = normalize(worldspace_position.xyz - view_position);
 
     SurfaceInfo surface;
@@ -104,7 +106,7 @@ void main() {
     surface.location = worldspace_position.xyz;
 
     // Dither for blending purposes
-    const vec3 cascade_selection_position = worldspace_position.xyz;// - worldspace_view_vector * imageLoad(noise, pixel % 128).rrr;
+    const vec3 cascade_selection_position = worldspace_position.xyz - worldspace_view_vector * imageLoad(noise, pixel % 128).rrr;
 
     vec3 lpv_normal = -surface.normal;
     lpv_normal.x *= -1;
@@ -178,7 +180,7 @@ void main() {
 
     const mediump vec3 diffuse_factor = Fd(surface, surface.normal, surface.normal);
 
-    const mediump vec3 specular_factor = Fr(surface, surface.normal, reflection_vector) * vec3(0.f);
+    const mediump vec3 specular_factor = Fr(surface, surface.normal, reflection_vector);
 
     const mediump float ao = texelFetch(ao_texture, pixel, 0).r;
 

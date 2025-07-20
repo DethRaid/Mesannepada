@@ -2,8 +2,9 @@
 
 #include <EASTL/shared_ptr.h>
 #include <EASTL/unordered_map.h>
-#include <EASTL/string.h>
 #include <fastgltf/core.hpp>
+
+#include "resources/resource_path.hpp"
 
 class IModel;
 
@@ -16,17 +17,17 @@ class ResourceLoader {
 public:
     ResourceLoader();
 
-    eastl::shared_ptr<IModel> get_model(const std::filesystem::path& model_path);
+    eastl::shared_ptr<IModel> get_model(const ResourcePath& model_path);
 
 private:
     fastgltf::Parser parser;
 
-    eastl::unordered_map<eastl::string, eastl::shared_ptr<IModel>> loaded_models;
+    eastl::unordered_map<ResourcePath, eastl::shared_ptr<IModel>> loaded_models;
 
     /**
      * Loads a glTF model, and returns a pointer to that model
      */
-    void load_gltf_model(const std::filesystem::path& model_path);
+    void load_gltf_model(const ResourcePath& model_path);
 
-    void load_godot_scene(const std::filesystem::path& scene_path);
+    void load_godot_scene(const ResourcePath& scene_path);
 };

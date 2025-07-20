@@ -5,6 +5,9 @@
 #include "common/srgb_conversions.slangi"
 #include "gi/rtgi/rtgi_payload.slangi"
 
+#include "NRDEncoding.hlsli"
+#include "NRD.hlsli"
+
 // Generates rays for the sun shadow. Uses ray tracing pipelines to get pretty shadows
 // The primitive data buffer is bound at 0.0, the other bindings in this file work around it. Check out
 // gltf_basic_pbr.slang for other resources we use
@@ -18,16 +21,21 @@ RaytracingAccelerationStructure rtas;
 [vk::binding(4, 0)]
 Texture2D<half4> gbuffer_normals;
 [vk::binding(5, 0)]
+Texture2D gbuffer_data;
+[vk::binding(6, 0)]
 Texture2D<float> gbuffer_depth;
 
-[vk::binding(6, 0)]
+[vk::binding(7, 0)]
 Texture2D<float3> noisetex;
 
-[vk::binding(7, 0)]
+[vk::binding(8, 0)]
 RWTexture2D<float4> ray_buffer;
 
-[vk::binding(8, 0)]
+[vk::binding(9, 0)]
 RWTexture2D<float4> ray_irradiance;
+
+[vk::binding(10, 0)]
+RWTexture2D<float4> denoiser_data;
 
 float3 get_worldspace_location(const uint2 pixel) {
     const float depth = gbuffer_depth[pixel];
@@ -51,6 +59,7 @@ float2 r0(uint n) {
 [[vk::push_constant]]
 cbuffer Constants {
     uint num_bounces;
+    uint denoiser_type;   // see render::DenoiserType
 };
 
 [shader("raygen")]
@@ -67,13 +76,14 @@ void main_raygen() {
     }
 
     const half3 normal = gbuffer_normals[thread_id].xyz;
+    const half4 data = gbuffer_data[thread_id];
 
     const float3 location = get_worldspace_location(thread_id);
     
     const uint2 noisetex_pixel = uint2(thread_id) % 128;
 
     float3 ray_direction = normalize(noisetex[noisetex_pixel].xyz * 2.f - 1.f);
-    if (dot(normal, ray_direction) < 0) {
+    if (dot(normal.xyz, ray_direction) < 0) {
         ray_direction *= -1;
     }
 
@@ -102,6 +112,23 @@ void main_raygen() {
     }
 
     ray_buffer[thread_id] = float4(ray_direction, payload.ray_distance);
-    ray_irradiance[thread_id] = float4(payload.irradiance * view_data.exposure, 0);
+
+    const float3 exposed_irradiance = payload.irradiance * view_data.exposure;
+
+    float4 irradiance_info = float4(exposed_irradiance, 0);
+    float4 denoiser_info = 0;
+
+    if(denoiser_type == 1) {    // ReBLUR
+        irradiance_info = REBLUR_FrontEnd_PackRadianceAndNormHitDist(exposed_irradiance, payload.ray_distance, false);
+        denoiser_info = NRD_FrontEnd_PackNormalAndRoughness(normal, sqrt(data.g), 0);
+
+    } else if(denoiser_type == 2) { // ReLAX
+        irradiance_info = RELAX_FrontEnd_PackRadianceAndHitDist(exposed_irradiance, payload.ray_distance, false);
+        denoiser_info = NRD_FrontEnd_PackNormalAndRoughness(normal, sqrt(data.g), 0);
+    
+    }
+    
+    ray_irradiance[thread_id] = irradiance_info;
+    denoiser_data[thread_id] = denoiser_info;
 }
 

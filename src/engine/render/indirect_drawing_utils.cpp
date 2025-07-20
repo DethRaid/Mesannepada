@@ -5,6 +5,7 @@
 #include "backend/pipeline_cache.hpp"
 #include "backend/render_backend.hpp"
 #include "render/backend/render_graph.hpp"
+#include "resources/resource_path.hpp"
 
 namespace render {
     static ComputePipelineHandle init_count_buffer_pipeline = nullptr;
@@ -23,11 +24,11 @@ namespace render {
 
         if (!init_count_buffer_pipeline) {
             init_count_buffer_pipeline = pipeline_cache.create_pipeline(
-                "shaders/util/init_count_buffer.comp.spv");
+                "shader://util/init_count_buffer.comp.spv"_res);
         }
         if (!visibility_list_to_draw_commands) {
             visibility_list_to_draw_commands = pipeline_cache.create_pipeline(
-                "shaders/util/visibility_list_to_draw_commands.comp.spv");
+                "shader://util/visibility_list_to_draw_commands.comp.spv"_res);
         }
 
         auto& allocator = backend.get_global_allocator();

@@ -15,17 +15,16 @@ namespace render {
     static auto cvar_max_luminance = AutoCVar_Float{ "r.MaxLuminance", "Maximum luminance that we can display", 1.1 };
 
     // from https://github.com/Sunset-Flock/Timberdoodle/blob/14c5ac3a0abee46ecac178b09712d24719e6e0fa/src/camera.cpp#L165
-    glm::mat4 inf_depth_reverse_z_perspective(
+    float4x4 inf_depth_reverse_z_perspective(
         const float fov_rads, const float aspect, const float z_near
     ) {
-        assert(abs(aspect - std::numeric_limits<float>::epsilon()) > 0.0f);
+        assert(abs(aspect - eastl::numeric_limits<float>::epsilon()) > 0.0f);
 
-        const auto tan_half_fov_y = 1.0f / std::tan(fov_rads * 0.5f);
+        const auto tan_half_fov_y = 1.0f / tan(fov_rads * 0.5f);
 
-        glm::mat4x4 ret(0.0f);
+        auto ret = float4x4{0.0f};
         ret[0][0] = tan_half_fov_y / aspect;
-        ret[1][1] = tan_half_fov_y;
-        ret[2][2] = 0.0f;
+        ret[1][1] = -tan_half_fov_y;
         ret[2][3] = -1.0f;
         ret[3][2] = z_near;
         return ret;
@@ -133,16 +132,24 @@ namespace render {
         return frame_count;
     }
 
+    uint2 SceneView::get_render_resolution() const {
+        return uint2{gpu_data.render_resolution};
+    }
+
     const float4x4& SceneView::get_view() const {
         return gpu_data.view;
     }
 
+    const float4x4& SceneView::get_last_frame_view() const {
+        return gpu_data.last_frame_view;
+    }
+
     float SceneView::get_min_log_luminance() const {
-        return static_cast<float>(log2(cvar_min_luminance.Get()));
+        return static_cast<float>(log2(cvar_min_luminance.get()));
     }
 
     float SceneView::get_max_log_luminance() const {
-        return static_cast<float>(log2(cvar_max_luminance.Get()));
+        return static_cast<float>(log2(cvar_max_luminance.get()));
     }
 
     void SceneView::set_view_matrix(const float4x4& view_matrix) {

@@ -14,20 +14,23 @@ namespace render {
         Initialize();
 
         jolt_debug_pipeline = RenderBackend::get().begin_building_pipeline("Jolt Debug")
-            .set_vertex_shader("shaders/jolt/debug.vert.spv")
-            .set_fragment_shader("shaders/jolt/debug.frag.spv")
+            .set_vertex_shader("shader://jolt/debug.vert.spv"_res)
+            .set_fragment_shader("shader://jolt/debug.frag.spv"_res)
             .add_dynamic_state(VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY)
             .build();
 
         mesh_debug_pipeline = RenderBackend::get().begin_building_pipeline("Jolt Geometry Debug")
-            .set_vertex_shader("shaders/jolt/mesh.vert.spv")
-            .set_fragment_shader("shaders/jolt/mesh.frag.spv")
+            .set_vertex_shader("shader://jolt/mesh.vert.spv"_res)
+            .set_fragment_shader("shader://jolt/mesh.frag.spv"_res)
             .add_dynamic_state(VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY)
             .add_dynamic_state(VK_DYNAMIC_STATE_POLYGON_MODE_EXT)
             .build();
 
         line_vertices.reserve(1024 * 2);
         triangle_vertices.reserve(1024 * 3);
+    }
+
+    JoltDebugRenderer::~JoltDebugRenderer() {
     }
 
     void JoltDebugRenderer::DrawLine(JPH::RVec3Arg from, JPH::RVec3Arg to, const JPH::ColorArg color) {
@@ -49,9 +52,9 @@ namespace render {
     }
 
     void JoltDebugRenderer::draw(
-        RenderGraph& graph, const RenderScene& scene, const GBuffer& gbuffer, const TextureHandle lit_scene_handle
+        RenderGraph& graph, const RenderWorld& world, const GBuffer& gbuffer, const TextureHandle lit_scene_handle
     ) {
-        const auto& view = scene.get_player_view();
+        const auto& view = world.get_player_view();
         camera_pos = view.get_position();
 
         if (!line_vertices.empty()) {
@@ -78,7 +81,7 @@ namespace render {
             );
         }
 
-        const auto& sun = scene.get_sun_light();
+        const auto& sun = world.get_sun_light();
 
         auto barriers = BufferUsageList{
             {

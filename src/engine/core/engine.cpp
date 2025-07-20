@@ -4,13 +4,17 @@
 #include <magic_enum.hpp>
 #include <tracy/Tracy.hpp>
 
-#include "../render/components/skeletal_mesh_component.hpp"
-#include "core/spawn_gameobject_component.hpp"
+#include "animation/animation_event_component.hpp"
+#include "core/string_utils.hpp"
 #include "core/system_interface.hpp"
 #include "glm/gtx/matrix_decompose.hpp"
 #include "player/first_person_player.hpp"
+#include "reflection/reflection_subsystem.hpp"
+#include "render/components/skeletal_mesh_component.hpp"
 #include "resources/gltf_model.hpp"
+#include "scene/entity_info_component.hpp"
 #include "scene/game_object_component.hpp"
+#include "scene/spawn_gameobject_component.hpp"
 #include "scene/transform_component.hpp"
 #include "ui/ui_controller.hpp"
 
@@ -24,7 +28,7 @@ Engine& Engine::get() {
 }
 
 Engine::Engine() :
-    physics_scene{scene}, animation_system{scene} {
+    physics_world{world}, animation_system{world} {
     ZoneScoped;
 
     instance = this;
@@ -38,6 +42,9 @@ Engine::Engine() :
     logger->set_level(spdlog::level::debug);
 
     application_start_time = std::chrono::high_resolution_clock::now();
+
+    reflection::ReflectionSubsystem::register_types();
+    serialization::register_serializers();
 
     SystemInterface::get().set_input_manager(player_input);
 
@@ -53,14 +60,14 @@ Engine::Engine() :
 
     SystemInterface::get().set_ui_controller(ui_controller.get());
 
-    render_scene = eastl::make_unique<render::RenderScene>(
+    render_world = eastl::make_unique<render::RenderWorld>(
         renderer->get_mesh_storage(),
         renderer->get_material_storage()
         );
 
-    render_scene->setup_observers(scene);
+    render_world->setup_observers(world);
 
-    renderer->set_scene(*render_scene);
+    renderer->set_world(*render_world);
 
 #ifdef JPH_DEBUG_RENDERER
     JPH::DebugRenderer::sInstance = renderer->get_jolt_debug_renderer();
@@ -72,7 +79,11 @@ Engine::Engine() :
 
     update_resolution();
 
-    register_components();
+    if(!load_scene("environment.sscene")) {
+        create_scene("environment.sscene");
+    }
+
+    instantiate_player();
 
     logger->info("HELLO HUMAN");
 }
@@ -83,20 +94,35 @@ Engine::~Engine() {
     logger->warn("REMAIN INDOORS");
 }
 
-entt::handle Engine::add_model_to_scene(
-    const std::filesystem::path& scene_path, const eastl::optional<entt::handle>& parent_node
+entt::handle Engine::add_model_to_world(
+    const ResourcePath& model_path, const eastl::optional<entt::handle>& parent_node
     ) {
     ZoneScoped;
 
-    logger->info("Beginning import of scene {}", scene_path.string());
+    logger->info("Beginning import of model {}", model_path);
 
-    const auto& imported_model = resource_loader.get_model(scene_path);
+    const auto& imported_model = resource_loader.get_model(model_path);
 
-    const auto model_root = imported_model->add_to_scene(scene, parent_node->entity());
+    const auto model_root = imported_model->add_to_world(world, parent_node);
 
-    logger->info("Loaded scene {}", scene_path.string());
+    logger->info("Loaded model {}", model_path);
 
-    return entt::handle{scene.get_registry(), model_root};
+    return entt::handle{world.get_registry(), model_root};
+}
+
+entt::handle Engine::add_prefab_to_world(const ResourcePath& prefab_path, const float4x4& transform) {
+    return prefab_loader.load_prefab(prefab_path, world, transform);
+}
+
+entt::handle Engine::instantiate_player() {
+    player = world.create_entity();
+    player.emplace<EntityInfoComponent>("Player");
+    player.emplace<TransformComponent>();
+    player.emplace<FirstPersonPlayerComponent>().init(player);
+
+    player_input.set_controlled_entity(player);
+
+    return player;
 }
 
 void Engine::update_resolution() const {
@@ -109,25 +135,33 @@ void Engine::tick() {
 
     update_time();
 
+    update_perf_tracker();
+
     spawn_new_game_objects();
 
     SystemInterface::get().poll_input(player_input);
 
-    player_input.tick(delta_time, scene);
+    player_input.tick(delta_time, world);
 
-    auto& registry = scene.get_registry();
+    if(player) {
+        player.get<FirstPersonPlayerComponent>().tick(delta_time);
+    }
+
+    game_instance->tick(delta_time);
+
+    auto& registry = world.get_registry();
     registry.view<GameObjectComponent>().each(
         [&](const GameObjectComponent& go) {
             if(go->enabled) {
-                go->tick(delta_time, scene);
+                go->tick(delta_time, world);
             }
         });
 
-    physics_scene.tick(delta_time, scene);
+    physics_world.tick(delta_time, world);
 
     animation_system.tick(delta_time);
 
-    scene.propagate_transforms(delta_time);
+    world.propagate_transforms(delta_time);
 
     // UI
 
@@ -137,7 +171,7 @@ void Engine::tick() {
 
     // Rendering
 
-    render_scene->tick(scene);
+    render_world->tick(world);
 
     renderer->set_imgui_commands(ImGui::GetDrawData());
 
@@ -169,7 +203,7 @@ void Engine::set_player_controller_enabled(const bool enabled) {
 }
 
 void Engine::give_player_full_control() {
-    auto& registry = scene.get_registry();
+    auto& registry = world.get_registry();
     eastl::optional<entt::entity> parent_entity = eastl::nullopt;
     registry.patch<TransformComponent>(
         player,
@@ -181,24 +215,16 @@ void Engine::give_player_full_control() {
 
             const auto local_to_world = transform.get_local_to_world();
             transform.cached_parent_to_world = float4x4{1.f};
-            transform.local_to_parent = local_to_world;
+            transform.set_local_transform(local_to_world);
         });
-    registry.patch<GameObjectComponent>(
+    registry.patch<FirstPersonPlayerComponent>(
         player,
-        [&](const GameObjectComponent& comp) {
-            auto& fp_player = static_cast<FirstPersonPlayer&>(*comp.game_object);
+        [&](FirstPersonPlayerComponent& fp_player) {
             const auto& transform = registry.get<TransformComponent>(player);
 
-            float3 scale;
-            glm::quat orientation;
-            float3 translation;
-            float3 skew;
-            float4 perspective;
-            glm::decompose(transform.local_to_parent, scale, orientation, translation, skew, perspective);
+            fp_player.set_worldspace_location(transform.location);
 
-            fp_player.set_worldspace_location(float3{translation});
-
-            fp_player.set_pitch_and_yaw(pitch(orientation), PI - yaw(orientation));
+            fp_player.set_pitch_and_yaw(0, PI - yaw(transform.rotation));
 
             fp_player.enabled = true;
         });
@@ -211,21 +237,62 @@ void Engine::give_player_full_control() {
             });
     }
 
-    scene.add_top_level_entities(eastl::array{player.entity()});
+    world.add_top_level_entities(eastl::array{player});
 
     set_player_controller_enabled(true);
 }
 
-Scene& Engine::get_scene() {
-    return scene;
+World& Engine::get_world() {
+    return world;
 }
 
-const Scene& Engine::get_scene() const {
-    return scene;
+const World& Engine::get_world() const {
+    return world;
 }
 
-physics::PhysicsScene& Engine::get_physics_scene() {
-    return physics_scene;
+std::filesystem::path Engine::get_scene_folder() {
+    return SystemInterface::get().get_data_folder() / "game" / "scenes";
+}
+
+void Engine::create_scene(const eastl::string& name) {
+    loaded_scenes.emplace(name, Scene{});
+}
+
+bool Engine::load_scene(const eastl::string& name) {
+    try {
+        const auto scene_file_path = ResourcePath{format("game://scenes/%s", name.c_str())};
+        auto scene = Scene::load_from_file(scene_file_path);
+        scene.add_new_objects_to_world();
+
+        loaded_scenes.emplace(name, eastl::move(scene));
+        return true;
+
+    } catch(const std::exception& e) {
+        logger->error("Could not load scene {}: {}", name, e.what());
+        return false;
+    }
+}
+
+void Engine::unload_scene(const eastl::string& name) {
+    loaded_scenes.erase(name);
+}
+
+Scene& Engine::get_environment_scene() {
+    return get_scene("environment.sscene");
+}
+
+Scene& Engine::get_scene(const eastl::string& name) {
+    logger->debug("Searching for scene {}", name);
+    return loaded_scenes.at(name);
+}
+
+const Scene& Engine::get_scene(const eastl::string& name) const {
+    logger->debug("Searching for scene {}", name);
+    return loaded_scenes.at(name);
+}
+
+physics::PhysicsWorld& Engine::get_physics_world() {
+    return physics_world;
 }
 
 AnimationSystem& Engine::get_animation_system() {
@@ -240,19 +307,8 @@ entt::handle Engine::get_player() const {
     return player;
 }
 
-void Engine::register_components() {
-    prefab_loader.register_component_creator(
-        "TransformComponent",
-        [](const entt::handle entity, simdjson::simdjson_result<simdjson::ondemand::value> json) {
-            entity.emplace<TransformComponent>();
-        });
-
-    prefab_loader.register_component_creator(
-        "GameObjectComponent",
-        [&](const entt::handle entity, simdjson::simdjson_result<simdjson::ondemand::value> json) {
-            std::string_view game_object_name;
-            json["game_object"].get_string(game_object_name);
-        });
+const PerformanceTracker& Engine::get_perf_tracker() const {
+    return perf_tracker;
 }
 
 void Engine::update_time() {
@@ -271,21 +327,33 @@ void Engine::update_time() {
                        / 1000000.f;
 }
 
+void Engine::update_perf_tracker() {
+    perf_tracker.add_frame_time_sample(get_frame_time());
+}
+
 void Engine::spawn_new_game_objects() {
-    auto& registry = scene.get_registry();
+    auto& registry = world.get_registry();
     registry.view<SpwanPrefabComponent>().each(
         [&](const entt::entity entity, const SpwanPrefabComponent& spawn_prefab_comp
         ) {
             const auto transform = registry.get<TransformComponent>(entity);
-            const auto game_object = registry.get<GameObjectComponent>(entity);
             // Replace this node with the prefab
-            const auto instance = prefab_loader.load_prefab(spawn_prefab_comp.prefab_path.c_str(),
-                                      scene,
-                                      transform.get_local_to_world());
+            const auto instance = add_prefab_to_world(spawn_prefab_comp.prefab_path,
+                                                      transform.get_local_to_world());
 
-            instance.get<GameObjectComponent>()->name = game_object->name;
+            eastl::string name = "Spawned Entity";
+            const auto* entity_info = registry.try_get<EntityInfoComponent>(entity);
+            if(entity_info != nullptr) {
+                name = entity_info->name;
+            } else {
+                const auto* game_object = registry.try_get<GameObjectComponent>(entity);
+                if(game_object != nullptr) {
+                    name = (*game_object)->name;
+                }
+            }
+            instance.emplace_or_replace<EntityInfoComponent>(EntityInfoComponent{.name = name});
 
-            scene.destroy_entity(entity);
+            world.destroy_entity(entity);
         });
 }
 

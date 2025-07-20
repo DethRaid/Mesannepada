@@ -1,14 +1,17 @@
 #pragma once
 
 #include <filesystem>
-#include <EASTL/vector.h>
-#include <EASTL/optional.h>
 #include <string>
 
 #include <volk.h>
+#include <EASTL/optional.h>
+#include <EASTL/vector.h>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <spdlog/logger.h>
+#include <spdlog/fmt/std.h>
+
+#include "resources/resource_path.hpp"
 
 namespace ui {
     class Controller;
@@ -44,6 +47,18 @@ public:
 
     void flush_all_loggers();
 
+    std::filesystem::path get_working_directory() const;
+
+    /**
+     * Gets the folder where compiled shaders live. Usually exe_dir / shaders
+     */
+    std::filesystem::path get_shaders_folder() const;
+
+    /**
+     * Gets the fodler where game data lives. Usually exe_dir / data
+     */
+    std::filesystem::path get_data_folder() const;
+
     /**
      * Retrieves a writable folder where we can store game data
      */
@@ -55,9 +70,9 @@ public:
      * This method returns an empty optional if the file can't be read. It returns a zero-length vector if the file can
      * be read but just happens to have no data
      */
-    eastl::optional<eastl::vector<std::byte>> load_file(const std::filesystem::path& filepath);
+    eastl::optional<eastl::vector<std::byte>> load_file(const ResourcePath& filepath);
 
-    FILE* open_file(const std::filesystem::path& filepath);
+    FILE* open_file(const ResourcePath& resource_path);
 
     /**
      * Writes some data to a file

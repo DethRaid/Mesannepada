@@ -1,7 +1,6 @@
 #pragma once
 
-#include <string>
-
+#include <EASTL/string.h>
 #include <volk.h>
 #include <vk_mem_alloc.h>
 
@@ -17,7 +16,7 @@ namespace render {
     };
 
     struct GpuTexture {
-        std::string name;
+        eastl::string name;
 
         VkImageCreateInfo create_info;
 

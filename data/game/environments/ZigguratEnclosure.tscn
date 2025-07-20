@@ -250,7 +250,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.28434, 0, 0)
 
 [node name="Guard1" type="Marker3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.46848, 0.178309, 0.242704)
-metadata/spawn_gameobject = "data/game/characters/basic_guard.json"
+metadata/spawn_gameobject = "game://characters/basic_guard.json"
 
 [editable path="SM_Ur_ZigguratTerrace"]
 [editable path="SM_OilLampA"]

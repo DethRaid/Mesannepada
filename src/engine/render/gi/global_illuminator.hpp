@@ -9,7 +9,7 @@ namespace render {
     struct GBuffer;
     class RenderGraph;
     class SceneView;
-    class RenderScene;
+    class RenderWorld;
 
     /**
      * Interface for classes that can compute global illumination. Contains hooks to do some work before rendering the
@@ -20,12 +20,12 @@ namespace render {
         virtual ~IGlobalIlluminator() = default;
 
         virtual void pre_render(
-            RenderGraph& graph, const SceneView& view, const RenderScene& scene, TextureHandle noise_tex
+            RenderGraph& graph, const SceneView& view, const RenderWorld& world, TextureHandle noise_tex
         ) = 0;
 
         virtual void post_render(
-            RenderGraph& graph, const SceneView& view, const RenderScene& scene, const GBuffer& gbuffer,
-            TextureHandle noise_tex
+            RenderGraph& graph, const SceneView& view, const RenderWorld& world, const GBuffer& gbuffer,
+             TextureHandle motion_vectors, TextureHandle noise_tex
         ) = 0;
 
         virtual void get_lighting_resource_usages(
@@ -44,7 +44,7 @@ namespace render {
          * each GI implementation to render their own volumetrics. There'll be a library of fog code that each impl can use
          */
         virtual void render_volumetrics(
-            RenderGraph& render_graph, const SceneView& player_view, const RenderScene& scene, const GBuffer& gbuffer,
+            RenderGraph& render_graph, const SceneView& player_view, const RenderWorld& world, const GBuffer& gbuffer,
             TextureHandle lit_scene_handle
         ) = 0;
 

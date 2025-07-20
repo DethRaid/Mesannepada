@@ -2,6 +2,7 @@
 
 #include "render/backend/pipeline_cache.hpp"
 #include "core/system_interface.hpp"
+#include "resources/resource_path.hpp"
 
 namespace render {
     HitGroupBuilder::HitGroupBuilder(PipelineCache& cache_in) : cache{ cache_in } {
@@ -15,10 +16,10 @@ namespace render {
         return *this;
     }
 
-    HitGroupBuilder& HitGroupBuilder::add_occlusion_closesthit_shader(const std::filesystem::path& shader_path) {
+    HitGroupBuilder& HitGroupBuilder::add_occlusion_closesthit_shader(const ResourcePath& shader_path) {
         const auto shader_maybe = SystemInterface::get().load_file(shader_path);
         if (!shader_maybe) {
-            throw std::runtime_error{ fmt::format("Could not load closesthit shader {}", shader_path.string()) };
+            throw std::runtime_error{ fmt::format("Could not load closesthit shader {}", shader_path.to_string()) };
         }
 
         occlusion_closesthit_shader = *shader_maybe;
@@ -26,10 +27,10 @@ namespace render {
         return *this;
     }
 
-    HitGroupBuilder& HitGroupBuilder::add_occlusion_anyhit_shader(const std::filesystem::path& shader_path) {
+    HitGroupBuilder& HitGroupBuilder::add_occlusion_anyhit_shader(const ResourcePath& shader_path) {
         const auto shader_maybe = SystemInterface::get().load_file(shader_path);
         if (!shader_maybe) {
-            throw std::runtime_error{ fmt::format("Could not load anyhit shader {}", shader_path.string()) };
+            throw std::runtime_error{ fmt::format("Could not load anyhit shader {}", shader_path.to_string()) };
         }
 
         occlusion_anyhit_shader = *shader_maybe;
@@ -37,10 +38,10 @@ namespace render {
         return *this;
     }
 
-    HitGroupBuilder& HitGroupBuilder::add_gi_closesthit_shader(const std::filesystem::path& shader_path) {
+    HitGroupBuilder& HitGroupBuilder::add_gi_closesthit_shader(const ResourcePath& shader_path) {
         const auto shader_maybe = SystemInterface::get().load_file(shader_path);
         if (!shader_maybe) {
-            throw std::runtime_error{ fmt::format("Could not load closesthit shader {}", shader_path.string()) };
+            throw std::runtime_error{ fmt::format("Could not load closesthit shader {}", shader_path.to_string()) };
         }
 
         gi_closesthit_shader = *shader_maybe;
@@ -48,10 +49,10 @@ namespace render {
         return *this;
     }
 
-    HitGroupBuilder& HitGroupBuilder::add_gi_anyhit_shader(const std::filesystem::path& shader_path) {
+    HitGroupBuilder& HitGroupBuilder::add_gi_anyhit_shader(const ResourcePath& shader_path) {
         const auto shader_maybe = SystemInterface::get().load_file(shader_path);
         if (!shader_maybe) {
-            throw std::runtime_error{ fmt::format("Could not load anyhit shader {}", shader_path.string()) };
+            throw std::runtime_error{ fmt::format("Could not load anyhit shader {}", shader_path.to_string()) };
         }
 
         gi_anyhit_shader = *shader_maybe;

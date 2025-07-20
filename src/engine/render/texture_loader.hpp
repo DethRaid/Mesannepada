@@ -1,15 +1,13 @@
 #pragma once
 
 #include <filesystem>
-#include <unordered_map>
 
 #include <EASTL/optional.h>
-#include <volk.h>
-#include <spdlog/logger.h>
 
-#include "render/backend/handles.hpp"
 #include "render/texture_type.hpp"
+#include "render/backend/handles.hpp"
 #include "render/backend/resource_allocator.hpp"
+#include "resources/resource_path.hpp"
 
 namespace render {
     class RenderBackend;
@@ -27,7 +25,9 @@ namespace render {
          * @param filepath The path to the texture
          * @param type The type of the texture
          */
-        eastl::optional<TextureHandle> load_texture(const std::filesystem::path& filepath, TextureType type);
+        eastl::optional<TextureHandle> load_texture(const ResourcePath& filepath, TextureType type,
+                                                    VkImageUsageFlags usage_flags = 0
+            );
 
         /**
          * Uploads a KTX texture from memory
@@ -36,8 +36,8 @@ namespace render {
          * @param data The raw data for the texture
          */
         eastl::optional<TextureHandle> upload_texture_ktx(
-            const std::filesystem::path& filepath, const eastl::vector<std::byte>& data
-        );
+            const ResourcePath& filepath, const eastl::vector<std::byte>& data
+            );
 
         /**
          * Uploads a PNG file from memory
@@ -47,12 +47,13 @@ namespace render {
          * @param type The type of the texture
          */
         eastl::optional<TextureHandle> upload_texture_stbi(
-            const std::filesystem::path& filepath, const eastl::vector<std::byte>& data, TextureType type
-        );
+            const ResourcePath& filepath, const eastl::vector<std::byte>& data, TextureType type,
+            VkImageUsageFlags usage_flags = 0
+            );
 
     private:
         std::shared_ptr<spdlog::logger> logger;
 
-        std::unordered_map<std::string, TextureHandle> loaded_textures;
+        eastl::unordered_map<ResourcePath, TextureHandle> loaded_textures;
     };
 }

@@ -73,7 +73,7 @@ protected:
 struct AutoCVar_Float : AutoCVar<double> {
     AutoCVar_Float(const char* name, const char* description, double defaultValue, CVarFlags flags = CVarFlags::None);
 
-    double Get();
+    double get();
     double* GetPtr();
     float GetFloat();
     float* GetFloatPtr();
@@ -82,7 +82,7 @@ struct AutoCVar_Float : AutoCVar<double> {
 
 struct AutoCVar_Int : AutoCVar<int32_t> {
     AutoCVar_Int(const char* name, const char* description, int32_t defaultValue, CVarFlags flags = CVarFlags::None);
-    int32_t Get();
+    int32_t get();
     int32_t* GetPtr();
     void Set(int32_t val);
 
@@ -94,7 +94,7 @@ struct AutoCVar_String : AutoCVar<std::string> {
         const char* name, const char* description, const char* defaultValue, CVarFlags flags = CVarFlags::None
     );
 
-    const char* Get();
+    const char* get();
     void Set(std::string&& val);
 };
 
@@ -118,7 +118,7 @@ AutoCVar_Enum<EnumType>::AutoCVar_Enum(
 
 template <typename EnumType>
 EnumType AutoCVar_Enum<EnumType>::get() {
-    return static_cast<EnumType>(AutoCVar_Int::Get());
+    return static_cast<EnumType>(AutoCVar_Int::get());
 }
 
 template <typename EnumType>

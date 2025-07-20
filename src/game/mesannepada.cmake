@@ -9,7 +9,7 @@ project(mesannepada)
 set(SAH_USE_XESS 0 CACHE BOOL "" FORCE)
 
 if(WIN32)
-    set(SAH_USE_FFX 1 CACHE BOOL "" FORCE)
+    set(SAH_USE_FFX 0 CACHE BOOL "" FORCE)
     set(SAH_USE_STREAMLINE 1 CACHE BOOL "" FORCE)
 else()
     set(SAH_USE_FFX 0 CACHE BOOL "" FORCE)
@@ -49,7 +49,7 @@ set(SHADER_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/../engine)
 set(EXTERN_DIR ${SHADER_INCLUDE_DIR}/extern)
 
 add_custom_target(compile_shaders
-    python ${SAH_TOOLS_DIR}/compile_shaders.py ${SAH_SHADER_DIR} ${SAH_OUTPUT_DIR}/shaders ${EXTERN_DIR}
+    python ${SAH_TOOLS_DIR}/compile_shaders.py ${SAH_SHADER_DIR} ${SAH_OUTPUT_DIR}/shaders ${EXTERN_DIR} ${NRD_SOURCE_DIR}/Shaders/Include
 )
 add_dependencies(mesannepada compile_shaders)
 

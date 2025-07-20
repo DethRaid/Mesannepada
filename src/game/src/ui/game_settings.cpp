@@ -90,7 +90,7 @@ namespace ui {
         //graphics_data_model.BindEventCallback("on_submit_game_options", &GameSettings::on_submit_game_options, this);
 
 
-        load_document("data/ui/settings/settings.rml");
+        load_document(SystemInterface::get().get_data_folder() / "ui/settings/settings.rml");
 
         update_cached_fidelity(Engine::get().get_settings_controller());
     }

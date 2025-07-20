@@ -4,15 +4,16 @@
 #include <RmlUi/Core/DataModelHandle.h>
 
 #include "animation/animation_event_component.hpp"
-#include "ui/game_settings.hpp"
 #include "core/engine.hpp"
 #include "core/system_interface.hpp"
 #include "level_behaviors/ur_environment_game_object.hpp"
+#include "ui/game_settings.hpp"
 
 static std::shared_ptr<spdlog::logger> logger;
 
 namespace ui {
-    MainMenu::MainMenu(Controller& controller_in) : Screen{controller_in} {
+    MainMenu::MainMenu(Controller& controller_in) :
+        Screen{controller_in} {
         if(logger == nullptr) {
             logger = SystemInterface::get().get_logger("MainMenu");
         }
@@ -31,14 +32,16 @@ namespace ui {
 
         my_model = data_model_constructor.GetModelHandle();
 
-        load_document("data/ui/main_menu/main_menu.rml");
+        load_document(SystemInterface::get().get_data_folder() / "ui/main_menu/main_menu.rml");
 
         my_model.DirtyVariable("has_existing_save");
 
         Engine::get().set_player_controller_enabled(false);
     }
 
-    void MainMenu::set_environment_entity(const entt::entity entity) { environment = entity; }
+    void MainMenu::set_environment_entity(const entt::entity entity) {
+        environment = entity;
+    }
 
     void MainMenu::on_continue(Rml::DataModelHandle, Rml::Event&, const Rml::VariantList&) {
         logger->info("Continuing game");
@@ -50,8 +53,8 @@ namespace ui {
 
         SystemInterface::get().set_cursor_hidden(true);
 
-        auto& scene= Engine::get().get_scene();
-        scene.add_component(environment, AnimationEventComponent{ .animation_to_play = "FlyIn_Level1" });
+        auto& world = Engine::get().get_world();
+        world.add_component(environment, AnimationEventComponent{.animation_to_play = "FlyIn_Level1"});
 
         controller.pop_screen();
     }
@@ -69,4 +72,3 @@ namespace ui {
         Engine::get().exit();
     }
 }
-

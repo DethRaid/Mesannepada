@@ -336,7 +336,7 @@ void SetCVarCurrentByIndex(int32_t index, const T& data) {
 }
 
 
-double AutoCVar_Float::Get() {
+double AutoCVar_Float::get() {
     return GetCVarCurrentByIndex<CVarType>(index);
 }
 
@@ -345,7 +345,7 @@ double* AutoCVar_Float::GetPtr() {
 }
 
 float AutoCVar_Float::GetFloat() {
-    return static_cast<float>(Get());
+    return static_cast<float>(get());
 }
 
 float* AutoCVar_Float::GetFloatPtr() {
@@ -363,7 +363,7 @@ AutoCVar_Int::AutoCVar_Int(const char* name, const char* description, int32_t de
     index = cvar->arrayIndex;
 }
 
-int32_t AutoCVar_Int::Get() {
+int32_t AutoCVar_Int::get() {
     return GetCVarCurrentByIndex<CVarType>(index);
 }
 
@@ -376,7 +376,7 @@ void AutoCVar_Int::Set(int32_t val) {
 }
 
 void AutoCVar_Int::Toggle() {
-    bool enabled = Get() != 0;
+    bool enabled = get() != 0;
 
     Set(enabled ? 0 : 1);
 }
@@ -387,7 +387,7 @@ AutoCVar_String::AutoCVar_String(const char* name, const char* description, cons
     index = cvar->arrayIndex;
 }
 
-const char* AutoCVar_String::Get() {
+const char* AutoCVar_String::get() {
     return GetCVarCurrentByIndex<CVarType>(index).c_str();
 };
 

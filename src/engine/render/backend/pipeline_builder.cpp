@@ -3,16 +3,17 @@
 #include <algorithm>
 
 #include <imgui.h>
-#include <spdlog/spdlog.h>
 #include <spirv_reflect.h>
-#include <tracy/Tracy.hpp>
-#include <vulkan/vk_enum_string_helper.h>
 #include <EASTL/span.h>
 #include <RmlUi/Core/Vertex.h>
+#include <spdlog/spdlog.h>
+#include <tracy/Tracy.hpp>
+#include <vulkan/vk_enum_string_helper.h>
 
 #include "pipeline_cache.hpp"
 #include "console/cvars.hpp"
 #include "core/system_interface.hpp"
+#include "resources/resource_path.hpp"
 #include "shared/vertex_data.hpp"
 
 namespace render {
@@ -198,7 +199,7 @@ namespace render {
         return *this;
     }
 
-    GraphicsPipelineBuilder& GraphicsPipelineBuilder::set_vertex_shader(const std::filesystem::path& vertex_path) {
+    GraphicsPipelineBuilder& GraphicsPipelineBuilder::set_vertex_shader(const ResourcePath& vertex_path) {
         if(vertex_shader) {
             throw std::runtime_error{"Vertex shader already loaded set"};
         }
@@ -209,7 +210,7 @@ namespace render {
         }
 
         vertex_shader = *vertex_shader_maybe;
-        vertex_shader_name = vertex_path.string();
+        vertex_shader_name = vertex_path.to_string().c_str();
 
         const auto shader_module = spv_reflect::ShaderModule{
             vertex_shader->size(),
@@ -249,7 +250,7 @@ namespace render {
         return *this;
     }
 
-    GraphicsPipelineBuilder& GraphicsPipelineBuilder::set_geometry_shader(const std::filesystem::path& geometry_path) {
+    GraphicsPipelineBuilder& GraphicsPipelineBuilder::set_geometry_shader(const ResourcePath& geometry_path) {
         if(geometry_shader) {
             throw std::runtime_error{"Geometry shader already set!"};
         }
@@ -260,7 +261,7 @@ namespace render {
         }
 
         geometry_shader = *geometry_shader_maybe;
-        geometry_shader_name = geometry_path.string().c_str();
+        geometry_shader_name = geometry_path.to_string().c_str();
 
         const auto shader_module = spv_reflect::ShaderModule{
             geometry_shader->size(),
@@ -283,7 +284,7 @@ namespace render {
         return *this;
     }
 
-    GraphicsPipelineBuilder& GraphicsPipelineBuilder::set_fragment_shader(const std::filesystem::path& fragment_path) {
+    GraphicsPipelineBuilder& GraphicsPipelineBuilder::set_fragment_shader(const ResourcePath& fragment_path) {
         if(fragment_shader) {
             throw std::runtime_error{"Fragment shader already set"};
         }
@@ -295,7 +296,7 @@ namespace render {
         }
 
         fragment_shader = *fragment_shader_maybe;
-        fragment_shader_name = fragment_path.string().c_str();
+        fragment_shader_name = fragment_path.to_string().c_str();
 
         logger->trace("Beginning reflection on fragment shader {}", fragment_shader_name);
 
@@ -558,7 +559,7 @@ namespace render {
     }
 
     bool collect_bindings(
-        const eastl::vector<std::byte>& shader_instructions, const std::string_view shader_name,
+        eastl::span<const std::byte> shader_instructions, const std::string_view shader_name,
         const VkShaderStageFlags shader_stage,
         eastl::fixed_vector<DescriptorSetInfo, 8>& descriptor_sets,
         eastl::fixed_vector<VkPushConstantRange, 4>& push_constants

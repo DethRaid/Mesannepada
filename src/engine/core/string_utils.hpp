@@ -1,8 +1,9 @@
 #pragma once
 
 #include <sstream>
-#include <EASTL/vector.h>
+#include <EASTL/string.h>
 #include <EASTL/string_view.h>
+#include <EASTL/vector.h>
 
 eastl::vector<eastl::string_view> split(eastl::string_view s, char delimiter);
 
@@ -20,4 +21,9 @@ DestType from_string(const eastl::string_view str) {
         return eastl::numeric_limits<DestType>::max();
     }
     return val;
+}
+
+template<typename... Args>
+eastl::string format(const char* fmt, Args... args) {
+    return eastl::string{eastl::string::CtorSprintf{}, fmt, args...};
 }

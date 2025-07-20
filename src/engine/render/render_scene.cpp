@@ -16,14 +16,14 @@
 #include "render/backend/resource_allocator.hpp"
 #include "render/components/static_mesh_component.hpp"
 #include "scene/camera_component.hpp"
-#include "scene/scene.hpp"
+#include "scene/world.hpp"
 #include "scene/transform_component.hpp"
 
 namespace render {
     constexpr uint32_t MAX_NUM_PRIMITIVES = 65536;
     constexpr uint32_t MAX_NUM_POINT_LIGHTS = 8192;
 
-    RenderScene::RenderScene(MeshStorage& meshes_in, MaterialStorage& materials_in) :
+    RenderWorld::RenderWorld(MeshStorage& meshes_in, MaterialStorage& materials_in) :
         meshes{meshes_in}, materials{materials_in} {
         const auto& backend = RenderBackend::get();
         auto& allocator = backend.get_global_allocator();
@@ -49,44 +49,44 @@ namespace render {
         sun.set_color(glm::vec4{1.f, 1.f, 1.f, 0.f} * 80000.f);
 
         if(backend.supports_ray_tracing()) {
-            raytracing_scene.emplace(RaytracingScene{*this});
+            raytracing_world.emplace(RaytracingScene{*this});
         }
 
         auto& pipeline_cache = backend.get_pipeline_cache();
-        emissive_point_cloud_shader = pipeline_cache.create_pipeline("shaders/util/emissive_point_cloud.comp.spv");
+        emissive_point_cloud_shader = pipeline_cache.create_pipeline("shader://util/emissive_point_cloud.comp.spv"_res);
 
-        vertex_deformer = pipeline_cache.create_pipeline("shaders/animation/vertex_skinning.comp.spv");
+        vertex_deformer = pipeline_cache.create_pipeline("shader://animation/vertex_skinning.comp.spv"_res);
     }
 
-    void RenderScene::setup_observers(Scene& scene) {
-        auto& registry = scene.get_registry();
+    void RenderWorld::setup_observers(World& world) {
+        auto& registry = world.get_registry();
 
-        registry.on_construct<StaticMeshComponent>().connect<&RenderScene::on_construct_static_mesh>(this);
-        registry.on_destroy<StaticMeshComponent>().connect<&RenderScene::on_destroy_static_mesh>(this);
+        registry.on_construct<StaticMeshComponent>().connect<&RenderWorld::on_construct_static_mesh>(this);
+        registry.on_destroy<StaticMeshComponent>().connect<&RenderWorld::on_destroy_static_mesh>(this);
 
-        registry.on_construct<SkeletalMeshComponent>().connect<&RenderScene::on_construct_skeletal_mesh>(this);
-        registry.on_destroy<SkeletalMeshComponent>().connect<&RenderScene::on_destroy_skeletal_mesh>(this);
+        registry.on_construct<SkeletalMeshComponent>().connect<&RenderWorld::on_construct_skeletal_mesh>(this);
+        registry.on_destroy<SkeletalMeshComponent>().connect<&RenderWorld::on_destroy_skeletal_mesh>(this);
 
-        registry.on_construct<PointLightComponent>().connect<&RenderScene::on_construct_light>(this);
-        registry.on_destroy<PointLightComponent>().connect<&RenderScene::on_destroy_light>(this);
+        registry.on_construct<PointLightComponent>().connect<&RenderWorld::on_construct_light>(this);
+        registry.on_destroy<PointLightComponent>().connect<&RenderWorld::on_destroy_light>(this);
 
-        registry.on_construct<SpotLightComponent>().connect<&RenderScene::on_construct_light>(this);
-        registry.on_destroy<SpotLightComponent>().connect<&RenderScene::on_destroy_light>(this);
+        registry.on_construct<SpotLightComponent>().connect<&RenderWorld::on_construct_light>(this);
+        registry.on_destroy<SpotLightComponent>().connect<&RenderWorld::on_destroy_light>(this);
 
-        registry.on_construct<DirectionalLightComponent>().connect<&RenderScene::on_construct_light>(this);
-        registry.on_destroy<DirectionalLightComponent>().connect<&RenderScene::on_destroy_light>(this);
+        registry.on_construct<DirectionalLightComponent>().connect<&RenderWorld::on_construct_light>(this);
+        registry.on_destroy<DirectionalLightComponent>().connect<&RenderWorld::on_destroy_light>(this);
 
-        registry.on_update<TransformComponent>().connect<&RenderScene::on_transform_update>(this);
+        registry.on_update<TransformComponent>().connect<&RenderWorld::on_transform_update>(this);
     }
 
-    void RenderScene::tick(Scene& scene) {
+    void RenderWorld::tick(World& world) {
         ZoneScoped;
-        auto& registry = scene.get_registry();
+        auto& registry = world.get_registry();
 
         // Set the camera's location to the location of the camera entity (if any)
         registry.view<TransformComponent, CameraComponent>().each(
             [this](const TransformComponent& transform) {
-                const auto inverse_view_matrix = transform.cached_parent_to_world * transform.local_to_parent;
+                const auto inverse_view_matrix = transform.get_local_to_world();
                 player_view.set_view_matrix(glm::inverse(inverse_view_matrix));
             });
 
@@ -97,7 +97,7 @@ namespace render {
         });
     }
 
-    void RenderScene::update_mesh_proxy(const MeshPrimitiveProxyHandle handle) {
+    void RenderWorld::update_mesh_proxy(const MeshPrimitiveProxyHandle handle) {
         if(primitive_upload_buffer.is_full()) {
             auto graph = RenderGraph{RenderBackend::get()};
 
@@ -111,7 +111,7 @@ namespace render {
         primitive_upload_buffer.add_data(handle.index, handle->data);
     }
 
-    void RenderScene::update_mesh_proxy(const SkeletalMeshPrimitiveProxyHandle handle) {
+    void RenderWorld::update_mesh_proxy(const SkeletalMeshPrimitiveProxyHandle handle) {
         const auto& mesh_data = *handle->mesh_proxy;
         update_mesh_proxy(handle->mesh_proxy);
 
@@ -129,7 +129,7 @@ namespace render {
         skeletal_data_upload_buffer.add_data(handle.index, handle->skeletal_data);
     }
 
-    MeshPrimitiveProxyHandle RenderScene::create_mesh_proxy(
+    MeshPrimitiveProxyHandle RenderWorld::create_mesh_proxy(
         const float4x4& transform, const MeshHandle mesh, const PooledObject<BasicPbrMaterialProxy> material,
         const bool visible_to_ray_tracing
         ) {
@@ -189,8 +189,8 @@ namespace render {
             new_emissive_objects.push_back(handle);
         }
 
-        if(raytracing_scene && handle->visible_to_ray_tracing) {
-            raytracing_scene->add_primitive(handle);
+        if(raytracing_world && handle->visible_to_ray_tracing) {
+            raytracing_world->add_primitive(handle);
         }
 
         update_mesh_proxy(handle);
@@ -198,7 +198,7 @@ namespace render {
         return handle;
     }
 
-    SkeletalMeshPrimitiveProxyHandle RenderScene::create_skeletal_mesh_proxy(
+    SkeletalMeshPrimitiveProxyHandle RenderWorld::create_skeletal_mesh_proxy(
         const float4x4& transform, const SkeletalMeshPrimitive& primitive, const BufferHandle bone_matrices_buffer
         ) {
         auto proxy = SkeletalMeshPrimitiveProxy{
@@ -242,7 +242,7 @@ namespace render {
         return handle;
     }
 
-    void RenderScene::destroy_primitive(const MeshPrimitiveProxyHandle primitive) {
+    void RenderWorld::destroy_primitive(const MeshPrimitiveProxyHandle primitive) {
         switch(primitive->material->first.transparency_mode) {
         case TransparencyMode::Solid:
             solid_primitives.erase_first_unsorted(primitive);
@@ -257,14 +257,14 @@ namespace render {
             break;
         }
 
-        if(raytracing_scene) {
-            raytracing_scene->remove_primitive(primitive);
+        if(raytracing_world) {
+            raytracing_world->remove_primitive(primitive);
         }
 
         static_mesh_primitives.free_object(primitive);
     }
 
-    void RenderScene::destroy_primitive(const SkeletalMeshPrimitiveProxyHandle proxy) {
+    void RenderWorld::destroy_primitive(const SkeletalMeshPrimitiveProxyHandle proxy) {
         destroy_primitive(proxy->mesh_proxy);
 
         auto& allocator = RenderBackend::get().get_global_allocator();
@@ -276,21 +276,21 @@ namespace render {
         skeletal_mesh_primitives.free_object(proxy);
     }
 
-    PointLightProxyHandle RenderScene::create_light_proxy(const PointLightGPU& light) {
+    PointLightProxyHandle RenderWorld::create_light_proxy(const PointLightGPU& light) {
         const auto handle = point_lights.emplace(PointLightProxy{.gpu_data = light});
         update_light_proxy(handle);
 
         return handle;
     }
 
-    SpotLightProxyHandle RenderScene::create_light_proxy(const SpotLightGPU& light) {
+    SpotLightProxyHandle RenderWorld::create_light_proxy(const SpotLightGPU& light) {
         const auto handle = spot_lights.emplace({.gpu_data = light});
         update_light_proxy(handle);
 
         return handle;
     }
 
-    void RenderScene::update_light_proxy(const PointLightProxyHandle handle) {
+    void RenderWorld::update_light_proxy(const PointLightProxyHandle handle) {
         if(point_light_uploads.is_full()) {
             auto graph = RenderGraph{RenderBackend::get()};
 
@@ -302,7 +302,7 @@ namespace render {
         point_light_uploads.add_data(handle.index, handle->gpu_data);
     }
 
-    void RenderScene::update_light_proxy(const SpotLightProxyHandle handle) {
+    void RenderWorld::update_light_proxy(const SpotLightProxyHandle handle) {
         if(spot_light_uploads.is_full()) {
             auto graph = RenderGraph{RenderBackend::get()};
 
@@ -314,15 +314,15 @@ namespace render {
         spot_light_uploads.add_data(handle.index, handle->gpu_data);
     }
 
-    void RenderScene::destroy_light(const PointLightProxyHandle proxy) {
+    void RenderWorld::destroy_light(const PointLightProxyHandle proxy) {
         point_lights.free_object(proxy);
     }
 
-    void RenderScene::destroy_light(const SpotLightProxyHandle proxy) {
+    void RenderWorld::destroy_light(const SpotLightProxyHandle proxy) {
         spot_lights.free_object(proxy);
     }
 
-    void RenderScene::begin_frame(RenderGraph& graph) {
+    void RenderWorld::begin_frame(RenderGraph& graph) {
         graph.begin_label("RenderScene::begin_frame");
 
         primitive_upload_buffer.flush_to_buffer(graph, primitive_data_buffer);
@@ -333,8 +333,8 @@ namespace render {
 
         spot_light_uploads.flush_to_buffer(graph, spot_light_data_buffer);
 
-        if(raytracing_scene) {
-            raytracing_scene->finalize(graph);
+        if(raytracing_world) {
+            raytracing_world->finalize(graph);
         }
 
         graph.end_label();
@@ -342,7 +342,7 @@ namespace render {
         sky.update_sky_luts(graph, sun.get_direction());
     }
 
-    void RenderScene::deform_skinned_meshes(RenderGraph& graph) {
+    void RenderWorld::deform_skinned_meshes(RenderGraph& graph) {
         auto barriers = BufferUsageList{};
         barriers.reserve(active_skeletal_meshes.size() * 3);
         for(const auto& mesh : active_skeletal_meshes) {
@@ -387,55 +387,55 @@ namespace render {
         });
     }
 
-    const eastl::vector<PooledObject<MeshPrimitiveProxy> >& RenderScene::get_solid_primitives() const {
+    const eastl::vector<PooledObject<MeshPrimitiveProxy> >& RenderWorld::get_solid_primitives() const {
         return solid_primitives;
     }
 
-    const eastl::vector<MeshPrimitiveProxyHandle>& RenderScene::get_masked_primitives() const {
+    const eastl::vector<MeshPrimitiveProxyHandle>& RenderWorld::get_masked_primitives() const {
         return masked_primitives;
     }
 
-    const eastl::vector<MeshPrimitiveProxyHandle>& RenderScene::get_transparent_primitives() const {
+    const eastl::vector<MeshPrimitiveProxyHandle>& RenderWorld::get_transparent_primitives() const {
         return translucent_primitives;
     }
 
-    BufferHandle RenderScene::get_primitive_buffer() const {
+    BufferHandle RenderWorld::get_primitive_buffer() const {
         return primitive_data_buffer;
     }
 
-    uint32_t RenderScene::get_total_num_primitives() const {
+    uint32_t RenderWorld::get_total_num_primitives() const {
         return static_mesh_primitives.size();
     }
 
-    DirectionalLight& RenderScene::get_sun_light() {
+    DirectionalLight& RenderWorld::get_sun_light() {
         return sun;
     }
 
-    const DirectionalLight& RenderScene::get_sun_light() const {
+    const DirectionalLight& RenderWorld::get_sun_light() const {
         return sun;
     }
 
-    const ProceduralSky& RenderScene::get_sky() const {
+    const ProceduralSky& RenderWorld::get_sky() const {
         return sky;
     }
 
-    BufferHandle RenderScene::get_point_lights_buffer() const {
+    BufferHandle RenderWorld::get_point_lights_buffer() const {
         return point_light_data_buffer;
     }
 
-    uint32_t RenderScene::get_num_point_lights() const {
+    uint32_t RenderWorld::get_num_point_lights() const {
         return point_lights.size();
     }
 
-    SceneView& RenderScene::get_player_view() {
+    SceneView& RenderWorld::get_player_view() {
         return player_view;
     }
 
-    const SceneView& RenderScene::get_player_view() const {
+    const SceneView& RenderWorld::get_player_view() const {
         return player_view;
     }
 
-    eastl::vector<PooledObject<MeshPrimitiveProxy> > RenderScene::get_primitives_in_bounds(
+    eastl::vector<PooledObject<MeshPrimitiveProxy> > RenderWorld::get_primitives_in_bounds(
         const glm::vec3& min_bounds, const glm::vec3& max_bounds
         ) const {
         auto output = eastl::vector<PooledObject<MeshPrimitiveProxy> >{};
@@ -461,15 +461,15 @@ namespace render {
         return output;
     }
 
-    void RenderScene::draw_opaque(CommandBuffer& commands, const GraphicsPipelineHandle pso) const {
+    void RenderWorld::draw_opaque(CommandBuffer& commands, const GraphicsPipelineHandle pso) const {
         draw_primitives(commands, pso, solid_primitives);
     }
 
-    void RenderScene::draw_masked(CommandBuffer& commands, const GraphicsPipelineHandle pso) const {
+    void RenderWorld::draw_masked(CommandBuffer& commands, const GraphicsPipelineHandle pso) const {
         draw_primitives(commands, pso, masked_primitives);
     }
 
-    void RenderScene::draw_opaque(
+    void RenderWorld::draw_opaque(
         CommandBuffer& commands, const IndirectDrawingBuffers& drawbuffers, const GraphicsPipelineHandle solid_pso
         ) const {
         commands.bind_index_buffer(meshes.get_index_buffer());
@@ -482,7 +482,7 @@ namespace render {
         commands.bind_pipeline(solid_pso);
 
         commands.set_cull_mode(VK_CULL_MODE_BACK_BIT);
-        commands.set_front_face(VK_FRONT_FACE_CLOCKWISE);
+        commands.set_front_face(VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
         commands.draw_indexed_indirect(
             drawbuffers.commands,
@@ -494,7 +494,7 @@ namespace render {
         }
     }
 
-    void RenderScene::draw_masked(
+    void RenderWorld::draw_masked(
         CommandBuffer& commands, const IndirectDrawingBuffers& draw_buffers, const GraphicsPipelineHandle masked_pso
         ) const {
         commands.bind_index_buffer(meshes.get_index_buffer());
@@ -507,7 +507,7 @@ namespace render {
         commands.bind_pipeline(masked_pso);
 
         commands.set_cull_mode(VK_CULL_MODE_NONE);
-        commands.set_front_face(VK_FRONT_FACE_CLOCKWISE);
+        commands.set_front_face(VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
         commands.draw_indexed_indirect(
             draw_buffers.commands,
@@ -519,35 +519,35 @@ namespace render {
         }
     }
 
-    void RenderScene::draw_transparent(CommandBuffer& commands, GraphicsPipelineHandle pso) const {
+    void RenderWorld::draw_transparent(CommandBuffer& commands, GraphicsPipelineHandle pso) const {
         draw_primitives(commands, pso, translucent_primitives);
     }
 
-    const MeshStorage& RenderScene::get_meshes() const {
+    const MeshStorage& RenderWorld::get_meshes() const {
         return meshes;
     }
 
-    RaytracingScene& RenderScene::get_raytracing_scene() {
-        return *raytracing_scene;
+    RaytracingScene& RenderWorld::get_raytracing_world() {
+        return *raytracing_world;
     }
 
-    const RaytracingScene& RenderScene::get_raytracing_scene() const {
-        return *raytracing_scene;
+    const RaytracingScene& RenderWorld::get_raytracing_world() const {
+        return *raytracing_world;
     }
 
-    MaterialStorage& RenderScene::get_material_storage() const {
+    MaterialStorage& RenderWorld::get_material_storage() const {
         return materials;
     }
 
-    MeshStorage& RenderScene::get_mesh_storage() const {
+    MeshStorage& RenderWorld::get_mesh_storage() const {
         return meshes;
     }
 
-    float RenderScene::get_fog_strength() const {
+    float RenderWorld::get_fog_strength() const {
         return fog_strength;
     }
 
-    void RenderScene::draw_primitives(
+    void RenderWorld::draw_primitives(
         CommandBuffer& commands, const GraphicsPipelineHandle pso,
         const eastl::span<const MeshPrimitiveProxyHandle> primitives
         ) const {
@@ -587,25 +587,25 @@ namespace render {
         }
     }
 
-    void RenderScene::on_construct_static_mesh(entt::registry& registry, const entt::entity entity) {
+    void RenderWorld::on_construct_static_mesh(entt::registry& registry, const entt::entity entity) {
         auto [transform, mesh] = registry.get<TransformComponent, StaticMeshComponent>(entity);
         for(auto& primitive : mesh.primitives) {
             primitive.proxy = create_mesh_proxy(
-                transform.cached_parent_to_world * transform.local_to_parent,
+                transform.get_local_to_world(),
                 primitive.mesh,
                 primitive.material,
                 primitive.visible_to_ray_tracing);
         }
     }
 
-    void RenderScene::on_destroy_static_mesh(entt::registry& registry, const entt::entity entity) {
+    void RenderWorld::on_destroy_static_mesh(entt::registry& registry, const entt::entity entity) {
         const auto& mesh = registry.get<StaticMeshComponent>(entity);
         for(const auto& primitive : mesh.primitives) {
             destroy_primitive(primitive.proxy);
         }
     }
 
-    void RenderScene::on_construct_skeletal_mesh(entt::registry& registry, const entt::entity entity) {
+    void RenderWorld::on_construct_skeletal_mesh(entt::registry& registry, const entt::entity entity) {
         auto& mesh = registry.get<SkeletalMeshComponent>(entity);
         mesh.bone_matrices_buffer = RenderBackend::get().get_global_allocator().create_buffer(
             "Bone matrices",
@@ -616,7 +616,7 @@ namespace render {
         const auto& transform = registry.get<TransformComponent>(entity);
         for(auto& primitive : mesh.primitives) {
             primitive.proxy = create_skeletal_mesh_proxy(
-                transform.cached_parent_to_world * transform.local_to_parent,
+                transform.get_local_to_world(),
                 primitive,
                 mesh.bone_matrices_buffer
                 );
@@ -624,7 +624,7 @@ namespace render {
         }
     }
 
-    void RenderScene::on_destroy_skeletal_mesh(entt::registry& registry, const entt::entity entity) {
+    void RenderWorld::on_destroy_skeletal_mesh(entt::registry& registry, const entt::entity entity) {
         const auto& mesh = registry.get<SkeletalMeshComponent>(entity);
 
         RenderBackend::get().get_global_allocator().destroy_buffer(mesh.bone_matrices_buffer);
@@ -634,10 +634,9 @@ namespace render {
         }
     }
 
-    void RenderScene::on_construct_light(entt::registry& registry, const entt::entity entity) {
+    void RenderWorld::on_construct_light(entt::registry& registry, const entt::entity entity) {
         const auto& transform = registry.get<TransformComponent>(entity);
-        const auto matrix = transform.cached_parent_to_world * transform.local_to_parent;
-        const auto location = float3{matrix[3]};
+        const auto location = transform.location;
 
         // Create a proxy based on what kind of light we have
 
@@ -664,7 +663,7 @@ namespace render {
         }
     }
 
-    void RenderScene::on_destroy_light(entt::registry& registry, const entt::entity entity) {
+    void RenderWorld::on_destroy_light(entt::registry& registry, const entt::entity entity) {
         if(const auto* point_light_component = registry.try_get<PointLightComponent>(entity)) {
             destroy_light(point_light_component->proxy);
         }
@@ -674,10 +673,8 @@ namespace render {
         }
     }
 
-    void RenderScene::on_transform_update(entt::registry& registry, const entt::entity entity) {
-        if(!registry.any_of<StaticMeshComponent, SkeletalMeshComponent, PointLightComponent, SpotLightComponent,
-                            DirectionalLightComponent>(
-            entity)) {
+    void RenderWorld::on_transform_update(entt::registry& registry, const entt::entity entity) {
+        if(!registry.any_of<SkeletalMeshComponent, StaticMeshComponent, PointLightComponent, SpotLightComponent, DirectionalLightComponent>(entity)) {
             return;
         }
 
@@ -691,8 +688,8 @@ namespace render {
                 primitive.proxy->data.model = matrix;
                 update_mesh_proxy(primitive.proxy);
 
-                if(raytracing_scene && primitive.visible_to_ray_tracing) {
-                    raytracing_scene->update_primitive(primitive.proxy);
+                if(raytracing_world && primitive.visible_to_ray_tracing) {
+                    raytracing_world->update_primitive(primitive.proxy);
                 }
             }
         }
@@ -704,8 +701,8 @@ namespace render {
                 primitive.proxy->mesh_proxy->data.model = matrix;
                 update_mesh_proxy(primitive.proxy);
 
-                if(raytracing_scene && primitive.visible_to_ray_tracing) {
-                    raytracing_scene->update_primitive(primitive.proxy->mesh_proxy);
+                if(raytracing_world && primitive.visible_to_ray_tracing) {
+                    raytracing_world->update_primitive(primitive.proxy->mesh_proxy);
                 }
             }
         }

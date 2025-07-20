@@ -27,12 +27,13 @@ set(EXTERN_DIR ${CMAKE_CURRENT_LIST_DIR}/extern)
 include(${EXTERN_DIR}/extern.cmake)
 
 target_compile_definitions(SahCore PUBLIC
-        VK_NO_PROTOTYPES
         GLFW_INCLUDE_NONE
         GLM_FORCE_DEPTH_ZERO_TO_ONE
         GLM_ENABLE_EXPERIMENTAL
+        NRI_WRAPPER_VK
         _SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING
         TRACY_ENABLE
+        VK_NO_PROTOTYPES
         SAH_USE_FFX=$<BOOL:${SAH_USE_FFX}>
         SAH_USE_STREAMLINE=$<BOOL:${SAH_USE_STREAMLINE}>
         SAH_USE_XESS=$<BOOL:${SAH_USE_XESS}>
@@ -75,6 +76,7 @@ endif()
 
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-format-security")
 target_link_libraries(SahCore PUBLIC
+        cereal::cereal
         EASTL
         EnTT::EnTT
         fastgltf::fastgltf
@@ -83,9 +85,18 @@ target_link_libraries(SahCore PUBLIC
         glfw
         GPUOpen::VulkanMemoryAllocator
         imgui
+        imguizmo
         Jolt
         magic_enum::magic_enum
+        NRD
+        NRDIntegration
+        NRI
         plf_colony
+        RecastNavigation::DebugUtils
+        RecastNavigation::Detour
+        RecastNavigation::DetourCrowd
+        RecastNavigation::DetourTileCache
+        RecastNavigation::Recast
         spdlog::spdlog
         spirv-reflect-static
         stb
@@ -105,7 +116,8 @@ elseif(LINUX)
     target_compile_options(SahCore PUBLIC
         "-fms-extensions"
         "-Wno-nullability-completeness"
-        "-fno-rtti")
+        "-Wno-deprecated-literal-operator"
+        )
 endif()
 
 if(SAH_USE_FFX)
@@ -127,7 +139,7 @@ if(SAH_USE_FFX)
         "${fidelityfx_SOURCE_DIR}/sdk/bin/ffx_sdk/ffx_fsr3_x64d.dll"
         ${SAH_OUTPUT_DIR})
 endif()
-if(WIN32 AND SAH_USE_STREAMLINE)
+if(SAH_USE_STREAMLINE)
     message(STATUS "Including Streamline")
     target_link_libraries(SahCore PUBLIC
             streamline

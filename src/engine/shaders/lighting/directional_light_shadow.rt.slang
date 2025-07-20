@@ -21,9 +21,12 @@ RaytracingAccelerationStructure rtas;
 RWTexture2D shadow_mask;
 
 [vk::binding(5, 0)]
-Texture2D<float> gbuffer_depth;
+Texture2D gbuffer_data;
 
 [vk::binding(6, 0)]
+Texture2D<float> gbuffer_depth;
+
+[vk::binding(7, 0)]
 Texture2D<float3> noisetex;
 
 #define OCCLUSION_HIT_GROUP_OFFSET 0
@@ -64,6 +67,8 @@ void main_raygen() {
     const float3 worldspace_location = get_worldspace_location(thread_id);
 
     const float3 light_vector = normalize(-sun_light.direction_and_tan_size.xyz);
+
+    const float4 data = gbuffer_data[thread_id];
 
     const float noise_size = sun_light.direction_and_tan_size.w;
 

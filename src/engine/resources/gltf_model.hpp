@@ -19,7 +19,7 @@
 #include "resources/gltf_animations.hpp"
 #include "resources/imodel.hpp"
 
-class Scene;
+class World;
 
 namespace render {
     class RenderBackend;
@@ -44,7 +44,7 @@ struct ExtrasData {
 class GltfModel : public IModel {
 public:
     GltfModel(
-        std::filesystem::path filepath_in, fastgltf::Asset&& model, render::SarahRenderer& renderer,
+        ResourcePath filepath_in, fastgltf::Asset&& model, render::SarahRenderer& renderer,
         ExtrasData extras_in
     );
 
@@ -62,7 +62,7 @@ public:
     template <typename TraversalFunction>
     void traverse_nodes(TraversalFunction traversal_function, const float4x4& parent_to_world) const;
 
-    entt::handle add_to_scene(Scene& scene_in, const eastl::optional<entt::entity>& parent_node) const override;
+    entt::handle add_to_world(World& world_in, const eastl::optional<entt::handle>& parent_node) const override;
 
     const ExtrasData& get_extras() const;
 
@@ -75,7 +75,7 @@ private:
     /**
      * Filepath to the glTF file itself
      */
-    std::filesystem::path filepath;
+    ResourcePath filepath;
 
     /**
      * Filepath to the file's cached data. This is a folder with the same name as the glTF file, but with the extension removed
@@ -129,7 +129,7 @@ private:
 
     void calculate_bounding_sphere_and_footprint();
 
-    entt::handle add_nodes_to_scene(Scene& scene, const eastl::optional<entt::entity>& parent_node) const;
+    entt::handle add_nodes_to_world(World& world, const eastl::optional<entt::handle>& parent_node) const;
 
     void add_static_mesh_component(const entt::handle& entity, const fastgltf::Node& node, size_t node_index) const;
 

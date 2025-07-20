@@ -7,7 +7,7 @@
 #include "input/input_event.hpp"
 #include "core/system_interface.hpp"
 
-class Scene;
+class World;
 
 /**
  * Manages input
@@ -34,7 +34,7 @@ public:
 
     void set_controlled_entity(entt::entity entity);
 
-    void tick(float delta_time, Scene& scene);
+    void tick(float delta_time, World& world);
 
 private:
     glm::vec3 player_movement_input = glm::vec3{ 0 };

@@ -1,15 +1,16 @@
 #include "render_graph.hpp"
 
 #include <magic_enum.hpp>
-#include <spdlog/sinks/android_sink.h>
+#include <EASTL/span.h>
 #include <spdlog/logger.h>
+#include <spdlog/sinks/android_sink.h>
 
-#include "pipeline_cache.hpp"
+#include "core/system_interface.hpp"
+#include "render/backend/pipeline_cache.hpp"
+#include "render/backend/render_backend.hpp"
 #include "render/backend/resource_access_synchronizer.hpp"
 #include "render/backend/utils.hpp"
-#include "render/backend/render_backend.hpp"
-#include "core/system_interface.hpp"
-#include "EASTL/span.h"
+#include "resources/resource_path.hpp"
 
 namespace render {
     static std::shared_ptr<spdlog::logger> logger;
@@ -247,8 +248,8 @@ namespace render {
         }
 
         if (!image_copy_shader) {
-            image_copy_shader = RenderBackend::get().get_pipeline_cache().create_pipeline(
-                "shaders/util/image_copy.comp.spv");
+            image_copy_shader = RenderBackend::get().get_pipeline_cache()
+            .create_pipeline("shader://util/image_copy.comp.spv"_res);
         }
 
         const auto set = RenderBackend::get().get_transient_descriptor_allocator()

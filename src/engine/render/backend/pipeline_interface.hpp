@@ -7,6 +7,10 @@
 #include "render/backend/descriptor_set_info.hpp"
 
 namespace render {
+    class DescriptorSetBuilder;
+}
+
+namespace render {
     class RenderBackend;
 
     struct PipelineBase {
@@ -40,5 +44,7 @@ namespace render {
             RenderBackend& backend, const eastl::fixed_vector<DescriptorSetInfo, 8>& descriptor_set_infos,
             const eastl::fixed_vector<VkPushConstantRange, 4>& push_constants
         );
+
+        DescriptorSetBuilder begin_building_set(uint32_t set_index) const;
     };
 }

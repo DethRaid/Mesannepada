@@ -71,8 +71,8 @@ namespace render {
 
         if (overlay_pso == nullptr) {
             overlay_pso = backend.begin_building_pipeline("gi_cache_application")
-                .set_vertex_shader("shaders/common/fullscreen.vert.spv")
-                .set_fragment_shader("shaders/gi/cache/overlay.frag.spv")
+                .set_vertex_shader("common/fullscreen.vert.spv")
+                .set_fragment_shader("gi/cache/overlay.frag.spv")
                 .set_depth_state(
                     {
                         .enable_depth_write = false,
@@ -84,8 +84,8 @@ namespace render {
 
         if (probe_debug_pso == nullptr) {
             probe_debug_pso = backend.begin_building_pipeline("gi_cache_probe_debug")
-                .set_vertex_shader("shaders/gi/cache/probe_debug.vert.spv")
-                .set_fragment_shader("shaders/gi/cache/probe_debug.frag.spv")
+                .set_vertex_shader("gi/cache/probe_debug.vert.spv")
+                .set_fragment_shader("gi/cache/probe_debug.frag.spv")
                 .build();
         }
 
@@ -240,7 +240,7 @@ namespace render {
     }
 
     void IrradianceCache::update_cascades_and_probes(
-        RenderGraph& graph, const SceneView& view, const RenderScene& scene, const TextureHandle noise_tex
+        RenderGraph& graph, const SceneView& view, const RenderWorld& scene, const TextureHandle noise_tex
     ) {
         ZoneScoped;
 
@@ -461,7 +461,7 @@ namespace render {
         auto& backend = RenderBackend::get();
         if (cascade_copy_shader == nullptr) {
             cascade_copy_shader = backend.get_pipeline_cache().create_pipeline(
-                "shaders/gi/cache/copy_cascades.comp.spv");
+                "gi/cache/copy_cascades.comp.spv");
         }
 
         const auto set = backend.get_transient_descriptor_allocator()
@@ -603,7 +603,7 @@ namespace render {
 
         if (probe_tracing_pipeline == nullptr) {
             probe_tracing_pipeline = backend.get_pipeline_cache()
-                .create_ray_tracing_pipeline("shaders/gi/cache/probe_tracing.rt.spv");
+                .create_ray_tracing_pipeline("gi/cache/probe_tracing.rt.spv");
         }
 
         // Dispatch rays!
@@ -652,7 +652,7 @@ namespace render {
         {
             if (probe_depth_update_shader == nullptr) {
                 probe_depth_update_shader = backend.get_pipeline_cache().create_pipeline(
-                    "shaders/gi/cache/probe_depth_update.comp.spv");
+                    "gi/cache/probe_depth_update.comp.spv");
             }
             auto set = descriptor_allocator.build_set(probe_depth_update_shader, 0)
                 .bind(probes_to_update_buffer)
@@ -671,7 +671,7 @@ namespace render {
         {
             if (probe_light_cache_update_shader == nullptr) {
                 probe_light_cache_update_shader = backend.get_pipeline_cache().create_pipeline(
-                    "shaders/gi/cache/probe_light_cache_update.comp.spv");
+                    "gi/cache/probe_light_cache_update.comp.spv");
             }
             auto set = descriptor_allocator.build_set(probe_light_cache_update_shader, 0)
                 .bind(cache_cbuffer)
@@ -691,7 +691,7 @@ namespace render {
         {
             if (probe_rtgi_update_shader == nullptr) {
                 probe_rtgi_update_shader = backend.get_pipeline_cache().create_pipeline(
-                    "shaders/gi/cache/probe_rtgi_update.comp.spv");
+                    "gi/cache/probe_rtgi_update.comp.spv");
             }
             auto set = descriptor_allocator.build_set(probe_rtgi_update_shader, 0)
                 .bind(cache_cbuffer)
@@ -711,7 +711,7 @@ namespace render {
         {
             if (probe_finalize_shader == nullptr) {
                 probe_finalize_shader = backend.get_pipeline_cache().create_pipeline(
-                    "shaders/gi/cache/probe_finalize.comp.spv");
+                    "gi/cache/probe_finalize.comp.spv");
             }
             auto set = descriptor_allocator.build_set(probe_finalize_shader, 0)
                 .bind(probes_to_update_buffer)

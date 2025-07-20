@@ -1,6 +1,6 @@
 #pragma once
 
-#include <entt/entity/fwd.hpp>
+#include <entt/entt.hpp>
 
 #include "game_framework/game_instance.hpp"
 
@@ -10,6 +10,8 @@ public:
     MesannepadaGameInstance();
 
     ~MesannepadaGameInstance() override;
+
+    void tick(float delta_time) override;
 
 private:
     entt::entity environment_entity;

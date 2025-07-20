@@ -9,6 +9,8 @@
 
 #include "render/backend/handles.hpp"
 
+class ResourcePath;
+
 namespace render {
     class PipelineCache;
 
@@ -21,13 +23,13 @@ namespace render {
 
         HitGroupBuilder& set_name(std::string_view name_in);
 
-        HitGroupBuilder& add_occlusion_closesthit_shader(const std::filesystem::path& shader_path);
+        HitGroupBuilder& add_occlusion_closesthit_shader(const ResourcePath& shader_path);
 
-        HitGroupBuilder& add_occlusion_anyhit_shader(const std::filesystem::path& shader_path);
+        HitGroupBuilder& add_occlusion_anyhit_shader(const ResourcePath& shader_path);
 
-        HitGroupBuilder& add_gi_closesthit_shader(const std::filesystem::path& shader_path);
+        HitGroupBuilder& add_gi_closesthit_shader(const ResourcePath& shader_path);
 
-        HitGroupBuilder& add_gi_anyhit_shader(const std::filesystem::path& shader_path);
+        HitGroupBuilder& add_gi_anyhit_shader(const ResourcePath& shader_path);
 
         HitGroupHandle build();
 

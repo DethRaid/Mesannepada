@@ -36,7 +36,7 @@ namespace render {
             max_scratch_buffer_size = std::max(max_scratch_buffer_size, job.handle->scratch_buffer_size);
         }
 
-        const auto batch_size = cvar_max_concurrent_builds.Get();
+        const auto batch_size = cvar_max_concurrent_builds.get();
 
         auto& backend = RenderBackend::get();
         auto& allocator = backend.get_global_allocator();

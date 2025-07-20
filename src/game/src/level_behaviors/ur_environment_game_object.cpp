@@ -2,24 +2,20 @@
 
 #include "animation/animation_event_component.hpp"
 #include "core/engine.hpp"
+#include "core/generated_entity_component.hpp"
 #include "resources/godot_scene.hpp"
 #include "resources/imodel.hpp"
 #include "resources/model_components.hpp"
 #include "scene/transform_component.hpp"
 
-UrEnvironmentGameObject::UrEnvironmentGameObject(const entt::handle entity) : GameObject{entity} {
+UrEnvironmentGameObject::UrEnvironmentGameObject(const entt::handle entity) :
+    GameObject{entity} {
     auto& engine = Engine::get();
 
-    auto& loader = engine.get_resource_loader();
-    level_scene = loader.get_model("data/game/environments/Ur.tscn");
-
-    auto& scene = engine.get_scene();
-    level_entity = level_scene->add_to_scene(scene, root_entity.entity());
-
-    const auto* level_godot_scene = static_cast<const godot::GodotScene*>(level_scene.get());
-    const auto gltf_node_idx = level_godot_scene->find_node("SM_UrEnvironment");
-
-    const auto gltf_entity = level_entity.get<ImportedModelComponent>().node_to_entity.at(*gltf_node_idx);
+    const auto gltf_entity = engine.get_world().find_entity("SM_UrEnvironment");
+    if(!gltf_entity) {
+        throw std::runtime_error{"SM_UrEnvironment not found, are you loading the level correctly?"};
+    }
 
     // The entity from the scene spawns the glTF model, so we need to go one level deeper
     ur_gltf_entity = entt::handle{*gltf_entity.registry(), gltf_entity.get<TransformComponent>().children[0]};
@@ -33,13 +29,13 @@ UrEnvironmentGameObject::UrEnvironmentGameObject(const entt::handle entity) : Ga
             Engine::get().give_player_full_control();
         });
 
-    engine.get_physics_scene().finalize();
+    engine.get_physics_world().finalize();
 }
 
-void UrEnvironmentGameObject::tick(const float delta_time, Scene& scene) {
-    GameObject::tick(delta_time, scene);
+void UrEnvironmentGameObject::tick(const float delta_time, World& world) {
+    GameObject::tick(delta_time, world);
 
-    auto& registry = scene.get_registry();
+    auto& registry = world.get_registry();
 
     // process events
     if(const auto* animation_event = registry.try_get<AnimationEventComponent>(root_entity)) {
@@ -50,4 +46,3 @@ void UrEnvironmentGameObject::tick(const float delta_time, Scene& scene) {
         registry.remove<AnimationEventComponent>(root_entity);
     }
 }
-

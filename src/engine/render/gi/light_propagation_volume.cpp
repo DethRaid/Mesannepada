@@ -13,6 +13,7 @@
 #include "render/backend/render_backend.hpp"
 #include "render/backend/resource_allocator.hpp"
 #include "console/cvars.hpp"
+#include "core/string_utils.hpp"
 #include "core/system_interface.hpp"
 #include "render/gbuffer.hpp"
 #include "render/scene_view.hpp"
@@ -90,9 +91,9 @@ namespace render {
         auto& backend = RenderBackend::get();
 
         auto& pipeline_cache = backend.get_pipeline_cache();
-        clear_lpv_shader = pipeline_cache.create_pipeline("shaders/gi/lpv/clear_lpv.comp.spv");
+        clear_lpv_shader = pipeline_cache.create_pipeline("shader://gi/lpv/clear_lpv.comp.spv"_res);
 
-        propagation_shader = pipeline_cache.create_pipeline("shaders/gi/lpv/lpv_propagate.comp.spv");
+        propagation_shader = pipeline_cache.create_pipeline("shader://gi/lpv/lpv_propagate.comp.spv"_res);
 
         linear_sampler = backend.get_global_allocator().get_sampler(
             {
@@ -110,24 +111,24 @@ namespace render {
             }
         );
 
-        rsm_generate_vpls_pipeline = pipeline_cache.create_pipeline("shaders/gi/lpv/rsm_generate_vpls.comp.spv");
+        rsm_generate_vpls_pipeline = pipeline_cache.create_pipeline("shader://gi/lpv/rsm_generate_vpls.comp.spv"_res);
 
-        if(cvar_lpv_use_compute_vpl_injection.Get() == 0) {
+        if(cvar_lpv_use_compute_vpl_injection.get() == 0) {
             vpl_injection_pipeline = backend.begin_building_pipeline("VPL Injection")
                                             .set_topology(VK_PRIMITIVE_TOPOLOGY_POINT_LIST)
-                                            .set_vertex_shader("shaders/gi/lpv/vpl_injection.vert.spv")
-                                            .set_fragment_shader("shaders/gi/lpv/vpl_injection.frag.spv")
+                                            .set_vertex_shader("shader://gi/lpv/vpl_injection.vert.spv"_res)
+                                            .set_fragment_shader("shader://gi/lpv/vpl_injection.frag.spv"_res)
                                             .set_num_attachments(3)
                                             .set_blend_mode(BlendMode::Additive)
                                             .build();
         } else {
-            vpl_injection_compute_pipeline = pipeline_cache.create_pipeline("shaders/gi/lpv/vpl_injection.comp.spv");
+            vpl_injection_compute_pipeline = pipeline_cache.create_pipeline("shader://gi/lpv/vpl_injection.comp.spv"_res);
         }
 
         inject_rsm_depth_into_gv_pipeline = backend.begin_building_pipeline("GV Injection")
                                                    .set_topology(VK_PRIMITIVE_TOPOLOGY_POINT_LIST)
-                                                   .set_vertex_shader("shaders/gi/lpv/gv_injection.vert.spv")
-                                                   .set_fragment_shader("shaders/gi/lpv/gv_injection.frag.spv")
+                                                   .set_vertex_shader("shader://gi/lpv/gv_injection.vert.spv"_res)
+                                                   .set_fragment_shader("shader://gi/lpv/gv_injection.frag.spv"_res)
                                                    .set_depth_state(
                                                        {.enable_depth_test = VK_FALSE, .enable_depth_write = VK_FALSE}
                                                    )
@@ -151,9 +152,9 @@ namespace render {
                                                      .set_topology(VK_PRIMITIVE_TOPOLOGY_POINT_LIST)
                                                      .use_imgui_vertex_layout()
                                                      .set_vertex_shader(
-                                                         "shaders/gi/lpv/inject_scene_depth_into_gv.vert.spv")
+                                                         "shader://gi/lpv/inject_scene_depth_into_gv.vert.spv"_res)
                                                      .set_fragment_shader(
-                                                         "shaders/gi/lpv/inject_scene_depth_into_gv.frag.spv")
+                                                         "shader://gi/lpv/inject_scene_depth_into_gv.frag.spv"_res)
                                                      .set_depth_state(
                                                          {.enable_depth_test = VK_FALSE, .enable_depth_write = VK_FALSE}
                                                      )
@@ -175,8 +176,8 @@ namespace render {
                                                      .build();
 
         lpv_render_shader = backend.begin_building_pipeline("LPV Rendering")
-                                   .set_vertex_shader("shaders/common/fullscreen.vert.spv")
-                                   .set_fragment_shader("shaders/gi/lpv/overlay.frag.spv")
+                                   .set_vertex_shader("shader://common/fullscreen.vert.spv"_res)
+                                   .set_fragment_shader("shader://gi/lpv/overlay.frag.spv"_res)
                                    .set_depth_state(
                                        {
                                            .enable_depth_write = false,
@@ -187,9 +188,9 @@ namespace render {
 
         vpl_visualization_pipeline = backend.begin_building_pipeline("VPL Visualization")
                                             .set_topology(VK_PRIMITIVE_TOPOLOGY_POINT_LIST)
-                                            .set_vertex_shader("shaders/gi/lpv/visualize_vpls.vert.spv")
-                                            .set_geometry_shader("shaders/gi/lpv/visualize_vpls.geom.spv")
-                                            .set_fragment_shader("shaders/gi/lpv/visualize_vpls.frag.spv")
+                                            .set_vertex_shader("shader://gi/lpv/visualize_vpls.vert.spv"_res)
+                                            .set_geometry_shader("shader://gi/lpv/visualize_vpls.geom.spv"_res)
+                                            .set_fragment_shader("shader://gi/lpv/visualize_vpls.frag.spv"_res)
                                             .set_depth_state({.enable_depth_write = false})
                                             .build();
 
@@ -217,20 +218,20 @@ namespace render {
     }
 
     void LightPropagationVolume::pre_render(
-        RenderGraph& graph, const SceneView& view, const RenderScene& scene, TextureHandle noise_tex
+        RenderGraph& graph, const SceneView& view, const RenderWorld& world, TextureHandle noise_tex
     ) {
         clear_volume(graph);
 
-        update_cascade_transforms(view, scene.get_sun_light());
+        update_cascade_transforms(view, world.get_sun_light());
 
         // VPL cloud generation
 
-        inject_indirect_sun_light(graph, scene);
+        inject_indirect_sun_light(graph, world);
     }
 
     void LightPropagationVolume::post_render(
-        RenderGraph& graph, const SceneView& view, const RenderScene& scene, const GBuffer& gbuffer,
-        TextureHandle noise_tex
+        RenderGraph& graph, const SceneView& view, const RenderWorld& world, const GBuffer& gbuffer,
+         const TextureHandle motion_vectors, const TextureHandle noise_tex
     ) {
         if(cvar_lpv_build_gv_mode.get() == GvBuildMode::DepthBuffers) {
             build_geometry_volume_from_scene_view(
@@ -282,14 +283,15 @@ namespace render {
                                            .bind(view_buffer)
                                            .bind(ao_tex, linear_sampler)
                                            .bind(sun_buffer)
+                                           .bind(noise_tex)
                                            .build();
 
         commands.bind_descriptor_set(1, lpv_descriptor);
 
         commands.bind_pipeline(lpv_render_shader);
 
-        commands.set_push_constant(0, static_cast<uint32_t>(cvar_lpv_num_cascades.Get()));
-        commands.set_push_constant(1, static_cast<float>(cvar_lpv_exposure.Get()));
+        commands.set_push_constant(0, static_cast<uint32_t>(cvar_lpv_num_cascades.get()));
+        commands.set_push_constant(1, static_cast<float>(cvar_lpv_exposure.get()));
 
         commands.draw_triangle();
 
@@ -299,15 +301,15 @@ namespace render {
     }
 
     void LightPropagationVolume::render_volumetrics(
-        RenderGraph& render_graph, const SceneView& player_view, const RenderScene& scene, const GBuffer& gbuffer, const
+        RenderGraph& render_graph, const SceneView& player_view, const RenderWorld& world, const GBuffer& gbuffer, const
         TextureHandle lit_scene_handle
     ) {
         auto& backend = RenderBackend::get();
 
         if(fog_pipeline == nullptr) {
             fog_pipeline = backend.begin_building_pipeline("fog")
-                                  .set_vertex_shader("shaders/common/fullscreen.vert.spv")
-                                  .set_fragment_shader("shaders/gi/lpv/fog.frag.spv")
+                                  .set_vertex_shader("shader://common/fullscreen.vert.spv"_res)
+                                  .set_fragment_shader("shader://gi/lpv/fog.frag.spv"_res)
                                   .set_blend_mode(BlendMode::Mix)
                                   .build();
         }
@@ -330,7 +332,7 @@ namespace render {
                 .execute = [&](CommandBuffer& commands) {
                     commands.bind_pipeline(fog_pipeline);
                     commands.bind_descriptor_set(0, set);
-                    commands.set_push_constant(0, scene.get_fog_strength());
+                    commands.set_push_constant(0, world.get_fog_strength());
 
                     commands.draw_triangle();
 
@@ -342,7 +344,7 @@ namespace render {
     void LightPropagationVolume::draw_debug_overlays(
         RenderGraph& graph, const SceneView& view, const GBuffer& gbuffer, const TextureHandle lit_scene_texture
     ) {
-        switch(cvar_lpv_debug_mode.Get()) {
+        switch(cvar_lpv_debug_mode.get()) {
         case 0:
             visualize_geometry_volume(graph, view, lit_scene_texture, gbuffer.depth);
             break;
@@ -355,8 +357,8 @@ namespace render {
     void LightPropagationVolume::init_resources(ResourceAllocator& allocator) {
         ZoneScoped;
 
-        const auto size = cvar_lpv_resolution.Get();
-        const auto num_cascades = static_cast<uint32_t>(cvar_lpv_num_cascades.Get());
+        const auto size = cvar_lpv_resolution.get();
+        const auto num_cascades = static_cast<uint32_t>(cvar_lpv_num_cascades.get());
 
         const auto texture_resolution = glm::uvec3{size * num_cascades, size, size};
 
@@ -422,7 +424,7 @@ namespace render {
             sizeof(glm::mat4) * num_cascades,
             BufferUsage::UniformBuffer);
 
-        const auto num_vpls = cvar_lpv_rsm_resolution.Get() * cvar_lpv_rsm_resolution.Get() / 4;
+        const auto num_vpls = cvar_lpv_rsm_resolution.get() * cvar_lpv_rsm_resolution.get() / 4;
 
         auto& backend = RenderBackend::get();
         auto& upload_queue = backend.get_upload_queue();
@@ -431,7 +433,7 @@ namespace render {
         uint32_t cascade_index = 0;
         for(auto& cascade : cascades) {
             cascade.vpl_count_buffer = allocator.create_buffer(
-                fmt::format("Cascade {} VPL count", cascade_index),
+                format("Cascade %d VPL count", cascade_index),
                 sizeof(VkDrawIndirectCommand),
                 BufferUsage::IndirectBuffer
             );
@@ -446,14 +448,14 @@ namespace render {
                 });
 
             cascade.vpl_buffer = allocator.create_buffer(
-                fmt::format("Cascade {} VPL List", cascade_index),
+                format("Cascade %d VPL List", cascade_index),
                 static_cast<uint64_t>(sizeof(PackedVPL) * num_vpls),
                 BufferUsage::StorageBuffer
             );
             cascade_index++;
         }
 
-        const auto resolution = glm::uvec2{static_cast<uint32_t>(cvar_lpv_rsm_resolution.Get())};
+        const auto resolution = glm::uvec2{static_cast<uint32_t>(cvar_lpv_rsm_resolution.get())};
         rsm_flux_target = allocator.create_texture(
             "RSM Flux",
             {
@@ -489,18 +491,18 @@ namespace render {
     void LightPropagationVolume::update_cascade_transforms(const SceneView& view, const DirectionalLight& light) {
         ZoneScoped;
 
-        const auto num_cells = cvar_lpv_resolution.Get();
+        const auto num_cells = cvar_lpv_resolution.get();
         const auto base_cell_size = cvar_lpv_cell_size.GetFloat();
 
         const auto& view_position = view.get_position();
 
         // Position the LPV slightly in front of the view. We want some of the LPV to be behind it for reflections and such
 
-        const auto num_cascades = cvar_lpv_num_cascades.Get();
+        const auto num_cascades = cvar_lpv_num_cascades.get();
 
         const auto offset_distance_scale = 0.5f - cvar_lpv_behind_camera_percent.GetFloat();
 
-        const auto texel_scale = 4.f / static_cast<float>(cvar_lpv_rsm_resolution.Get());
+        const auto texel_scale = 4.f / static_cast<float>(cvar_lpv_rsm_resolution.get());
         const auto inverse_texel_scale = 1.f / texel_scale;
 
         auto make_rsm_matrix = [&](const float3 center, const float pullback_distance, const float half_size) {
@@ -601,7 +603,7 @@ namespace render {
     }
 
     void LightPropagationVolume::inject_indirect_sun_light(
-        RenderGraph& graph, const RenderScene& scene
+        RenderGraph& graph, const RenderWorld& world
     ) const {
         ZoneScoped;
 
@@ -623,16 +625,16 @@ namespace render {
             view_mask |= 1 << cascade_index;
         }
 
-        const auto& pipelines = scene.get_material_storage().get_pipelines();
+        const auto& pipelines = world.get_material_storage().get_pipelines();
         const auto rsm_pso = pipelines.get_rsm_pso();
         const auto rsm_masked_pso = pipelines.get_rsm_masked_pso();
 
         auto& backend = RenderBackend::get();
         const auto set = backend.get_transient_descriptor_allocator()
                                 .build_set(rsm_pso, 0)
-                                .bind(scene.get_primitive_buffer())
+                                .bind(world.get_primitive_buffer())
                                 .bind(vp_matrix_buffer)
-                                .bind(scene.get_sun_light().get_constant_buffer())
+                                .bind(world.get_sun_light().get_constant_buffer())
                                 .build();
 
         graph.add_render_pass(
@@ -663,9 +665,9 @@ namespace render {
                 .execute = [&](CommandBuffer& commands) {
                     commands.bind_descriptor_set(0, set);
 
-                    scene.draw_opaque(commands, rsm_pso);
+                    world.draw_opaque(commands, rsm_pso);
 
-                    scene.draw_masked(commands, rsm_masked_pso);
+                    world.draw_masked(commands, rsm_masked_pso);
 
                     commands.clear_descriptor_set(0);
                 }
@@ -705,7 +707,7 @@ namespace render {
                 float lpv_cell_size;
             };
 
-            const auto resolution = glm::uvec2{static_cast<uint32_t>(cvar_lpv_rsm_resolution.Get())};
+            const auto resolution = glm::uvec2{static_cast<uint32_t>(cvar_lpv_rsm_resolution.get())};
             const auto dispatch_size = resolution / glm::uvec2{2};
             // Each thread selects one VPL from a 2x2 filter on the RSM
 
@@ -732,7 +734,7 @@ namespace render {
                         .vpl_buffer_address = cascade.vpl_buffer->address,
                         .cascade_index = static_cast<int32_t>(cascade_index),
                         .rsm_resolution = resolution.x,
-                        .lpv_cell_size = static_cast<float>(cvar_lpv_cell_size.Get())
+                        .lpv_cell_size = static_cast<float>(cvar_lpv_cell_size.get())
                     },
                     .num_workgroups = {(dispatch_size + glm::uvec2{7}) / glm::uvec2{8}, 1},
                     .compute_shader = rsm_generate_vpls_pipeline
@@ -741,7 +743,7 @@ namespace render {
 
         for(auto cascade_index = 0u; cascade_index < cascades.size(); cascade_index++) {
             const auto& cascade = cascades[cascade_index];
-            dispatch_vpl_injection_pass(graph, cascade_index, cascade, scene.get_sun_light().get_constant_buffer());
+            dispatch_vpl_injection_pass(graph, cascade_index, cascade, world.get_sun_light().get_constant_buffer());
 
         }
 
@@ -768,9 +770,9 @@ namespace render {
                                      .bind(cascade.vpl_buffer)
                                      .build();
 
-        const auto num_vpls = cvar_lpv_rsm_resolution.Get() * cvar_lpv_rsm_resolution.Get() / 2;
+        const auto num_vpls = cvar_lpv_rsm_resolution.get() * cvar_lpv_rsm_resolution.get() / 2;
 
-        if(cvar_lpv_use_compute_vpl_injection.Get() == 0) {
+        if(cvar_lpv_use_compute_vpl_injection.get() == 0) {
             graph.add_render_pass(
                 DynamicRenderingPass{
                     .name = "VPL Injection",
@@ -807,7 +809,7 @@ namespace render {
                         commands.bind_descriptor_set(0, descriptor_set);
 
                         commands.set_push_constant(0, cascade_index);
-                        commands.set_push_constant(1, static_cast<uint32_t>(cvar_lpv_num_cascades.Get()));
+                        commands.set_push_constant(1, static_cast<uint32_t>(cvar_lpv_num_cascades.get()));
 
                         commands.bind_pipeline(vpl_injection_pipeline);
 
@@ -834,7 +836,7 @@ namespace render {
                     .push_constants = VplInjectionConstants{
                         cascade.vpl_buffer->address,
                         cascade_index,
-                        static_cast<uint32_t>(cvar_lpv_num_cascades.Get())
+                        static_cast<uint32_t>(cvar_lpv_num_cascades.get())
                     },
                     .num_workgroups = {(num_vpls + 63) / 64, 1, 1},
                     .compute_shader = vpl_injection_compute_pipeline
@@ -924,7 +926,7 @@ namespace render {
 
                     commands.bind_pipeline(clear_lpv_shader);
 
-                    commands.dispatch(cvar_lpv_num_cascades.Get(), 32, 32);
+                    commands.dispatch(cvar_lpv_num_cascades.get(), 32, 32);
 
                     commands.clear_descriptor_set(0);
                 }
@@ -963,7 +965,7 @@ namespace render {
 
                     commands.set_push_constant(0, effective_resolution.x);
                     commands.set_push_constant(1, effective_resolution.y);
-                    commands.set_push_constant(2, static_cast<uint32_t>(cvar_lpv_num_cascades.Get()));
+                    commands.set_push_constant(2, static_cast<uint32_t>(cvar_lpv_num_cascades.get()));
 
                     commands.bind_pipeline(inject_scene_depth_into_gv_pipeline);
 
@@ -1004,8 +1006,8 @@ namespace render {
                                 .bind(geometry_volume_handle, linear_sampler)
                                 .build();
 
-        const auto num_cells = static_cast<uint32_t>(cvar_lpv_resolution.Get());
-        const auto num_cascades = static_cast<uint32_t>(cvar_lpv_num_cascades.Get());
+        const auto num_cells = static_cast<uint32_t>(cvar_lpv_resolution.get());
+        const auto num_cascades = static_cast<uint32_t>(cvar_lpv_num_cascades.get());
         const auto dispatch_size = glm::uvec3{num_cells * num_cascades, num_cells, num_cells} / glm::uvec3{4, 4, 4};
 
         struct PropagationConstants {
@@ -1020,7 +1022,7 @@ namespace render {
             .num_cells = num_cells
         };
 
-        for(auto step_index = 0; step_index < cvar_lpv_num_propagation_steps.Get(); step_index += 2) {
+        for(auto step_index = 0; step_index < cvar_lpv_num_propagation_steps.get(); step_index += 2) {
             render_graph.add_compute_dispatch<PropagationConstants>(
                 ComputeDispatch<PropagationConstants>{
                     .name = "Propagate lighting cascade",
@@ -1100,7 +1102,7 @@ namespace render {
             }
         );
 
-        const auto rsm_resolution = glm::uvec2{static_cast<uint32_t>(cvar_lpv_rsm_resolution.Get())};
+        const auto rsm_resolution = glm::uvec2{static_cast<uint32_t>(cvar_lpv_rsm_resolution.get())};
 
         const auto sampler = backend.get_default_sampler();
         const auto set = backend.get_transient_descriptor_allocator().build_set(inject_rsm_depth_into_gv_pipeline, 0)
@@ -1140,8 +1142,8 @@ namespace render {
         auto& backend = RenderBackend::get();
         if(gv_visualization_pipeline == nullptr) {
             gv_visualization_pipeline = backend.begin_building_pipeline("gv_visualization")
-                                               .set_vertex_shader("shaders/common/fullscreen.vert.spv")
-                                               .set_fragment_shader("shaders/gi/lpv/gv_debug.frag.spv")
+                                               .set_vertex_shader("shader://common/fullscreen.vert.spv"_res)
+                                               .set_fragment_shader("shader://gi/lpv/gv_debug.frag.spv"_res)
                                                .set_depth_state(
                                                    {.enable_depth_test = false, .enable_depth_write = false})
                                                .build();
@@ -1212,7 +1214,7 @@ namespace render {
                     commands.bind_descriptor_set(0, view_descriptor_set);
                     for(const auto& cascade : cascades) {
                         commands.bind_buffer_reference(0, cascade.vpl_buffer);
-                        commands.set_push_constant(2, static_cast<float>(cvar_lpv_vpl_visualization_size.Get() / 2.0));
+                        commands.set_push_constant(2, static_cast<float>(cvar_lpv_vpl_visualization_size.get() / 2.0));
                         commands.draw_indirect(cascade.vpl_count_buffer);
                     }
                 }

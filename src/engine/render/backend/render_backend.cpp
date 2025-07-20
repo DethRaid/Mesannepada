@@ -198,7 +198,7 @@ namespace render {
 
         logger->info("Selected device {}", physical_device.name);
 
-        if(cvar_use_dgc.Get()) {
+        if(cvar_use_dgc.get()) {
             supports_dgc = physical_device.enable_extension_if_present(VK_EXT_DEVICE_GENERATED_COMMANDS_EXTENSION_NAME);
             if(supports_dgc) {
                 logger->info("Device Generated Commands is supported!");

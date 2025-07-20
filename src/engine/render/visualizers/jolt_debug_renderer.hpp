@@ -15,15 +15,15 @@
 
 namespace render {
     class MeshStorage;
-    class RenderScene;
+    class RenderWorld;
     struct GBuffer;
     class RenderGraph;
 
-    class JoltDebugRenderer : public JPH::DebugRenderer {
+    class JoltDebugRenderer final : public JPH::DebugRenderer {
     public:
-        JoltDebugRenderer(MeshStorage& meshes_in);
+        explicit JoltDebugRenderer(MeshStorage& meshes_in);
 
-        ~JoltDebugRenderer() override = default;
+        ~JoltDebugRenderer() override;
 
         void DrawLine(JPH::RVec3Arg from, JPH::RVec3Arg to, JPH::ColorArg color) override;
 
@@ -31,7 +31,7 @@ namespace render {
             JPH::RVec3Arg v0, JPH::RVec3Arg v1, JPH::RVec3Arg v2, JPH::ColorArg color, ECastShadow cast_shadow
         ) override;
 
-        void draw(RenderGraph& graph, const RenderScene& scene, const GBuffer& gbuffer, TextureHandle lit_scene_handle);
+        void draw(RenderGraph& graph, const RenderWorld& world, const GBuffer& gbuffer, TextureHandle lit_scene_handle);
 
         Batch CreateTriangleBatch(const Triangle* raw_triangles, int triangle_count) override;
 

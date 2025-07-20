@@ -7,23 +7,23 @@
 #include "external/rmlui/rmlui_render_interface.hpp"
 #include "phase/ray_tracing_debug_phase.hpp"
 #include "render/antialiasing_type.hpp"
-#include "render/noise_texture.hpp"
 #include "render/bloomer.hpp"
 #include "render/material_storage.hpp"
-#include "render/texture_loader.hpp"
 #include "render/mesh_storage.hpp"
 #include "render/mip_chain_generator.hpp"
+#include "render/noise_texture.hpp"
 #include "render/procedural_sky.hpp"
+#include "render/texture_loader.hpp"
+#include "render/gi/light_propagation_volume.hpp"
 #include "render/phase/ambient_occlusion_phase.hpp"
 #include "render/phase/depth_culling_phase.hpp"
 #include "render/phase/gbuffer_phase.hpp"
+#include "render/phase/lighting_phase.hpp"
 #include "render/phase/motion_vectors_phase.hpp"
 #include "render/phase/sampling_rate_calculator.hpp"
 #include "render/phase/ui_phase.hpp"
-#include "render/phase/lighting_phase.hpp"
-#include "render/gi/light_propagation_volume.hpp"
-#include "ui/debug_menu.hpp"
 #include "render/upscaling/upscaler.hpp"
+#include "ui/debug_menu.hpp"
 #include "visualizers/jolt_debug_renderer.hpp"
 #include "visualizers/visualizer_type.hpp"
 
@@ -60,12 +60,14 @@ namespace render {
          */
         void set_output_resolution(const glm::uvec2& new_output_resolution);
 
-        void set_scene(RenderScene& scene_in);
+        void set_world(RenderWorld& world_in);
 
         /**
          * Do the thing!
          */
         void render();
+
+        const SceneView& get_player_view() const;
 
         TextureLoader& get_texture_loader();
 
@@ -98,11 +100,11 @@ namespace render {
 
         Bloomer bloomer;
 
-        RenderScene* scene = nullptr;
+        RenderWorld* world = nullptr;
 
         glm::uvec2 output_resolution = {};
 
-        glm::uvec2 scene_render_resolution = glm::uvec2{};
+        glm::uvec2 render_resolution = glm::uvec2{};
 
         /**
          * Spatio-temporal blue noise texture, containing 3D vectors in a unit sphere

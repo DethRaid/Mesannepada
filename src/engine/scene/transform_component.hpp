@@ -7,10 +7,11 @@
 #include "shared/prelude.h"
 
 struct TransformComponent {
-    /**
-     * Local-to-parent model matrix
-     */
-    float4x4 local_to_parent = float4x4{1.f};
+    float3 location{};
+
+    glm::quat rotation{1.f, 0.f, 0.f, 0.f};
+
+    float3 scale{1.f};
 
     /**
      * Cached parent-to-world model matrix. Updated at the start of every frame
@@ -22,6 +23,10 @@ struct TransformComponent {
     eastl::fixed_vector<entt::entity, 16> children;
 
     float4x4 get_local_to_world() const;
+
+    float4x4 get_local_to_parent() const;
+
+    void set_local_transform(const float4x4& transform);
 
     static TransformComponent from_json(const simdjson::simdjson_result<simdjson::ondemand::value>& component_definition);
 };
