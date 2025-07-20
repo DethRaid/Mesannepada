@@ -2,11 +2,11 @@
 
 The video opens with a title screen. The first line of text fades in, then after a few seconds the second line of text fades in. The cuneiform is displayed with the English text
 
- 𒐞               𒈗  𒀭𒄑𒉋𒂵𒎌         𒀕𒆠
-600 years after  Lugal  Bilgames   ruled in Uruk...
+ 𒐞             𒈗𒀭𒄑𒉋𒂵𒎌         𒀕𒆠
+600 years after Lugal Bilgames ruled in Uruk...
 
- 𒈗 𒈩𒀭𒉌𒅆𒊒𒁕         𒋀𒀕𒆠
-Lugal  Mesannepada ruled in Ur
+𒈗𒈩𒀭𒉌𒅆𒊒𒁕         𒋀𒀕𒆠
+Lugal Mesannepada ruled in Ur
 
 9 seconds
 
@@ -22,7 +22,7 @@ We can move to some renderer features. I'll cut back to the temple complex and s
 
 "Coming soon... Gameplay features!" and the camera looks at the happy soldier close up, making him look shocked (or paint a shocked face)
 
-The video ends with a title card "MESANNEPADA" for one second, then "Coming 2026" for one second, then "𒆬𒈨𒉈𒁶" and a fade to black
+The video ends with a title card "MESANNEPADA" for one second, then "Coming 2026" for one second, then "𒋧 𒈬𒋧 𒂍𒅅" and a fade to black
 
 # TODO
 - Drag objects from the object selector into the scene
@@ -42,5 +42,9 @@ hitu ram zir... maybe?
 Translation:
 šum2-ma, šum2-ma šu-nigin2 according to https://polytranslator.com/sumerian/?src=eng_Latn&tgt=sux_Xsux&q=heat+from+fire%2C+fire+from+heat%0A&t=%C5%A1um2-ma%2C+%C5%A1um2-ma+%C5%A1u-nigin2
 𒋧𒈠𒋧𒈠𒋗𒆸
+
+Heat comes from fire
+šum2 mu-šum2 e2-gal2
+𒋧 𒈬𒋧 𒂍𒅅
 
 https://en.wiktionary.org/wiki/%F0%92%8D%91%F0%92%86%AA#Sumerian Gala priest
