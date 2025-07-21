@@ -814,9 +814,10 @@ namespace render {
         const auto& image_views = swapchain.get_image_views();
         for(auto swapchain_image_index = 0u; swapchain_image_index < swapchain.image_count;
             swapchain_image_index++) {
+            const auto swapchain_image_name = fmt::format("Swapchain image {}", swapchain_image_index);
             const auto swapchain_image = allocator.emplace_texture(
                 GpuTexture{
-                    .name = format("Swapchain image %d", swapchain_image_index),
+                    .name = swapchain_image_name.c_str(),
                     .create_info = {
                         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
                         .imageType = VK_IMAGE_TYPE_2D,

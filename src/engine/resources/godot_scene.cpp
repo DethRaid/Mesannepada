@@ -293,7 +293,7 @@ namespace godot {
         if (node.instance) {
             const auto &resource = external_resources.at(*node.instance);
             const auto resource_path = resource.path.substr(6); // Lop off "res://"
-            auto full_resource_path = ResourcePath{format("game://%s", resource_path.c_str())};
+            auto full_resource_path = ResourcePath::game(resource_path.c_str());
             auto &resources = Engine::get().get_resource_loader();
             const auto instanced_model = resources.get_model(full_resource_path);
             instanced_model->add_to_world(world, entity);

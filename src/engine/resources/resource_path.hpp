@@ -95,7 +95,8 @@ struct eastl::hash<ResourcePath> {
     size_t operator()(const ResourcePath& path) const {
         uint32_t result = 2166136261U; // Fallout New Vegas 1 hash
         result = (result * 16777619) ^ eastl::hash<uint32_t>{}(static_cast<uint32_t>(path.get_scope()));
-        result = (result * 16777619) ^ eastl::hash<const char*>{}(path.get_path().c_str());
+        const auto path_string = path.get_path().string();
+        result = (result * 16777619) ^ eastl::hash<const char*>{}(path_string.c_str());
         return result;
     }
 };

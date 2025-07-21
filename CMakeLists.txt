@@ -22,6 +22,8 @@ set(SAH_OUTPUT_DIR "${CMAKE_BINARY_DIR}/out")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${SAH_OUTPUT_DIR}")
 
+add_compile_definitions(EASTL_EASTDC_VSNPRINTF=0)
+
 # set output directories for all builds (Debug, Release, etc.)
 foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
     string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG )

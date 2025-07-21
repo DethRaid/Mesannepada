@@ -1,6 +1,7 @@
 #pragma once
-#include "handles.hpp"
-#include "resource_allocator.hpp"
+
+#include "render/backend/handles.hpp"
+#include "render/backend/resource_allocator.hpp"
 #include "core/string_utils.hpp"
 
 namespace render {
@@ -30,7 +31,7 @@ namespace render {
         const auto result = ResettableBuffer{
             .buffer = allocator.create_buffer(name, sizeof(DataType), BufferUsage::StorageBuffer),
             .initial_value_buffer = allocator.create_buffer(
-                format("%s initial value", name),
+                fmt::format("{} initial value", name),
                 sizeof(DataType),
                 BufferUsage::StagingBuffer),
             .data_size = sizeof(DataType)

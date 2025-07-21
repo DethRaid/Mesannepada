@@ -199,7 +199,7 @@ void DebugUI::draw_editor_menu() {
             if(ImGui::MenuItem("Save all Scenes", "CTRL+S")) {
                 auto& scenes = Engine::get().get_loaded_scenes();
                 for(auto& [name, scene] : scenes) {
-                    scene.write_to_file(ResourcePath{format("game://scenes/%s", name.c_str())});
+                    scene.write_to_file(ResourcePath{eastl::string{"game://scenes/"} +  name});
                 }
             }
 
@@ -283,7 +283,7 @@ void DebugUI::draw_scene_unload_confirmation() {
         }
         ImGui::SameLine();
         if(ImGui::Button("Actually, save it first")) {
-            const auto scene_path = ResourcePath{format("game://scenes/%s", scene_to_unload.c_str())};
+            const auto scene_path = ResourcePath{eastl::string{"game://scenes/"} + scene_to_unload};
             auto& scene = engine.get_scene(scene_to_unload);
             scene.write_to_file(scene_path);
             engine.unload_scene(scene_to_unload);
@@ -546,7 +546,7 @@ void DebugUI::draw_world_and_scene_window() {
 
                     auto display_name = name;
                     if(name == selected_scene) {
-                        display_name = format("%s*", name.c_str());
+                        display_name = name + "*";
                     }
 
                     if(ImGui::Button(display_name.c_str())) {
@@ -608,7 +608,7 @@ void DebugUI::draw_files(const std::filesystem::path& pwd, const std::filesystem
             const auto& style = ImGui::GetStyle();
             const float button_width = ImGui::CalcTextSize("Add").x + style.FramePadding.x * 2.f;
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - button_width);
-            const auto id = format("Add##%s", file.string().c_str());
+            const auto id = eastl::string{"Add##"} + file.string().c_str();
             if(ImGui::Button(id.c_str())) {
                 load_selected_model(ResourcePath::game(file.string()));
             }
@@ -818,7 +818,8 @@ void DebugUI::draw_entity(entt::entity entity, entt::registry& registry, const e
 
     ImGui::SameLine();
 
-    auto object_name = eastl::string{eastl::string::CtorSprintf{}, "%d", static_cast<uint32_t>(entity)};
+    const auto string_object_name = fmt::format("{}", static_cast<uint32_t>(entity));
+    auto object_name = eastl::string{string_object_name.c_str()};
     if(const auto* entity_info = registry.try_get<EntityInfoComponent>(entity)) {
         object_name = entity_info->name;
     } else if(const auto* game_object = registry.try_get<GameObjectComponent>(entity)) {

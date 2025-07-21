@@ -169,8 +169,9 @@ namespace render {
         // Cull all objects against the pyramid, keeping track of newly visible objects
 
         // All the primitives that are visible this frame, whether they're newly visible or not
+        const auto buffer_name = fmt::format("Frame {} visibility mask", backend.get_current_gpu_frame());
         const auto this_frame_visible_objects = allocator.create_buffer(
-            format("Frame %d visibility mask", backend.get_current_gpu_frame()),
+            buffer_name.c_str(),
             sizeof(uint32_t) * num_primitives,
             BufferUsage::StorageBuffer
         );

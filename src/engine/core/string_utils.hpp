@@ -22,8 +22,3 @@ DestType from_string(const eastl::string_view str) {
     }
     return val;
 }
-
-template<typename... Args>
-eastl::string format(const char* fmt, Args... args) {
-    return eastl::string{eastl::string::CtorSprintf{}, fmt, args...};
-}

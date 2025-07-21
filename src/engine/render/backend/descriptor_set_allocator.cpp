@@ -1,11 +1,7 @@
 #include "descriptor_set_allocator.hpp"
 
-#include <EASTL/string.h>
-
-#include "render/backend/compute_shader.hpp"
-#include "render/backend/graphics_pipeline.hpp"
-#include "render/backend/ray_tracing_pipeline.hpp"
-#include "render_backend.hpp"
+#include "render/backend/render_backend.hpp"
+#include "render/backend/pipeline_interface.hpp"
 
 namespace render {
     DescriptorSetAllocator::DescriptorSetAllocator(RenderBackend& backend_in) :
@@ -14,8 +10,8 @@ namespace render {
 
     DescriptorSetBuilder DescriptorSetAllocator::build_set(const PipelineBase* pipeline,
                                                            const uint32_t set_index) {
-        const auto name = eastl::string{eastl::string::CtorSprintf(), "%s set %d", pipeline->name.c_str(), set_index};
-        return build_set(pipeline->descriptor_sets.at(set_index), std::string_view{name.data(), name.size()});
+        const auto name = fmt::format("{} set {}", pipeline->name.c_str(), set_index);
+        return build_set(pipeline->descriptor_sets.at(set_index), name);
     }
 
     DescriptorSetBuilder DescriptorSetAllocator::build_set(const DescriptorSetInfo& info, const std::string_view name) {
