@@ -665,7 +665,7 @@ void DebugUI::draw_guizmos(const entt::handle entity) {
     if(ImGui::IsKeyPressed(ImGuiKey_Q)) {
         cur_operation = ImGuizmo::OPERATION::UNIVERSAL;
     } else if(ImGui::IsKeyPressed(ImGuiKey_W)) {
-        cur_operation == ImGuizmo::OPERATION::TRANSLATE;
+        cur_operation = ImGuizmo::OPERATION::TRANSLATE;
     } else if(ImGui::IsKeyPressed(ImGuiKey_E)) {
         cur_operation = ImGuizmo::OPERATION::ROTATE;
     } else if(ImGui::IsKeyPressed(ImGuiKey_R)) {
