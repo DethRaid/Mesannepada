@@ -82,6 +82,8 @@ DebugUI::~DebugUI() {
 }
 
 void DebugUI::draw() {
+    ZoneScoped;
+
     ImGui_ImplGlfw_NewFrame();
 
     ImGui::NewFrame();

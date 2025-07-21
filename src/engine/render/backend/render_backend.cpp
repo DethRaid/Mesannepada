@@ -498,7 +498,7 @@ namespace render {
     }
 
     bool RenderBackend::supports_ray_tracing() const {
-        return supports_rt;
+        return supports_rt; 
     }
 
     bool RenderBackend::supports_device_generated_commands() const {
