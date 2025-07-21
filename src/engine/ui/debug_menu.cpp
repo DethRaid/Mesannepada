@@ -587,14 +587,14 @@ void DebugUI::draw_files(const std::filesystem::path& pwd, const std::filesystem
     for(const auto& folder : folders) {
         auto& is_dir_open = is_directory_open[folder];
         const auto folder_name_key = folder.string();
-        ImGui::Text(prefix.c_str());
+        ImGui::Text("%s", prefix.c_str());
         ImGui::SameLine();
         if(ImGui::ArrowButton(folder_name_key.c_str(), is_dir_open ? ImGuiDir_Down : ImGuiDir_Right)) {
             is_dir_open = !is_dir_open;
         }
         ImGui::SameLine();
         const auto folder_name = folder.stem();
-        ImGui::Text(folder_name.string().c_str());
+        ImGui::Text("%s", folder_name.string().c_str());
         if(is_dir_open) {
             draw_files(folder, base_folder, prefix + "  ");
         }
