@@ -854,7 +854,7 @@ void DebugUI::draw_combo_box(const std::string& name, const eastl::span<const st
         ImGui::EndCombo();
     }
 }
-
+ 
 void DebugUI::activate_style_dxhr() {
     auto& style = ImGui::GetStyle();
     style = ImGuiStyle{};

@@ -9,6 +9,12 @@
                 height: 100%;
                 align-self: center;
             }
+            .main-title {
+                position: absolute;
+                top: 300dp;
+                left: 396dp;
+                font-size: 96px;
+            }
             .menu-container {
                 position: absolute;
                 top: 550dp;
@@ -25,6 +31,9 @@
     </head>
     <body>
         <div class="menu-window">
+            <div class="main-title">
+                MESANNEPADA
+            </div>
             <div data-model="main_menu" class="menu-container">
                 <div data-if="has_existing_save">
                     <button data-event-click="on_continue" class="menu-button">Continue</button>
