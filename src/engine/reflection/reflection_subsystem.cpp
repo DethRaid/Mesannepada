@@ -82,8 +82,8 @@ namespace reflection {
         entt::meta_factory<JPH::BodyID>()
             TRAITS(EditorReadOnly);
 
-        entt::meta_factory<eastl::fixed_vector<entt::entity, 16> >();
-        entt::meta_factory<eastl::vector<entt::handle> >();
+        entt::meta_factory<eastl::fixed_vector<entt::entity, 16>>();
+        entt::meta_factory<eastl::vector<entt::handle>>();
 
         // And our component types
         REFLECT_COMPONENT(TransformComponent)
@@ -103,7 +103,8 @@ namespace reflection {
         REFLECT_COMPONENT(SkeletalAnimatorComponent);
 
         REFLECT_COMPONENT(physics::CollisionComponent)
-            DATA(physics::CollisionComponent, body_id);
+            DATA(physics::CollisionComponent, body_id)
+            TRAITS(Transient);
 
         REFLECT_COMPONENT(render::PointLightComponent)
             DATA(render::PointLightComponent, color)
@@ -145,7 +146,9 @@ namespace reflection {
             DATA(SceneObject, filepath)
             DATA(SceneObject, location)
             DATA(SceneObject, orientation)
-            DATA(SceneObject, scale);
+            DATA(SceneObject, scale)
+            DATA(SceneObject, entity)
+            TRAITS(Transient);
 
         REFLECT_ENUM(ResourcePath::Scope)
             ENUMERATOR(ResourcePath::Scope, File)

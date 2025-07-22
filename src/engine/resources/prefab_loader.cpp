@@ -54,21 +54,7 @@ entt::handle PrefabLoader::load_prefab(const ResourcePath& prefab_file, World& w
             auto value = meta.construct();
             assert(value && "Component does not have a default constructor!");
 
-            for(auto [id, data] : value.type().data()) {
-                // If there's a value in the JSON with the name of one of the component's members, deserialize it
-                const auto& custom = data.custom();
-                reflection::PropertiesMap properties = {};
-                if(auto* mp = static_cast<const reflection::PropertiesMap*>(custom)) {
-                    properties = *mp;
-                }
-                if(const auto it = properties.find("name"_hs); it != properties.end()) {
-                    const auto member_name = it->second.cast<const char*>();
-                    auto json_member_data = component_definition[member_name];
-                    if(json_member_data.error() == simdjson::SUCCESS) {
-                     // TODO
-                    }
-                }
-            }
+            serialization::from_json(component_definition, value.as_ref());
 
             if(auto emplace_move = meta.func("emplace_move"_hs)) {
                 emplace_move.invoke({}, entity.registry(), entity.entity(), value.as_ref());

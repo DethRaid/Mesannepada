@@ -5,6 +5,7 @@
 #include <cereal/cereal.hpp>
 #include <entt/entt.hpp>
 #include <tracy/Tracy.hpp>
+#include <simdjson.h>
 
 #include "reflection/reflection_types.hpp"
 #include "shared/prelude.h"
@@ -22,6 +23,13 @@ namespace serialization {
 
     template<bool Save, typename Archive>
     void serialize(Archive& ar, entt::meta_any value);
+
+    // Kinda a hack, would be better to be able to save an entity as a prefab with the existing serialize machinery
+    template<typename ValueType>
+    void from_json_scalar(simdjson::ondemand::value json, ValueType& value);
+
+    // Kinda a hack, would be better to be able to save an entity as a prefab with the existing serialize machinery
+    void from_json(simdjson::simdjson_result<simdjson::ondemand::value> json, entt::meta_any value);
 
     template<typename Archive, typename ValueType>
     void serialize_scalar(Archive& ar, ValueType& value) {
@@ -110,5 +118,10 @@ namespace serialization {
                 serialize<Save>(ar, data.get(value).as_ref());
             }
         }
+    }
+
+    template<typename ValueType>
+    void from_json_scalar(simdjson::ondemand::value json, ValueType& value) {
+        json.get(value);
     }
 } // namespace serialization
