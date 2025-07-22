@@ -10,7 +10,7 @@
 #include "reflection/reflection_macros.hpp"
 #include "scene/scene_file.hpp"
 #include "scene/world.hpp"
-#include "serialization/glm.hpp"
+#include "reflection/serialization/glm.hpp"
 
 #define SERIALIZE_SCALAR(Scalar) \
     entt::meta_factory<Scalar>()                                                                        \
@@ -94,15 +94,16 @@ namespace serialization {
         logger->info("Saving complete");
     }
 
-    void from_json(simdjson::simdjson_result<simdjson::ondemand::value> json, entt::meta_any value) {
+    bool from_json(simdjson::simdjson_result<simdjson::ondemand::value> json, entt::meta_any value) {
         ZoneScoped;
 
         // If the type has a bespoke serialization function, use that
         if(auto func = value.type().func("from_json"_hs); func) {
-            auto ret = func.invoke({}, entt::forward_as_meta(json), value.as_ref());
-            assert(ret);
-            return;
+            func.invoke({}, entt::forward_as_meta(json), value.as_ref());
+            return true;
         }
+
+        auto success = true;
 
         // Handle containers
         if(value.type().is_sequence_container()) {
@@ -114,12 +115,12 @@ namespace serialization {
                 sequence.resize(size.value_unsafe());
                 auto i = 0u;
                 for(auto element : array) {
-                    from_json(element, sequence[i].as_ref());
+                    success |= from_json(element, sequence[i].as_ref());
                     i++;
                 }
             }
 
-            return;
+            return success;
         }
 
         // Handle enums as their underlying types
@@ -127,10 +128,10 @@ namespace serialization {
             auto to_underlying = value.type().func("to_underlying"_hs);
             assert(to_underlying);
             auto underlying = to_underlying.ret().construct();
-            from_json(json, underlying.as_ref());
+            success = from_json(json, underlying.as_ref());
             value.assign(underlying);
 
-            return;
+            return success;
         }
 
         // If we're here then we have a complex type that can be reflected
@@ -151,9 +152,11 @@ namespace serialization {
                 const auto member_name = it->second.cast<const char*>();
                 auto json_member_data = json[member_name];
                 if(json_member_data.error() == simdjson::SUCCESS) {
-                    from_json(json_member_data, data.get(value).as_ref());
+                    success |= from_json(json_member_data, data.get(value).as_ref());
                 }
             }
         }
+
+        return success;
     }
 }

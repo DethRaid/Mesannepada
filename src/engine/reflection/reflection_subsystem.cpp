@@ -11,7 +11,8 @@
 #include "core/system_interface.hpp"
 #include "physics/collider_component.hpp"
 #include "reflection/editor_ui.hpp"
-#include "../serialization/glm.hpp"
+#include "serialization/glm.hpp"
+#include "serialization/simdjson_eastl_adapters.hpp"
 #include "player/first_person_player.hpp"
 #include "reflection/reflection_macros.hpp"
 #include "render/components/light_component.hpp"
@@ -67,7 +68,8 @@ namespace reflection {
 
         entt::meta_factory<eastl::string>()
             .func<&editor_write_string>("editor_write"_hs)
-            .func<&editor_read_string>("editor_read"_hs);
+            .func<&editor_read_string>("editor_read"_hs)
+            .func<serialization::from_json_scalar<eastl::string>>("from_json"_hs);
 
         entt::meta_factory<entt::entity>()
             .func<&editor_write_entity>("editor_write"_hs)

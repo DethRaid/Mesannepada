@@ -5,7 +5,7 @@
 #include <EASTL/string.h>
 #include <spdlog/fmt/bundled/base.h>
 
-#include "serialization/eastl/string.hpp"
+#include "reflection/serialization/eastl/string.hpp"
 
 /**
  * A path to a resource. Automatically resolved to one of our known directories when you get the filepath
