@@ -637,15 +637,17 @@ void DebugUI::draw_entity_editor_window() {
         auto& registry = Engine::get().get_world().get_registry();
 
         // Iterate over all the components in the registry
-        for(auto i = 0; auto&& [id, storage] : registry.storage()) {
+        for(auto i = 0; auto&& [_, storage] : registry.storage()) {
             if(!storage.contains(selected_entity)) {
                 continue;
             }
 
-            const auto hashed_animation_event = entt::hashed_string{"AnimationEventComponent"}.value();
-            const auto other_hash = "AnimationEventComponent"_hs;
-
-            const auto storage_name = std::string{storage.type().name()};
+            const auto& name = storage.type().name();
+            auto storage_name = std::string{name};
+            if(const auto spacepos = name.find(' '); spacepos != std::string_view::npos) {
+                storage_name = name.substr(spacepos + 1);
+            }
+            const auto id = entt::hashed_string{storage_name.c_str()}.value();
             if(ImGui::CollapsingHeader(storage_name.c_str())) {
                 if(auto meta = entt::resolve(id)) {
                     draw_component_helper(selected_entity,
