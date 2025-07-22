@@ -642,6 +642,9 @@ void DebugUI::draw_entity_editor_window() {
                 continue;
             }
 
+            const auto hashed_animation_event = entt::hashed_string{"AnimationEventComponent"}.value();
+            const auto other_hash = "AnimationEventComponent"_hs;
+
             const auto storage_name = std::string{storage.type().name()};
             if(ImGui::CollapsingHeader(storage_name.c_str())) {
                 if(auto meta = entt::resolve(id)) {

@@ -24,7 +24,6 @@ entt::meta_factory<Scalar>()                                                    
 #define REFLECT_COMPONENT(T, ...)                                                                   \
 __VA_OPT__(static_assert(!((__VA_ARGS__) & Traits::Trivial) || eastl::is_trivially_copyable_v<T>);) \
 entt::meta_factory<T>{}                                                                             \
-    .type(entt::hashed_string{#T}.value())                                                          \
     .traits(Traits::Component __VA_OPT__(| __VA_ARGS__))                                            \
     .func<[](entt::registry* registry, entt::entity entity) { registry->emplace<T>(entity); }>("emplace_default"_hs)    \
     .func<[](entt::registry* registry, entt::entity entity, T& value) { registry->emplace_or_replace<T>(entity, eastl::move(value)); }>("emplace_move"_hs)
