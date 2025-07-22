@@ -39,9 +39,30 @@ HI TU  RA AM  ZI IR
 
 hitu ram zir... maybe?
 
-Translation:
-šum2-ma, šum2-ma šu-nigin2 according to https://polytranslator.com/sumerian/?src=eng_Latn&tgt=sux_Xsux&q=heat+from+fire%2C+fire+from+heat%0A&t=%C5%A1um2-ma%2C+%C5%A1um2-ma+%C5%A1u-nigin2
-𒋧𒈠𒋧𒈠𒋗𒆸
+https://oracc.museum.upenn.edu/epsd2/sux/o0031378
+𒉈𒋧
+IZI SZUM2 = to set fire to
+IZI = fire, SZum2 = to give
+
+https://oracc.museum.upenn.edu/epsd2/sux/o0039085
+𒉈
+šeŋ₆ = to heat up
+
+https://oracc.museum.upenn.edu/epsd2/sux/o0040961
+𒌓
+kum = heat
+
+𒌓𒉈𒋧
+"heat to set fire to"
+
+𒌓𒂊𒉈
+"heat [causee] fire"?
+
+𒌓𒂊𒉈𒋧
+"Heat-[causee] to set fire to"?
+
+𒉈𒂊𒌓𒋧
+"Fire [causee] gives heat"
 
 Heat comes from fire
 šum2 mu-šum2 e2-gal2
