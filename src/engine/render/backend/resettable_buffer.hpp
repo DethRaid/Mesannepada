@@ -28,10 +28,11 @@ namespace render {
     ResettableBuffer ResettableBuffer::create(
         const eastl::string_view name, ResourceAllocator& allocator, DataType initial_data
     ) {
+        const auto buffer_name = fmt::format("{} initial value", std::string_view{name.data(), name.size()});
         const auto result = ResettableBuffer{
             .buffer = allocator.create_buffer(name, sizeof(DataType), BufferUsage::StorageBuffer),
             .initial_value_buffer = allocator.create_buffer(
-                fmt::format("{} initial value", name),
+                buffer_name.c_str(),
                 sizeof(DataType),
                 BufferUsage::StagingBuffer),
             .data_size = sizeof(DataType)
