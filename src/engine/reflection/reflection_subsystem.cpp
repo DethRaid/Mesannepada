@@ -11,8 +11,6 @@
 #include "core/system_interface.hpp"
 #include "physics/collider_component.hpp"
 #include "reflection/editor_ui.hpp"
-#include "serialization/glm.hpp"
-#include "serialization/simdjson_eastl_adapters.hpp"
 #include "player/first_person_player.hpp"
 #include "reflection/reflection_macros.hpp"
 #include "render/components/light_component.hpp"
@@ -22,7 +20,6 @@
 #include "scene/game_object_component.hpp"
 #include "scene/scene_file.hpp"
 #include "scene/transform_component.hpp"
-#include "serialization/serializers.hpp"
 
 using namespace entt::literals;
 
@@ -48,14 +45,14 @@ namespace reflection {
         REFLECT_SCALAR(int32_t);
         REFLECT_SCALAR(uint32_t);
 
-        entt::meta_factory<float3>()
+        entt::meta_factory<float3>{}
             .func<&editor_write_float3>("editor_write"_hs)
             .func<&editor_read_float3>("editor_read"_hs)
             TRAITS(Trivial)
             DATA(float3, x)
             DATA(float3, y)
             DATA(float3, z);
-        entt::meta_factory<glm::quat>()
+        entt::meta_factory<glm::quat>{}
             .func<&editor_write_quat>("editor_write"_hs)
             .func<&editor_read_quat>("editor_read"_hs)
             TRAITS(Trivial)
@@ -63,29 +60,28 @@ namespace reflection {
             DATA(glm::quat, y)
             DATA(glm::quat, z)
             DATA(glm::quat, w);
-        entt::meta_factory<float4x4>()
+        entt::meta_factory<float4x4>{}
             TRAITS(Trivial);
 
-        entt::meta_factory<eastl::string>()
+        entt::meta_factory<eastl::string>{}
             .func<&editor_write_string>("editor_write"_hs)
-            .func<&editor_read_string>("editor_read"_hs)
-            .func<serialization::from_json_scalar<eastl::string>>("from_json"_hs);
+            .func<&editor_read_string>("editor_read"_hs);
 
-        entt::meta_factory<entt::entity>()
+        entt::meta_factory<entt::entity>{}
             .func<&editor_write_entity>("editor_write"_hs)
             .func<&editor_read_entity>("editor_read"_hs)
             TRAITS(Trivial);
 
-        entt::meta_factory<entt::handle>()
+        entt::meta_factory<entt::handle>{}
             .func<&editor_write_handle>("editor_write"_hs)
             .func<&editor_read_handle>("editor_read"_hs)
             TRAITS(Trivial);
 
-        entt::meta_factory<JPH::BodyID>()
+        entt::meta_factory<JPH::BodyID>{}
             TRAITS(EditorReadOnly);
 
-        entt::meta_factory<eastl::fixed_vector<entt::entity, 16>>();
-        entt::meta_factory<eastl::vector<entt::handle>>();
+        entt::meta_factory<eastl::fixed_vector<entt::entity, 16>>{};
+        entt::meta_factory<eastl::vector<entt::handle>>{};
 
         // And our component types
         REFLECT_COMPONENT(TransformComponent)

@@ -11,6 +11,8 @@
 #include "scene/scene_file.hpp"
 #include "scene/world.hpp"
 #include "reflection/serialization/glm.hpp"
+#include "reflection/serialization/simdjson_eastl_adapters.hpp"
+#include "reflection/serialization/serializers.hpp"
 
 #define SERIALIZE_SCALAR(Scalar) \
     entt::meta_factory<Scalar>()                                                                        \
@@ -45,6 +47,9 @@ namespace serialization {
         SERIALIZE_SCALAR(uint16_t);
         SERIALIZE_SCALAR(int32_t);
         SERIALIZE_SCALAR(uint32_t);
+
+        entt::meta_factory<eastl::string>{}
+            .func<from_json_scalar<eastl::string>>("from_json"_hs);
     }
 
     template<typename Archive>
