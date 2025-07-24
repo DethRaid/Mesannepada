@@ -104,6 +104,8 @@ namespace serialization {
 
         // If the type has a bespoke serialization function, use that
         if(auto func = value.type().func("from_json"_hs); func) {
+            auto type = value.type();
+            auto info = type.info();
             func.invoke({}, entt::forward_as_meta(json), value.as_ref());
             return true;
         }

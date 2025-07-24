@@ -26,7 +26,7 @@ namespace serialization {
 
     // Kinda a hack, would be better to be able to save an entity as a prefab with the existing serialize machinery
     template<typename ValueType>
-    bool from_json_scalar(simdjson::ondemand::value json, ValueType& value);
+    bool from_json_scalar(simdjson::simdjson_result<simdjson::ondemand::value> json, ValueType& value);
 
     // Kinda a hack, would be better to be able to save an entity as a prefab with the existing serialize machinery
     bool from_json(simdjson::simdjson_result<simdjson::ondemand::value> json, entt::meta_any value);
@@ -121,7 +121,7 @@ namespace serialization {
     }
 
     template<typename ValueType>
-    bool from_json_scalar(simdjson::ondemand::value json, ValueType& value) {
+    bool from_json_scalar(simdjson::simdjson_result<simdjson::ondemand::value> json, ValueType& value) {
         return json.get(value) == simdjson::SUCCESS;
     }
 } // namespace serialization
