@@ -53,15 +53,19 @@ https://oracc.museum.upenn.edu/epsd2/sux/o0040961
 kum = heat
 
 𒌓𒉈𒋧
+KUM IZI SZUM
 "heat to set fire to"
 
 𒌓𒂊𒉈
+KUM-E IZI
 "heat [causee] fire"?
 
 𒌓𒂊𒉈𒋧
+KUM-E IZI SZUM
 "Heat-[causee] to set fire to"?
 
 𒉈𒂊𒌓𒋧
+IZI-E KUM SZUM
 "Fire [causee] gives heat"
 
 Heat comes from fire
