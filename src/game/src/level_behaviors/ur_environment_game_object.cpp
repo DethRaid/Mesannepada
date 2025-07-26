@@ -2,9 +2,7 @@
 
 #include "animation/animation_event_component.hpp"
 #include "core/engine.hpp"
-#include "core/generated_entity_component.hpp"
 #include "resources/godot_scene.hpp"
-#include "resources/imodel.hpp"
 #include "resources/model_components.hpp"
 #include "scene/transform_component.hpp"
 
@@ -34,15 +32,14 @@ UrEnvironmentGameObject::UrEnvironmentGameObject(const entt::handle entity) :
 
 void UrEnvironmentGameObject::tick(const float delta_time, World& world) {
     GameObject::tick(delta_time, world);
+}
 
-    auto& registry = world.get_registry();
+void UrEnvironmentGameObject::play_flyin_animation() {
+    auto& engine = Engine::get();
+    auto& animation_system = engine.get_animation_system();
+    animation_system.play_animation_on_entity(ur_gltf_entity, "FlyIn_Level1");
+}
 
-    // process events
-    if(const auto* animation_event = registry.try_get<AnimationEventComponent>(root_entity)) {
-        auto& application = Engine::get();
-        auto& animation_system = application.get_animation_system();
-        animation_system.play_animation_on_entity(ur_gltf_entity, animation_event->animation_to_play);
-
-        registry.remove<AnimationEventComponent>(root_entity);
-    }
+void UrEnvironmentGameObject::connect_main_menu_listeners(ui::MainMenu& main_menu) {
+    main_menu.new_game_sink.connect<&UrEnvironmentGameObject::play_flyin_animation>(this);
 }

@@ -131,8 +131,8 @@ namespace reflection {
         REFLECT_COMPONENT(EntityInfoComponent)
             DATA(EntityInfoComponent, name);
 
-        REFLECT_COMPONENT(AnimationEventComponent)
-            DATA(AnimationEventComponent, animation_to_play);
+        REFLECT_COMPONENT(PlayAnimationComponent)
+            DATA(PlayAnimationComponent, animation_to_play);
 
         REFLECT_COMPONENT(FirstPersonPlayerComponent);
 

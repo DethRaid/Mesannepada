@@ -2,6 +2,7 @@
 
 #include <EASTL/numeric.h>
 
+#include "animation_event_component.hpp"
 #include "animation/animator_component.hpp"
 #include "core/engine.hpp"
 #include "render/components/skeletal_mesh_component.hpp"
@@ -22,6 +23,22 @@ void AnimationSystem::tick(float delta_time) {
     auto& registry = world.get_registry();
 
     const auto current_time = Engine::get().get_current_time();
+
+    // Process animation events
+
+    registry.view<PlayAnimationComponent>().each(
+        [&](const entt::entity entity, const PlayAnimationComponent& comp) {
+            const auto handle = world.make_handle(entity);
+            if(const auto skelly = World::find_component_in_children<render::SkeletalMeshComponent>(handle);
+                skelly.valid()) {
+                play_animation_on_entity(skelly, comp.animation_to_play);
+
+            } else {
+                play_animation_on_entity(handle, comp.animation_to_play);
+            }
+            handle.remove<PlayAnimationComponent>();
+        }
+        );
 
     // Tick node animators
 
@@ -81,50 +98,21 @@ void AnimationSystem::add_animation(SkeletonHandle skeleton, const eastl::string
     animation_map.emplace(name, eastl::make_unique<Animation>(eastl::forward<Animation>(animation)));
 }
 
-Animation& AnimationSystem::get_animation(SkeletonHandle skeleton, const eastl::string& animation_name) {
+Animation& AnimationSystem::get_animation(const SkeletonHandle skeleton, const eastl::string& animation_name) {
     return *animations.at(skeleton).at(animation_name);
 }
 
 void AnimationSystem::play_animation_on_entity(const entt::handle entity, const eastl::string& animation_name) {
+    // Check if the entity has a skeleton. If so, add a skeletal mesh animator. If not, add node animators
     SkeletonHandle skeleton = nullptr;
     if(const auto* skinned_component = entity.try_get<render::SkeletalMeshComponent>()) {
         // TODO: Handle skinned meshes _better_
         skeleton = skinned_component->skeleton;
     }
-    const auto& skeleton_animations = animations.at(skeleton);
-    const auto itr = skeleton_animations.find(animation_name);
-    if(itr == skeleton_animations.end()) {
-        logger->error("Could not find an animation named {}, unable to play!", animation_name.c_str());
-    }
-
-    auto& registry = world.get_registry();
-    const auto& gltf_component = registry.get<ImportedModelComponent>(entity);
-
-    const auto start_time = Engine::get().get_current_time();
-
-    // Add animator components to all the nodes referenced by the animation
-    for(const auto& [node, node_animation] : itr->second->channels) {
-        auto animator = NodeAnimator{
-            .start_time = start_time
-        };
-
-        if(node_animation.position) {
-            animator.position_sampler = PositionAnimationSampler{.timeline = &*node_animation.position};
-        }
-        if(node_animation.rotation) {
-            animator.rotation_sampler = RotationAnimationSampler{.timeline = &*node_animation.rotation};
-        }
-        if(node_animation.scale) {
-            animator.scale_sampler = ScaleAnimationSampler{.timeline = &*node_animation.scale};
-        }
-
-        const auto node_entity = gltf_component.node_to_entity.at(node);
-        registry.emplace<NodeAnimationComponent>(node_entity, NodeAnimationComponent{.animator = animator});
-    }
-
-    if(!itr->second->events.timestamps.empty()) {
-        active_event_timelines.emplace_back(
-            AnimationEventSampler{.start_time = start_time, .timeline = &itr->second->events});
+    if(skeleton == nullptr) {
+        play_node_animation_on_entity(entity, animation_name);
+    } else {
+        play_skeletal_animation_on_entity(entity, skeleton, animation_name);
     }
 }
 
@@ -155,4 +143,75 @@ void AnimationSystem::destroy_skeleton(SkeletonHandle skeleton) {
         animations.erase(skeleton);
         skeletons.erase(skeletons.get_iterator(skeleton));
     }
+}
+
+void AnimationSystem::play_node_animation_on_entity(const entt::handle entity, const eastl::string& animation_name) {
+    const auto& skeleton_animations = animations.at(nullptr);
+    const auto itr = skeleton_animations.find(animation_name);
+    if(itr == skeleton_animations.end()) {
+        logger->error("Could not find an animation named {}, unable to play!", animation_name.c_str());
+    }
+
+    const auto& model_component = entity.get<ImportedModelComponent>();
+
+    const auto start_time = Engine::get().get_current_time();
+
+    // Add animator components to all the nodes referenced by the animation
+    for(const auto& [node, node_animation] : itr->second->channels) {
+        auto animator = NodeAnimator{.start_time = start_time};
+
+        if(node_animation.position) {
+            animator.position_sampler = PositionAnimationSampler{.timeline = &*node_animation.position};
+        }
+        if(node_animation.rotation) {
+            animator.rotation_sampler = RotationAnimationSampler{.timeline = &*node_animation.rotation};
+        }
+        if(node_animation.scale) {
+            animator.scale_sampler = ScaleAnimationSampler{.timeline = &*node_animation.scale};
+        }
+
+        const auto node_entity = model_component.node_to_entity.at(node);
+        node_entity.emplace<NodeAnimationComponent>(NodeAnimationComponent{.animator = animator});
+    }
+
+    if(!itr->second->events.timestamps.empty()) {
+        active_event_timelines.emplace_back(
+            AnimationEventSampler{.start_time = start_time, .timeline = &itr->second->events});
+    }
+}
+
+void AnimationSystem::play_skeletal_animation_on_entity(entt::handle entity, const SkeletonHandle skeleton,
+                                                        const eastl::string& animation_name
+    ) {
+    const auto& skeleton_animations = animations.at(skeleton);
+    const auto itr = skeleton_animations.find(animation_name);
+    if(itr == skeleton_animations.end()) {
+        logger->error("Could not find an animation named {}, unable to play!", animation_name.c_str());
+    }
+
+    const auto num_channels = itr->second->channels.size();
+
+    auto animator = SkeletonAnimator{};
+    animator.joint_animators.reserve(num_channels);
+
+    const auto start_time = Engine::get().get_current_time();
+
+    for(const auto& [idx, channel] : itr->second->channels) {
+        auto& channel_animator = animator.joint_animators.emplace_back(NodeAnimator{
+            .target_node = idx,
+            .start_time = start_time
+        });
+
+        if(channel.position) {
+            channel_animator.position_sampler = PositionAnimationSampler{.timeline = &*channel.position};
+        }
+        if(channel.rotation) {
+            channel_animator.rotation_sampler = RotationAnimationSampler{.timeline = &*channel.rotation};
+        }
+        if(channel.scale) {
+            channel_animator.scale_sampler = ScaleAnimationSampler{.timeline = &*channel.scale};
+        }
+    }
+
+    entity.emplace<SkeletalAnimatorComponent>(animator);
 }

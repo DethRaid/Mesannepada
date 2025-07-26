@@ -14,6 +14,6 @@ public:
     void tick(float delta_time) override;
 
 private:
-    entt::entity environment_entity;
+    entt::handle environment_entity;
 };
 

@@ -13,7 +13,8 @@ static std::shared_ptr<spdlog::logger> logger;
 
 namespace ui {
     MainMenu::MainMenu(Controller& controller_in) :
-        Screen{controller_in} {
+        Screen{controller_in}, continue_sink{continue_signal}, new_game_sink{new_game_signal},
+        load_game_sink{load_game_signal}, settings_sink{settings_signal}, exit_sink{exit_signal} {
         if(logger == nullptr) {
             logger = SystemInterface::get().get_logger("MainMenu");
         }
@@ -39,12 +40,11 @@ namespace ui {
         Engine::get().set_player_controller_enabled(false);
     }
 
-    void MainMenu::set_environment_entity(const entt::entity entity) {
-        environment = entity;
-    }
-
     void MainMenu::on_continue(Rml::DataModelHandle, Rml::Event&, const Rml::VariantList&) {
         logger->info("Continuing game");
+
+        continue_signal.publish();
+
         controller.pop_screen();
     }
 
@@ -53,22 +53,28 @@ namespace ui {
 
         SystemInterface::get().set_cursor_hidden(true);
 
-        auto& world = Engine::get().get_world();
-        world.add_component(environment, AnimationEventComponent{.animation_to_play = "FlyIn_Level1"});
+        new_game_signal.publish();
 
         controller.pop_screen();
     }
 
     void MainMenu::on_load_game(Rml::DataModelHandle, Rml::Event&, const Rml::VariantList&) {
         logger->info("Loading game");
+
+        load_game_signal.publish();
     }
 
     void MainMenu::on_settings(Rml::DataModelHandle, Rml::Event&, const Rml::VariantList&) {
         logger->info("Opening settings menu");
+
+        settings_signal.publish();
+
         controller.show_screen<SettingsScreen>();
     }
 
     void MainMenu::on_exit(Rml::DataModelHandle, Rml::Event&, const Rml::VariantList&) {
-        Engine::get().exit();
+        exit_signal.publish();
+
+        Engine::exit();
     }
 }
