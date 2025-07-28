@@ -39,7 +39,7 @@ namespace render {
             auto result = slSetFeatureLoaded(sl::kFeatureDLSS, true);
             if (result != sl::Result::eOk) {
                 logger->error("Error loading DLSS: {}", sl::getResultAsStr(result));
-                throw std::runtime_error{ "Could not load DLSS!" };
+                cvar_dlss_mode.set(sl::DLSSMode::eOff);
             }
         }
 
@@ -49,6 +49,7 @@ namespace render {
             auto result = slSetFeatureLoaded(sl::kFeatureDLSS_RR, true);
             if (result != sl::Result::eOk) {
                 logger->warn("Error loading DLSS-RR: {}", sl::getResultAsStr(result));
+                cvar_ray_reconstruction.set(false);
             }
         }
     }

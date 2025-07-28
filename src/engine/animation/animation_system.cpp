@@ -20,6 +20,8 @@ AnimationSystem::AnimationSystem(World& world_in) :
 }
 
 void AnimationSystem::tick(float delta_time) {
+    ZoneScoped;
+
     auto& registry = world.get_registry();
 
     const auto current_time = Engine::get().get_current_time();
