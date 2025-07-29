@@ -1,11 +1,11 @@
 #include "streamline_adapter.hpp"
 
-#include <sl_helpers.h>
 #include <tracy/Tracy.hpp>
 
 #include "core/engine.hpp"
 
 #if SAH_USE_STREAMLINE
+#include <sl_helpers.h>
 #include <sl_core_api.h>
 #include <sl_core_types.h>
 #include <sl_security.h>
