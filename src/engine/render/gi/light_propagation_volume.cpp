@@ -432,8 +432,9 @@ namespace render {
         cascades.resize(num_cascades);
         uint32_t cascade_index = 0;
         for(auto& cascade : cascades) {
+            const auto vpl_count_name = fmt::format("Cascade {} VPL count", cascade_index);
             cascade.vpl_count_buffer = allocator.create_buffer(
-                format("Cascade %d VPL count", cascade_index),
+                vpl_count_name.c_str(),
                 sizeof(VkDrawIndirectCommand),
                 BufferUsage::IndirectBuffer
             );
@@ -447,8 +448,9 @@ namespace render {
                     .firstInstance = 0
                 });
 
+            const auto vpl_list_name = fmt::format("Cascade {} VPL List", cascade_index);
             cascade.vpl_buffer = allocator.create_buffer(
-                format("Cascade %d VPL List", cascade_index),
+                vpl_list_name.c_str(),
                 static_cast<uint64_t>(sizeof(PackedVPL) * num_vpls),
                 BufferUsage::StorageBuffer
             );

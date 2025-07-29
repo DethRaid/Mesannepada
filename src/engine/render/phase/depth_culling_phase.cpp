@@ -47,11 +47,11 @@ namespace render {
     DepthCullingPhase::~DepthCullingPhase() {
         auto& backend = RenderBackend::get();
         auto& allocator = backend.get_global_allocator();
-        if (depth_buffer != nullptr) {
+        if(depth_buffer != nullptr) {
             allocator.destroy_texture(depth_buffer);
             depth_buffer = nullptr;
         }
-        if (hi_z_buffer != nullptr) {
+        if(hi_z_buffer != nullptr) {
             allocator.destroy_texture(hi_z_buffer);
             hi_z_buffer = nullptr;
 
@@ -59,7 +59,7 @@ namespace render {
             texture_descriptor_pool.free_descriptor(hi_z_index);
             hi_z_index = 0;
         }
-        if (visible_objects) {
+        if(visible_objects) {
             allocator.destroy_buffer(visible_objects);
             visible_objects = {};
         }
@@ -72,11 +72,11 @@ namespace render {
         auto& allocator = backend.get_global_allocator();
         auto& texture_descriptor_pool = backend.get_texture_descriptor_pool();
 
-        if (depth_buffer != nullptr) {
+        if(depth_buffer != nullptr) {
             allocator.destroy_texture(depth_buffer);
             depth_buffer = nullptr;
         }
-        if (hi_z_buffer != nullptr) {
+        if(hi_z_buffer != nullptr) {
             allocator.destroy_texture(hi_z_buffer);
             hi_z_buffer = nullptr;
 
@@ -93,7 +93,7 @@ namespace render {
                 .usage = TextureUsage::RenderTarget,
                 .flags = VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT
             }
-        );
+            );
 
         const auto hi_z_resolution = resolution / 2u;
         const auto major_dimension = glm::max(hi_z_resolution.x, hi_z_resolution.y);
@@ -106,7 +106,7 @@ namespace render {
                 static_cast<uint32_t>(num_mips),
                 TextureUsage::StorageImage
             }
-        );
+            );
 
         hi_z_index = texture_descriptor_pool.create_texture_srv(hi_z_buffer, max_reduction_sampler);
     }
@@ -114,7 +114,7 @@ namespace render {
     void DepthCullingPhase::render(
         RenderGraph& graph, const RenderWorld& world,
         MaterialStorage& materials, const BufferHandle view_data_buffer
-    ) {
+        ) {
         ZoneScoped;
 
         graph.begin_label("Depth/culling pass");
@@ -127,29 +127,29 @@ namespace render {
 
         const auto depth_pso = pipelines.get_depth_pso();
         const auto view_descriptor = backend.get_transient_descriptor_allocator()
-            .build_set(depth_pso, 0)
-            .bind(primitive_buffer)
-            .bind(view_data_buffer)
-            .build();
+                                            .build_set(depth_pso, 0)
+                                            .bind(primitive_buffer)
+                                            .bind(view_data_buffer)
+                                            .build();
         // Masked view needs the primitive buffer in the fragment shader ugh
         const auto masked_view_descriptor = backend.get_transient_descriptor_allocator()
-            .build_set(pipelines.get_depth_masked_pso(), 0)
-            .bind(primitive_buffer)
-            .bind(view_data_buffer)
-            .build();
+                                                   .build_set(pipelines.get_depth_masked_pso(), 0)
+                                                   .bind(primitive_buffer)
+                                                   .bind(view_data_buffer)
+                                                   .build();
 
         const auto num_primitives = world.get_total_num_primitives();
 
         auto& allocator = backend.get_global_allocator();
-        if (!visible_objects) {
+        if(!visible_objects) {
             visible_objects = allocator.create_buffer(
                 "Visible objects list",
                 sizeof(uint32_t) * num_primitives,
                 BufferUsage::StorageBuffer
-            );
+                );
         }
 
-        if (backend.supports_device_generated_commands()) {
+        if(backend.supports_device_generated_commands()) {
             draw_visible_objects_dgc(
                 graph,
                 world,
@@ -157,9 +157,13 @@ namespace render {
                 view_descriptor,
                 primitive_buffer,
                 num_primitives);
-        }
-        else {
-            draw_visible_objects(graph, world, view_descriptor, masked_view_descriptor, primitive_buffer, num_primitives);
+        } else {
+            draw_visible_objects(graph,
+                                 world,
+                                 view_descriptor,
+                                 masked_view_descriptor,
+                                 primitive_buffer,
+                                 num_primitives);
         }
 
         // Build Hi-Z pyramid
@@ -169,18 +173,19 @@ namespace render {
         // Cull all objects against the pyramid, keeping track of newly visible objects
 
         // All the primitives that are visible this frame, whether they're newly visible or not
+        const auto buffer_name = fmt::format("Frame {} visibility mask", backend.get_current_gpu_frame());
         const auto this_frame_visible_objects = allocator.create_buffer(
-            format("Frame %d visibility mask", backend.get_current_gpu_frame()),
+            buffer_name.c_str(),
             sizeof(uint32_t) * num_primitives,
             BufferUsage::StorageBuffer
-        );
+            );
 
         // Just the primitives that are visible this frame
         const auto newly_visible_objects = allocator.create_buffer(
             "New visibility mask",
             sizeof(uint32_t) * num_primitives,
             BufferUsage::StorageBuffer
-        );
+            );
 
         graph.add_pass(
             {
@@ -232,7 +237,7 @@ namespace render {
                     commands.clear_descriptor_set(0);
                 }
             }
-        );
+            );
 
         // The destruction will happen after this frame is complete, it's fine
         allocator.destroy_buffer(newly_visible_objects);
@@ -258,7 +263,7 @@ namespace render {
         RenderGraph& graph, const RenderWorld& world, MaterialStorage& materials,
         const DescriptorSet& descriptors,
         const BufferHandle primitive_buffer, const uint32_t num_primitives
-    ) {
+        ) {
         /*
          * Run a compute shader over the visible objects list. Sort object IDs and draw commands by transparency
          *
@@ -270,7 +275,7 @@ namespace render {
          * transparent objects with depth mode = equal or less
          */
 
-        if (command_signature == VK_NULL_HANDLE) {
+        if(command_signature == VK_NULL_HANDLE) {
             create_command_signature();
         }
 
@@ -288,34 +293,34 @@ namespace render {
                 num_primitives,
                 world.get_mesh_storage().get_draw_args_buffer(),
                 PRIMITIVE_TYPE_SOLID
-            );
+                );
 
         BufferHandle indirect_commands_buffer;
         // graph.add_compute_dispatch({});
 
         graph.add_render_pass(
-            {
-                .name = "Depth prepass",
-                .buffers = {
+        {
+            .name = "Depth prepass",
+            .buffers = {
+                {
                     {
-                        {
-                            .buffer = draw_commands_buffer,
-                            .stage = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
-                            .access = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
-                        },
-                        {
-                            .buffer = indirect_commands_buffer,
-                            .stage = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
-                            .access = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
-                        },
-                    }
-                },
-                .descriptor_sets = {},
-                .depth_attachment = RenderingAttachmentInfo{depth_buffer},
-                .execute = [=](CommandBuffer& commands) {
-                    commands.execute_commands();
+                        .buffer = draw_commands_buffer,
+                        .stage = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
+                        .access = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
+                    },
+                    {
+                        .buffer = indirect_commands_buffer,
+                        .stage = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
+                        .access = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
+                    },
                 }
-            });
+            },
+            .descriptor_sets = {},
+            .depth_attachment = RenderingAttachmentInfo{depth_buffer},
+            .execute = [=](CommandBuffer& commands) {
+                commands.execute_commands();
+            }
+        });
 
         // cleanup
         auto& allocator = RenderBackend::get().get_global_allocator();
@@ -374,7 +379,7 @@ namespace render {
 
     eastl::optional<BufferHandle> DepthCullingPhase::create_preprocess_buffer(
         const GraphicsPipelineHandle pipeline, const uint32_t num_primitives
-    ) {
+        ) {
         auto& backend = RenderBackend::get();
 
         const auto info = VkGeneratedCommandsMemoryRequirementsInfoNV{
@@ -384,18 +389,17 @@ namespace render {
             .indirectCommandsLayout = command_signature,
             .maxSequencesCount = num_primitives
         };
-        auto requirements = VkMemoryRequirements2{ .sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2 };
+        auto requirements = VkMemoryRequirements2{.sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2};
         vkGetGeneratedCommandsMemoryRequirementsNV(backend.get_device(), &info, &requirements);
 
-        if (requirements.memoryRequirements.size > 0) {
+        if(requirements.memoryRequirements.size > 0) {
             // Allocate and return a buffer
             auto& allocator = backend.get_global_allocator();
             return allocator.create_buffer(
                 "Preprocess Buffer",
                 requirements.memoryRequirements.size,
                 BufferUsage::StorageBuffer);
-        }
-        else {
+        } else {
             return eastl::nullopt;
         }
     }
@@ -403,7 +407,7 @@ namespace render {
     void DepthCullingPhase::draw_visible_objects(
         RenderGraph& graph, const RenderWorld& world, const DescriptorSet& view_descriptor,
         const DescriptorSet& masked_view_descriptor, const BufferHandle primitive_buffer, const uint32_t num_primitives
-    ) const {
+        ) const {
         // Translate the list of objects to indirect draw commands
 
         const auto solid_buffers = translate_visibility_list_to_draw_commands(
@@ -413,7 +417,7 @@ namespace render {
             num_primitives,
             world.get_mesh_storage().get_draw_args_buffer(),
             PRIMITIVE_TYPE_SOLID
-        );
+            );
 
         const auto cutout_buffers = translate_visibility_list_to_draw_commands(
             graph,
@@ -422,7 +426,7 @@ namespace render {
             num_primitives,
             world.get_mesh_storage().get_draw_args_buffer(),
             PRIMITIVE_TYPE_CUTOUT
-        );
+            );
 
         const auto& pipelines = world.get_material_storage().get_pipelines();
         const auto depth_pso = pipelines.get_depth_pso();
@@ -431,57 +435,57 @@ namespace render {
         // Draw the visible objects
 
         graph.add_render_pass(
-            {
-                .name = "Rasterize visible objects",
-                .buffers = {
-                    {
-                        solid_buffers.commands,
-                        VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
-                        VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
-                    },
-                    {
-                        solid_buffers.count,
-                        VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
-                        VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
-                    },
-                    {
-                        solid_buffers.primitive_ids,
-                        VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
-                        VK_ACCESS_2_SHADER_READ_BIT
-                    },
-                    {
-                        cutout_buffers.commands,
-                        VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
-                        VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
-                    },
-                    {
-                        cutout_buffers.count,
-                        VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
-                        VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
-                    },
-                    {
-                        cutout_buffers.primitive_ids,
-                        VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
-                        VK_ACCESS_2_SHADER_READ_BIT
-                    },
+        {
+            .name = "Rasterize visible objects",
+            .buffers = {
+                {
+                    solid_buffers.commands,
+                    VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
+                    VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
                 },
-                .descriptor_sets = {view_descriptor, masked_view_descriptor},
-                .depth_attachment = RenderingAttachmentInfo{
-                    .image = depth_buffer,
-                    .load_op = VK_ATTACHMENT_LOAD_OP_CLEAR,
-                    .clear_value = {.depthStencil = {.depth = 0.0}}
+                {
+                    solid_buffers.count,
+                    VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
+                    VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
                 },
-                .execute = [&](CommandBuffer& commands) {
-                    commands.bind_descriptor_set(0, view_descriptor);
+                {
+                    solid_buffers.primitive_ids,
+                    VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
+                    VK_ACCESS_2_SHADER_READ_BIT
+                },
+                {
+                    cutout_buffers.commands,
+                    VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
+                    VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
+                },
+                {
+                    cutout_buffers.count,
+                    VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
+                    VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
+                },
+                {
+                    cutout_buffers.primitive_ids,
+                    VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
+                    VK_ACCESS_2_SHADER_READ_BIT
+                },
+            },
+            .descriptor_sets = {view_descriptor, masked_view_descriptor},
+            .depth_attachment = RenderingAttachmentInfo{
+                .image = depth_buffer,
+                .load_op = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                .clear_value = {.depthStencil = {.depth = 0.0}}
+            },
+            .execute = [&](CommandBuffer& commands) {
+                commands.bind_descriptor_set(0, view_descriptor);
 
-                    world.draw_opaque(commands, solid_buffers, depth_pso);
+                world.draw_opaque(commands, solid_buffers, depth_pso);
 
-                    commands.bind_descriptor_set(0, masked_view_descriptor);
-                    world.draw_masked(commands, cutout_buffers, masked_pso);
+                commands.bind_descriptor_set(0, masked_view_descriptor);
+                world.draw_masked(commands, cutout_buffers, masked_pso);
 
-                    commands.clear_descriptor_set(0);
-                }
-            });
+                commands.clear_descriptor_set(0);
+            }
+        });
 
         // cleanup
         auto& allocator = RenderBackend::get().get_global_allocator();

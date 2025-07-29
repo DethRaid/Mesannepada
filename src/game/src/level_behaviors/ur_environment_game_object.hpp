@@ -4,6 +4,8 @@
 #include <EASTL/shared_ptr.h>
 
 #include "behavior/game_object.hpp"
+#include "core/engine.hpp"
+#include "ui/main_menu.hpp"
 
 class IModel;
 
@@ -21,6 +23,10 @@ public:
     explicit UrEnvironmentGameObject(entt::handle entity);
 
     void tick(float delta_time, World& world) override;
+
+    void play_flyin_animation();
+
+    void connect_main_menu_listeners(ui::MainMenu& main_menu);
 
 private:
     entt::handle ur_gltf_entity;

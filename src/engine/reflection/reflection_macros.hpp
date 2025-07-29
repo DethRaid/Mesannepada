@@ -16,7 +16,7 @@
     .custom<reflection::PropertiesMap>(reflection::PropertiesMap{{"name"_hs, #Member} __VA_OPT__(, __VA_ARGS__)})
 
 #define REFLECT_SCALAR(Scalar)                                                                              \
-entt::meta_factory<Scalar>()                                                                                \
+entt::meta_factory<Scalar>{}                                                                                \
     .func<&editor_write_scalar<Scalar>>("editor_write"_hs)                                                  \
     .func<&editor_read_scalar<Scalar>>("editor_read"_hs)                                                    \
     .traits(Traits::Trivial)

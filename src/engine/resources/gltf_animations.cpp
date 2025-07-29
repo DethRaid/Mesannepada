@@ -78,9 +78,8 @@ bool SkeletonAnimator::has_animation_ended(const float time) const {
 }
 
 void SkeletonAnimator::update_bones(const eastl::span<Bone> bones, const float time) {
-    assert(joint_animators.size() == bones.size());
-
-    for(auto bone_idx = 0; bone_idx < bones.size(); bone_idx++) {
-        bones[bone_idx].local_transform = joint_animators[bone_idx].sample(time);
+    for(auto& animator : joint_animators) {
+        auto& target_bone = bones[animator.target_node];
+        target_bone.local_transform = animator.sample(time);
     }
 }

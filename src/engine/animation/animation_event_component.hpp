@@ -8,6 +8,6 @@
  * This should be added to the GameObject's root entity, then a GameObject's tick function can check for this component
  * and process it as needed
  */
-struct AnimationEventComponent {
+struct PlayAnimationComponent {
     eastl::string animation_to_play;
 };

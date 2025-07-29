@@ -84,7 +84,7 @@ struct AutoCVar_Int : AutoCVar<int32_t> {
     AutoCVar_Int(const char* name, const char* description, int32_t defaultValue, CVarFlags flags = CVarFlags::None);
     int32_t get();
     int32_t* GetPtr();
-    void Set(int32_t val);
+    void set(int32_t val);
 
     void Toggle();
 };
@@ -128,5 +128,5 @@ EnumType* AutoCVar_Enum<EnumType>::GetPtr() {
 
 template <typename EnumType>
 void AutoCVar_Enum<EnumType>::set(EnumType val) {
-    AutoCVar_Int::Set(static_cast<int32_t>(val));
+    AutoCVar_Int::set(static_cast<int32_t>(val));
 }

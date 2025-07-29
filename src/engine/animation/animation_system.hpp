@@ -3,8 +3,12 @@
 #include <EASTL/string.h>
 #include <entt/entity/entity.hpp>
 #include <EASTL/unique_ptr.h>
+#include <plf_colony.h>
 
-#include "plf_colony.h"
+#include "animation_system.hpp"
+#include "animation_system.hpp"
+#include "animation_system.hpp"
+#include "animation_system.hpp"
 #include "animation/skeleton.hpp"
 #include "resources/gltf_animations.hpp"
 
@@ -46,4 +50,9 @@ private:
     eastl::vector<AnimationEventSampler> active_event_timelines;
 
     plf::colony<Skeleton> skeletons;
+
+    void play_node_animation_on_entity(entt::handle entity, const eastl::string& animation_name);
+
+    void play_skeletal_animation_on_entity(entt::handle entity, SkeletonHandle skeleton,
+                                           const eastl::string& animation_name);
 };

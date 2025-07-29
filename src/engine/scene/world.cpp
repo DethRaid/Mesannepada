@@ -16,6 +16,10 @@ World::World() {
     }
 }
 
+entt::handle World::make_handle(const entt::entity entity) {
+    return entt::handle{registry, entity};
+}
+
 entt::handle World::create_entity() {
     return entt::handle{registry, registry.create()};
 }

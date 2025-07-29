@@ -371,14 +371,14 @@ int32_t* AutoCVar_Int::GetPtr() {
     return PtrGetCVarCurrentByIndex<CVarType>(index);
 }
 
-void AutoCVar_Int::Set(int32_t val) {
+void AutoCVar_Int::set(int32_t val) {
     SetCVarCurrentByIndex<CVarType>(index, val);
 }
 
 void AutoCVar_Int::Toggle() {
     bool enabled = get() != 0;
 
-    Set(enabled ? 0 : 1);
+    set(enabled ? 0 : 1);
 }
 
 AutoCVar_String::AutoCVar_String(const char* name, const char* description, const char* defaultValue, CVarFlags flags) {

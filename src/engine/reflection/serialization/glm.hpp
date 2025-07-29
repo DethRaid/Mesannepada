@@ -2,7 +2,7 @@
 
 #include <cereal/cereal.hpp>
 
-#include "serialization/serializers.hpp"
+#include "reflection/serialization/serializers.hpp"
 #include "shared/prelude.h"
 
 namespace glm {

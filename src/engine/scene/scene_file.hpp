@@ -7,8 +7,8 @@
 #include <spdlog/logger.h>
 
 #include "resources/resource_path.hpp"
-#include "serialization/serializers.hpp"
-#include "serialization/eastl/vector.hpp"
+#include "reflection/serialization/serializers.hpp"
+#include "reflection/serialization/eastl/vector.hpp"
 #include "shared/prelude.h"
 
 class World;

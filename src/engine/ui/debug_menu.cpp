@@ -82,6 +82,8 @@ DebugUI::~DebugUI() {
 }
 
 void DebugUI::draw() {
+    ZoneScoped;
+
     ImGui_ImplGlfw_NewFrame();
 
     ImGui::NewFrame();
@@ -199,7 +201,7 @@ void DebugUI::draw_editor_menu() {
             if(ImGui::MenuItem("Save all Scenes", "CTRL+S")) {
                 auto& scenes = Engine::get().get_loaded_scenes();
                 for(auto& [name, scene] : scenes) {
-                    scene.write_to_file(ResourcePath{format("game://scenes/%s", name.c_str())});
+                    scene.write_to_file(ResourcePath{eastl::string{"game://scenes/"} +  name});
                 }
             }
 
@@ -283,7 +285,7 @@ void DebugUI::draw_scene_unload_confirmation() {
         }
         ImGui::SameLine();
         if(ImGui::Button("Actually, save it first")) {
-            const auto scene_path = ResourcePath{format("game://scenes/%s", scene_to_unload.c_str())};
+            const auto scene_path = ResourcePath{eastl::string{"game://scenes/"} + scene_to_unload};
             auto& scene = engine.get_scene(scene_to_unload);
             scene.write_to_file(scene_path);
             engine.unload_scene(scene_to_unload);
@@ -546,7 +548,7 @@ void DebugUI::draw_world_and_scene_window() {
 
                     auto display_name = name;
                     if(name == selected_scene) {
-                        display_name = format("%s*", name.c_str());
+                        display_name = name + "*";
                     }
 
                     if(ImGui::Button(display_name.c_str())) {
@@ -587,14 +589,14 @@ void DebugUI::draw_files(const std::filesystem::path& pwd, const std::filesystem
     for(const auto& folder : folders) {
         auto& is_dir_open = is_directory_open[folder];
         const auto folder_name_key = folder.string();
-        ImGui::Text(prefix.c_str());
+        ImGui::Text("%s", prefix.c_str());
         ImGui::SameLine();
         if(ImGui::ArrowButton(folder_name_key.c_str(), is_dir_open ? ImGuiDir_Down : ImGuiDir_Right)) {
             is_dir_open = !is_dir_open;
         }
         ImGui::SameLine();
         const auto folder_name = folder.stem();
-        ImGui::Text(folder_name.string().c_str());
+        ImGui::Text("%s", folder_name.string().c_str());
         if(is_dir_open) {
             draw_files(folder, base_folder, prefix + "  ");
         }
@@ -608,7 +610,7 @@ void DebugUI::draw_files(const std::filesystem::path& pwd, const std::filesystem
             const auto& style = ImGui::GetStyle();
             const float button_width = ImGui::CalcTextSize("Add").x + style.FramePadding.x * 2.f;
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - button_width);
-            const auto id = format("Add##%s", file.string().c_str());
+            const auto id = eastl::string{"Add##"} + file.string().c_str();
             if(ImGui::Button(id.c_str())) {
                 load_selected_model(ResourcePath::game(file.string()));
             }
@@ -635,12 +637,17 @@ void DebugUI::draw_entity_editor_window() {
         auto& registry = Engine::get().get_world().get_registry();
 
         // Iterate over all the components in the registry
-        for(auto i = 0; auto&& [id, storage] : registry.storage()) {
+        for(auto i = 0; auto&& [_, storage] : registry.storage()) {
             if(!storage.contains(selected_entity)) {
                 continue;
             }
 
-            const auto storage_name = std::string{storage.type().name()};
+            const auto& name = storage.type().name();
+            auto storage_name = std::string{name};
+            if(const auto spacepos = name.find(' '); spacepos != std::string_view::npos) {
+                storage_name = name.substr(spacepos + 1);
+            }
+            const auto id = entt::hashed_string{storage_name.c_str()}.value();
             if(ImGui::CollapsingHeader(storage_name.c_str())) {
                 if(auto meta = entt::resolve(id)) {
                     draw_component_helper(selected_entity,
@@ -665,7 +672,7 @@ void DebugUI::draw_guizmos(const entt::handle entity) {
     if(ImGui::IsKeyPressed(ImGuiKey_Q)) {
         cur_operation = ImGuizmo::OPERATION::UNIVERSAL;
     } else if(ImGui::IsKeyPressed(ImGuiKey_W)) {
-        cur_operation == ImGuizmo::OPERATION::TRANSLATE;
+        cur_operation = ImGuizmo::OPERATION::TRANSLATE;
     } else if(ImGui::IsKeyPressed(ImGuiKey_E)) {
         cur_operation = ImGuizmo::OPERATION::ROTATE;
     } else if(ImGui::IsKeyPressed(ImGuiKey_R)) {
@@ -818,7 +825,8 @@ void DebugUI::draw_entity(entt::entity entity, entt::registry& registry, const e
 
     ImGui::SameLine();
 
-    auto object_name = eastl::string{eastl::string::CtorSprintf{}, "%d", static_cast<uint32_t>(entity)};
+    const auto string_object_name = fmt::format("{}", static_cast<uint32_t>(entity));
+    auto object_name = eastl::string{string_object_name.c_str()};
     if(const auto* entity_info = registry.try_get<EntityInfoComponent>(entity)) {
         object_name = entity_info->name;
     } else if(const auto* game_object = registry.try_get<GameObjectComponent>(entity)) {
@@ -853,7 +861,7 @@ void DebugUI::draw_combo_box(const std::string& name, const eastl::span<const st
         ImGui::EndCombo();
     }
 }
-
+ 
 void DebugUI::activate_style_dxhr() {
     auto& style = ImGui::GetStyle();
     style = ImGuiStyle{};

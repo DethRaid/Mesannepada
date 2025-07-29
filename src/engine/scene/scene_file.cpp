@@ -9,7 +9,7 @@
 
 #include "core/engine.hpp"
 #include "scene/transform_component.hpp"
-#include "serialization/glm.hpp"
+#include "reflection/serialization/glm.hpp"
 
 Scene Scene::load_from_file(const ResourcePath& path) {
     ZoneScoped;

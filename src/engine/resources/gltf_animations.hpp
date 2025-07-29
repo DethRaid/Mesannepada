@@ -88,6 +88,8 @@ using RotationAnimationSampler = AnimationSampler<glm::quat, SlerpFunctor<glm::q
 using ScaleAnimationSampler = AnimationSampler<float3, LerpFunctor<float3>>;
 
 struct NodeAnimator {
+    size_t target_node = eastl::numeric_limits<size_t>::max();
+
     eastl::optional<PositionAnimationSampler> position_sampler = eastl::nullopt;
     eastl::optional<RotationAnimationSampler> rotation_sampler = eastl::nullopt;
     eastl::optional<ScaleAnimationSampler> scale_sampler = eastl::nullopt;

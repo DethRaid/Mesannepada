@@ -55,7 +55,7 @@ std::filesystem::path ResourcePath::to_filepath() const {
 }
 
 eastl::string ResourcePath::to_string() const {
-    return format("%s%s", ::to_string(scope), path.string().c_str());
+    return eastl::string{::to_string(scope)} + path.string().c_str();
 }
 
 void ResourcePath::parse_from_string(const eastl::string_view str) {

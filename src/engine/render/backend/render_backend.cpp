@@ -216,9 +216,9 @@ namespace render {
         if(supports_rt) {
             supports_rt_validation =
                 physical_device.enable_extension_if_present(VK_NV_RAY_TRACING_VALIDATION_EXTENSION_NAME);
-            logger->info("Device {} supporta ray tracing", physical_device.name);
+            logger->info("Device {} supports ray tracing", physical_device.name);
         } else {
-            logger->warn("Device {} does not support tay tracing!", physical_device.name);
+            logger->warn("Device {} does not support ray tracing!", physical_device.name);
         }
 
         physical_device.enable_extension_if_present(VK_NV_DEVICE_GENERATED_COMMANDS_EXTENSION_NAME);
@@ -498,7 +498,7 @@ namespace render {
     }
 
     bool RenderBackend::supports_ray_tracing() const {
-        return supports_rt;
+        return supports_rt; 
     }
 
     bool RenderBackend::supports_device_generated_commands() const {

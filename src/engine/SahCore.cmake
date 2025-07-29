@@ -38,7 +38,6 @@ target_compile_definitions(SahCore PUBLIC
         SAH_USE_STREAMLINE=$<BOOL:${SAH_USE_STREAMLINE}>
         SAH_USE_XESS=$<BOOL:${SAH_USE_XESS}>
         UTF_CPP_CPLUSPLUS=202002
-        EASTL_EASTDC_VSNPRINTF=0
         SAH_USE_IRRADIANCE_CACHE=0
         )
 

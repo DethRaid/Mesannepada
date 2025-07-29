@@ -8,6 +8,7 @@
 #include <entt/entt.hpp>
 #include <spdlog/spdlog.h>
 
+#include "transform_component.hpp"
 #include "animation/animation_system.hpp"
 #include "behavior/game_object.hpp"
 #include "scene/game_object_component.hpp"
@@ -32,7 +33,12 @@ public:
      */
     static entt::handle find_child(entt::handle entity, eastl::string_view child_name);
 
+    template<typename ComponentType>
+    static entt::handle find_component_in_children(entt::handle entity);
+
     World();
+
+    entt::handle make_handle(entt::entity entity);
 
     /**
      * Creates a generic entity
@@ -42,10 +48,10 @@ public:
     /**
      * Creates a game object with the given name and optionally a parent node
      */
-    template <typename GameObjectType = GameObject>
+    template<typename GameObjectType = GameObject>
     entt::handle create_game_object(
         eastl::string_view name, const eastl::optional<entt::handle>& parent_node = eastl::nullopt
-    );
+        );
 
     /**
      * Attempts to find an entity with the provided name in the world
@@ -59,7 +65,7 @@ public:
     /**
      * Adds a component of the given type to the entity if it does not exist. Returns a reference to the component
      */
-    template <typename ComponentType>
+    template<typename ComponentType>
     ComponentType& add_component(entt::entity entity, ComponentType component = {});
 
     entt::registry& get_registry();
@@ -86,10 +92,32 @@ private:
     void propagate_transform(entt::entity entity, const float4x4& parent_to_world);
 };
 
-template <typename GameObjectType>
+template<typename ComponentType>
+entt::handle World::find_component_in_children(const entt::handle entity) {
+    if(const auto* trans = entity.try_get<TransformComponent>(); trans != nullptr) {
+        for(const auto child : trans->children) {
+            auto child_handle = entt::handle{*entity.registry(), child};
+            if(child_handle.try_get<ComponentType>() != nullptr) {
+                return child_handle;
+            }
+        }
+
+        for(const auto child : trans->children) {
+            auto child_handle = entt::handle{*entity.registry(), child};
+            const auto found_child = find_component_in_children<ComponentType>(child_handle);
+            if(found_child.valid()) {
+                return found_child;
+            }
+        }
+    }
+
+    return {};
+}
+
+template<typename GameObjectType>
 entt::handle World::create_game_object(
     const eastl::string_view name, const eastl::optional<entt::handle>& parent_node
-) {
+    ) {
     try {
         const auto entity = create_entity();
         const auto& game_object = add_component(
@@ -112,7 +140,7 @@ entt::handle World::create_game_object(
     }
 }
 
-template <typename ComponentType>
+template<typename ComponentType>
 ComponentType& World::add_component(entt::entity entity, ComponentType component) {
     return registry.get_or_emplace<ComponentType>(entity, eastl::move(component));
 }

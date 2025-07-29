@@ -38,8 +38,6 @@ entt::handle PrefabLoader::load_prefab(const ResourcePath& prefab_file, World& w
         entity.emplace<TransformComponent>();
     }
 
-    // TODO: Generic component deserializer
-
     auto components = prefab["components"];
     for(auto component_definition : components) {
         auto type = component_definition["type"];
@@ -55,6 +53,8 @@ entt::handle PrefabLoader::load_prefab(const ResourcePath& prefab_file, World& w
             auto meta = entt::resolve(component_type_id);
             auto value = meta.construct();
             assert(value && "Component does not have a default constructor!");
+
+            serialization::from_json(component_definition, value.as_ref());
 
             if(auto emplace_move = meta.func("emplace_move"_hs)) {
                 emplace_move.invoke({}, entity.registry(), entity.entity(), value.as_ref());

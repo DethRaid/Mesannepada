@@ -23,8 +23,9 @@ MesannepadaGameInstance::MesannepadaGameInstance() {
 
     auto& world = engine.get_world();
     environment_entity = world.create_game_object<UrEnvironmentGameObject>("UrEnvironment");
-
-    main_menu.set_environment_entity(environment_entity);
+    
+    const auto& go = environment_entity.get<GameObjectComponent>();
+    dynamic_cast<UrEnvironmentGameObject&>(*go.game_object).connect_main_menu_listeners(main_menu);
 
     // Try to parent the player to the player control entity. It might work?
     const auto player = engine.get_player();

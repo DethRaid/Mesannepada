@@ -5,7 +5,7 @@
             "type": "ai::BehaviorTreeComponent"
         },
         {
-            "type": "AnimationEventComponent",
+            "type": "PlayAnimationComponent",
             "animation_to_play": "ANIM_walkcycle"
         }
     ]

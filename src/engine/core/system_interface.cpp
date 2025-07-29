@@ -107,8 +107,8 @@ void SystemInterface::create_window() {
     glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
     glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
 
-    // GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "𒈩𒀭𒉌𒅆𒊒𒁕", monitor, nullptr);
-    window = glfwCreateWindow(1920, 1080, "𒈩𒀭𒉌𒅆𒊒𒁕", nullptr, nullptr);
+    window = glfwCreateWindow(mode->width, mode->height, "𒈩𒀭𒉌𒅆𒊒𒁕", monitor, nullptr);
+    // window = glfwCreateWindow(1920, 1080, "𒈩𒀭𒉌𒅆𒊒𒁕", nullptr, nullptr);
 
     glfwSetInputMode(window, GLFW_LOCK_KEY_MODS, GLFW_TRUE);
 
