@@ -47,8 +47,6 @@ public:
 
     void flush_all_loggers();
 
-    std::filesystem::path get_working_directory() const;
-
     /**
      * Gets the folder where compiled shaders live. Usually exe_dir / shaders
      */

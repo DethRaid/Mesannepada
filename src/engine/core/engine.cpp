@@ -260,7 +260,7 @@ void Engine::create_scene(const eastl::string& name) {
 
 bool Engine::load_scene(const eastl::string& name) {
     try {
-        const auto scene_file_path = ResourcePath{eastl::string{"game://scenes/"} +  name};
+        const auto scene_file_path = ResourcePath::game(std::filesystem::path{"scenes"} /  name.c_str());
         auto scene = Scene::load_from_file(scene_file_path);
         scene.add_new_objects_to_world();
 

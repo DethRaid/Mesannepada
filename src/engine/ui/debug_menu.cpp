@@ -612,7 +612,10 @@ void DebugUI::draw_files(const std::filesystem::path& pwd, const std::filesystem
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - button_width);
             const auto id = eastl::string{"Add##"} + file.string().c_str();
             if(ImGui::Button(id.c_str())) {
-                load_selected_model(ResourcePath::game(file.string()));
+                // Ensure our paths are sensible
+                auto raw_path_string = file.string();
+                eastl::replace(raw_path_string.begin(), raw_path_string.end(), '\\', '/');
+                load_selected_model(ResourcePath::game(raw_path_string));
             }
         }
     }

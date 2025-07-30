@@ -25,8 +25,6 @@ include(${CMAKE_CURRENT_LIST_DIR}/extern/extern.cmake)
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../cmake;")
 
-set(SAH_SHADER_DIR ${CMAKE_CURRENT_LIST_DIR}/../engine/shaders)
-
 file(GLOB_RECURSE SHADERS CONFIGURE_DEPENDS
         ${SAH_SHADER_DIR}/*.vert
         ${SAH_SHADER_DIR}/*.geom
@@ -46,10 +44,10 @@ target_include_directories(mesannepada PUBLIC
 
 set(SHADER_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/../engine)
 
-set(EXTERN_DIR ${SHADER_INCLUDE_DIR}/extern)
+set(SHADER_EXTERN_DIR ${SHADER_INCLUDE_DIR}/extern)
 
 add_custom_target(compile_shaders
-    python ${SAH_TOOLS_DIR}/compile_shaders.py ${SAH_SHADER_DIR} ${SAH_OUTPUT_DIR}/shaders ${EXTERN_DIR} ${NRD_SOURCE_DIR}/Shaders/Include
+    python ${SAH_TOOLS_DIR}/compile_shaders.py ${SAH_SHADER_DIR} ${SAH_OUTPUT_DIR}/shaders ${SHADER_EXTERN_DIR} ${NRD_SOURCE_DIR}/Shaders/Include
 )
 add_dependencies(mesannepada compile_shaders)
 
@@ -57,13 +55,15 @@ target_link_libraries(mesannepada PUBLIC
         SahCore
 )
 
-# Copy game data
-# TODO: Advanced build step using gltfpack or something to compress glTF files
-add_custom_command(TARGET mesannepada POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
-    ${SAH_DATA_DIR}
-    ${SAH_OUTPUT_DIR}/data
-    )
+if(SAH_PACKAGED_BUILD)
+    # Copy game data
+    # TODO: Advanced build step using gltfpack or something to compress glTF files
+    add_custom_command(TARGET mesannepada POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
+        ${SAH_INPUT_DIR}
+        ${SAH_OUTPUT_DIR}/data
+        )
+endif()
   
 #######################
 # Generate VS filters #
