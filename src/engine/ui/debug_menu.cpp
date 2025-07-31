@@ -225,8 +225,9 @@ void DebugUI::draw_perf_info_window() {
         const auto average_frame_time = perf.get_average_frame_time();
         ImGui::Text("Frame time: %.1f ms (%.0f FPS)", average_frame_time * 1000, 1.f / average_frame_time);
 
-        const auto average_gpu_memory = perf.get_average_gpu_memory();
-        ImGui::Text("GPU memory: %lu bytes", average_gpu_memory);
+        const auto average_gpu_memory = static_cast<double>(perf.get_average_gpu_memory());
+
+        ImGui::Text("GPU memory: %.1f MB", average_gpu_memory / 1000000.0);
     }
 
     ImGui::End();

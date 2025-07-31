@@ -689,6 +689,18 @@ namespace render {
         vmaSetCurrentFrameIndex(vma, frame_idx);
     }
 
+    uint64_t ResourceAllocator::get_memory_usage() const {
+        auto memory = uint64_t{0};
+        auto budgets = eastl::array<VmaBudget, 32>{};
+        vmaGetHeapBudgets(vma, budgets.data());
+
+        for(const auto& budget : budgets) {
+            memory += budget.usage;
+        }
+
+        return memory;
+    }
+
     void ResourceAllocator::report_memory_usage() const {
         auto budgets = eastl::array<VmaBudget, 32>{};
         vmaGetHeapBudgets(vma, budgets.data());

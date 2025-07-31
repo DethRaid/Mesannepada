@@ -161,6 +161,11 @@ private:
 
     PerformanceTracker perf_tracker;
 
+    /**
+     * Gets the current PGU memory usage
+     */
+    static uint64_t get_gpu_memory();
+
     void update_perf_tracker();
 
     /**

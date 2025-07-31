@@ -327,8 +327,15 @@ void Engine::update_time() {
                        / 1000000.f;
 }
 
+uint64_t Engine::get_gpu_memory() {
+    const auto& backend = render::RenderBackend::get();
+
+    return backend.get_global_allocator().get_memory_usage();
+}
+
 void Engine::update_perf_tracker() {
     perf_tracker.add_frame_time_sample(get_frame_time());
+    perf_tracker.add_memory_sample(get_gpu_memory());
 }
 
 void Engine::spawn_new_game_objects() {

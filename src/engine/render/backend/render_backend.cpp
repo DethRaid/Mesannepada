@@ -582,10 +582,6 @@ namespace render {
 
         logger->trace("Beginning frame {} (frame idx {})", total_num_frames, cur_frame_idx);
 
-        if(total_num_frames % 100 == 0) {
-            // allocator->report_memory_usage();
-        }
-
         {
             ZoneScopedN("Wait for previous frame");
             const auto result =
