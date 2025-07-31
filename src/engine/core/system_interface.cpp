@@ -183,21 +183,20 @@ std::filesystem::path SystemInterface::get_data_folder() const {
 #include <Shlobj.h>
 #endif
 
-std::filesystem::path SystemInterface::get_write_folder() {
-    // TODO: https://specifications.freedesktop.org/basedir-spec/latest/
+std::filesystem::path SystemInterface::get_write_folder() const {
+    auto base_folder = std::filesystem::path{};
 #if defined(__linux__)
-    const char* homedir;
+    const char* homedir = nullptr;
 
     if(homedir = getenv("XDG_DATA_HOME"); homedir) {
-        return homedir;
+        base_folder = std::filesystem::path{homedir};
+    } else {
+        if((homedir = getenv("HOME")) == nullptr) {
+            homedir = getpwuid(getuid())->pw_dir;
+        }
+        base_folder = std::filesystem::path{homedir} / ".local" / "share" ;
     }
-
-    if((homedir = getenv("HOME")) == nullptr) {
-        homedir = getpwuid(getuid())->pw_dir;
-    }
-
-    return std::filesystem::path{homedir} / ".local" / "share" / "mesannepada";
-#else
+#elif defined(_WIN32)
     PWSTR folder_path;
     const auto result = SHGetKnownFolderPath(FOLDERID_SavedGames, 0, nullptr, &folder_path);
     if (result != S_OK) {
@@ -216,10 +215,54 @@ std::filesystem::path SystemInterface::get_write_folder() {
         0,
         nullptr,
         nullptr);
-    std::string str(count, 0);
+    eastl::string str(count, 0);
     WideCharToMultiByte(CP_UTF8, 0, chonker.c_str(), -1, str.data(), count, nullptr, nullptr);
-    return std::filesystem::path{ str } / "mesannapada";
+
+    base_folder = std::filesystem::path{ str };
 #endif
+
+    return base_folder / "mesannepada";
+}
+
+std::filesystem::path SystemInterface::get_config_folder() const {
+    auto base_folder = std::filesystem::path{};
+#if defined(__linux__)
+    const char* homedir = nullptr;
+
+    if(homedir = getenv("XDG_CONFIG_HOME"); homedir) {
+        base_folder = std::filesystem::path{homedir};
+    } else {
+        if((homedir = getenv("HOME")) == nullptr) {
+            homedir = getpwuid(getuid())->pw_dir;
+        }
+        base_folder = std::filesystem::path{homedir} / ".config";
+    }
+#elif defined(_WIN32)
+    return get_write_folder();
+#endif
+
+    return base_folder / "mesannepada";
+
+}
+
+std::filesystem::path SystemInterface::get_cache_folder() const {
+    auto base_folder = std::filesystem::path{};
+#if defined(__linux__)
+    const char* homedir = nullptr;
+
+    if(homedir = getenv("XDG_CACHE_HOME"); homedir) {
+        base_folder = std::filesystem::path{homedir};
+    } else {
+        if((homedir = getenv("HOME")) == nullptr) {
+            homedir = getpwuid(getuid())->pw_dir;
+        }
+        base_folder = std::filesystem::path{homedir} / ".cache";
+    }
+#elif defined(_WIN32)
+    return get_write_folder();
+#endif
+
+    return base_folder / "mesannepada";
 }
 
 eastl::optional<eastl::vector<std::byte> > SystemInterface::load_file(const ResourcePath& filepath) {

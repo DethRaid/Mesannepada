@@ -92,6 +92,15 @@ glm::mat4 get_node_to_parent_matrix(const fastgltf::Node& node) {
     return matrix;
 }
 
+GltfModel::~GltfModel() {
+    auto& animations = Engine::get().get_animation_system();
+    for(const auto& gltf_animation : asset.animations) {
+        animations.remove_animation(skeleton_handle, gltf_animation.name.c_str());
+    }
+
+    animations.destroy_skeleton(skeleton_handle);
+}
+
 GltfModel::GltfModel(
     ResourcePath filepath_in,
     fastgltf::Asset&& model,
@@ -99,7 +108,7 @@ GltfModel::GltfModel(
     ExtrasData extras_in
     ) :
     filepath{std::move(filepath_in)},
-    cached_data_path{std::filesystem::path{"cache"} / filepath.get_path().c_str()},
+    cached_data_path{SystemInterface::get().get_cache_folder() / filepath.get_path()},
     asset{std::move(model)},
     extras{eastl::move(extras_in)} {
     if(logger == nullptr) {
@@ -122,15 +131,6 @@ GltfModel::GltfModel(
     calculate_bounding_sphere_and_footprint();
 
     logger->info("Loaded model {}", filepath);
-}
-
-GltfModel::~GltfModel() {
-    auto& animations = Engine::get().get_animation_system();
-    for(const auto& gltf_animation : asset.animations) {
-        animations.remove_animation(skeleton_handle, gltf_animation.name.c_str());
-    }
-
-    animations.destroy_skeleton(skeleton_handle);
 }
 
 glm::vec4 GltfModel::get_bounding_sphere() const {

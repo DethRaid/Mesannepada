@@ -150,7 +150,7 @@ void SettingsController::apply_graphics_settings() {
 }
 
 void SettingsController::save_graphics_settings_file() const {
-    auto data_file_path = SystemInterface::get().get_write_folder();
+    auto data_file_path = SystemInterface::get().get_config_folder();
     if(!std::filesystem::exists(data_file_path)) {
         std::filesystem::create_directories(data_file_path);
     }
@@ -199,7 +199,7 @@ void SettingsController::apply_audio_settings() const {
 }
 
 void SettingsController::save_audio_settings_file() const {
-    auto data_file_path = SystemInterface::get().get_write_folder();
+    auto data_file_path = SystemInterface::get().get_config_folder();
     if(!std::filesystem::exists(data_file_path)) {
         std::filesystem::create_directories(data_file_path);
     }
@@ -220,7 +220,7 @@ void SettingsController::save_audio_settings_file() const {
 }
 
 void SettingsController::load_settings_file() {
-    const auto data_file_path = SystemInterface::get().get_write_folder() / "settings.toml";
+    const auto data_file_path = SystemInterface::get().get_config_folder() / "settings.toml";
     if(!std::filesystem::exists(data_file_path)) {
         return;
     }
