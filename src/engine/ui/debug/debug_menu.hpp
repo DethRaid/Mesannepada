@@ -82,7 +82,7 @@ private:
     void draw_scene_unload_confirmation();
 
     eastl::vector<char> new_scene_name;
-    void draw_world_and_scene_window();
+    void draw_world_info_window();
 
     eastl::unordered_map<std::filesystem::path, bool> is_directory_open;
 

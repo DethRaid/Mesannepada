@@ -105,7 +105,7 @@ void DebugUI::draw() {
 
         draw_perf_info_window();
 
-        draw_world_and_scene_window();
+        draw_world_info_window();
 
         draw_model_selector();
 
@@ -469,10 +469,10 @@ void DebugUI::load_selected_model(const ResourcePath& filename) {
     selected_entity = new_model;
 }
 
-void DebugUI::draw_world_and_scene_window() {
+void DebugUI::draw_world_info_window() {
     auto& engine = Engine::get();
 
-    if(ImGui::Begin("Scene Views")) {
+    if(ImGui::Begin("World Views")) {
         if(ImGui::BeginTabBar("SceneSelection")) {
             if(ImGui::BeginTabItem("Entities")) {
                 auto& world = engine.get_world();
@@ -481,6 +481,31 @@ void DebugUI::draw_world_and_scene_window() {
                 const auto& roots = world.get_top_level_entities();
                 for(const auto root : roots) {
                     draw_entity(root, registry);
+                }
+
+                ImGui::EndTabItem();
+            }
+
+            if(ImGui::BeginTabItem("Scene Objects")) {
+                if(selected_scene.empty()) {
+                    ImGui::Text("Select a scene to see its objects");
+                } else {
+                    auto& scene = engine.get_scene(selected_scene);
+                    const auto& objects = scene.get_objects();
+                    auto names = eastl::vector<ResourcePath>{};
+                    names.reserve(objects.size());
+                    for(const auto& obj : objects) {
+                        names.emplace_back(obj.filepath);
+                    }
+
+                    for(const auto& path : names) {
+                        const auto pathstring = path.to_string();
+                        ImGui::Text("%s", pathstring.c_str());
+                        const auto deletetext = "Delete##" + pathstring;
+                        if(ImGui::Button(deletetext.c_str())) {
+                            TODO: Find a unique identifier for the scene object to delete. Maybe index in the list?
+                        }
+                    }
                 }
 
                 ImGui::EndTabItem();

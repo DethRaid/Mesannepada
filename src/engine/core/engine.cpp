@@ -282,12 +282,10 @@ Scene& Engine::get_environment_scene() {
 }
 
 Scene& Engine::get_scene(const eastl::string& name) {
-    logger->debug("Searching for scene {}", name);
     return loaded_scenes.at(name);
 }
 
 const Scene& Engine::get_scene(const eastl::string& name) const {
-    logger->debug("Searching for scene {}", name);
     return loaded_scenes.at(name);
 }
 
