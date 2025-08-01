@@ -638,6 +638,8 @@ void DebugUI::draw_entity_editor_window() {
     if(ImGui::Begin("Entity Editor")) {
         ImGui::PushID(static_cast<int>(selected_entity.entity()));
 
+        ImGui::Text("Entity %d", static_cast<uint32_t>(selected_entity.entity()));
+
         auto& registry = Engine::get().get_world().get_registry();
 
         // Iterate over all the components in the registry

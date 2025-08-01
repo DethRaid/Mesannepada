@@ -161,7 +161,7 @@ void Engine::tick() {
 
     animation_system.tick(delta_time);
 
-    world.propagate_transforms(delta_time);
+    world.tick(delta_time);
 
     // UI
 

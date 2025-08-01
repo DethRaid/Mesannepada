@@ -14,6 +14,8 @@ World::World() {
     if(logger == nullptr) {
         logger = SystemInterface::get().get_logger("World");
     }
+
+    registry.on_update<TransformComponent>().connect<&World::on_transform_update>(this);
 }
 
 entt::handle World::make_handle(const entt::entity entity) {
@@ -57,6 +59,9 @@ void World::destroy_entity(const entt::entity entity) {
     registry.destroy(entity);
 }
 
+void World::tick(float delta_time) {
+}
+
 entt::registry& World::get_registry() {
     return registry;
 }
@@ -90,7 +95,6 @@ void World::parent_entity_to_entity(const entt::entity child, const entt::entity
         parent,
         [&](TransformComponent& transform) {
             transform.children.emplace_back(child);
-            propagate_transform(child, transform.get_local_to_world());
         });
 
     top_level_entities.erase(child);
@@ -99,33 +103,6 @@ void World::parent_entity_to_entity(const entt::entity child, const entt::entity
 void World::add_top_level_entities(const eastl::span<const entt::handle> entities) {
     for(const auto& entity : entities) {
         top_level_entities.insert(entity.entity());
-    }
-}
-
-void World::propagate_transforms(float delta_time) {
-    ZoneScoped;
-
-    for(const auto root_entity : top_level_entities) {
-        const auto& transform = registry.get<TransformComponent>(root_entity);
-
-        eastl::fixed_vector<entt::entity, 4> invalid_entities;
-        for(const auto child : transform.children) {
-            if(registry.valid(child)) {
-                propagate_transform(child, transform.get_local_to_world());
-            } else {
-                invalid_entities.emplace_back(child);
-            }
-        }
-
-        if(!invalid_entities.empty()) {
-            registry.patch<TransformComponent>(
-                root_entity,
-                [&](TransformComponent& transform_to_modify) {
-                    for(auto entity : invalid_entities) {
-                        transform_to_modify.children.erase_first(entity);
-                    }
-                });
-        }
     }
 }
 
@@ -155,22 +132,22 @@ entt::handle World::find_child(const entt::handle entity, const eastl::string_vi
     return {};
 }
 
-void World::propagate_transform(const entt::entity entity, const float4x4& parent_to_world) {
-    const auto& transform = registry.get<TransformComponent>(entity);
-    if(transform.cached_parent_to_world != parent_to_world) {
-        registry.patch<TransformComponent>(
-            entity,
-            [&](TransformComponent& trans) {
-                trans.cached_parent_to_world = parent_to_world;
-            });
-    }
+void World::on_transform_update(entt::registry& registry, const entt::entity entity) {
+    propagate_transform(entity);
+}
 
+void World::propagate_transform(const entt::entity entity) {
+    const auto& transform = registry.get<TransformComponent>(entity);
     const auto local_to_world = transform.get_local_to_world();
 
     eastl::fixed_vector<entt::entity, 4> invalid_entities;
     for(const auto child : transform.children) {
         if(registry.valid(child)) {
-            propagate_transform(child, local_to_world);
+            registry.patch<TransformComponent>(
+                child,
+                [&](TransformComponent& trans) {
+                    trans.cached_parent_to_world = local_to_world;
+                });
         } else {
             invalid_entities.emplace_back(child);
         }

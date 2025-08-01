@@ -68,6 +68,8 @@ public:
     template<typename ComponentType>
     ComponentType& add_component(entt::entity entity, ComponentType component = {});
 
+    void tick(float delta_time);
+
     entt::registry& get_registry();
 
     const entt::registry& get_registry() const;
@@ -75,8 +77,6 @@ public:
     void parent_entity_to_entity(entt::entity child, entt::entity parent);
 
     void add_top_level_entities(eastl::span<const entt::handle> entities);
-
-    void propagate_transforms(float delta_time);
 
     const eastl::unordered_set<entt::entity>& get_top_level_entities() const;
 
@@ -89,7 +89,12 @@ private:
      */
     eastl::unordered_set<entt::entity> top_level_entities;
 
-    void propagate_transform(entt::entity entity, const float4x4& parent_to_world);
+    void on_transform_update(entt::registry& registry,  entt::entity entity);
+
+    /**
+     * Propagates the entity's transform to its children
+     */
+    void propagate_transform(entt::entity entity);
 };
 
 template<typename ComponentType>
