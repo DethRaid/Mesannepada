@@ -86,6 +86,7 @@ namespace render {
         // Set the camera's location to the location of the camera entity (if any)
         registry.view<TransformComponent, CameraComponent>().each(
             [this](const TransformComponent& transform) {
+                TOD: Is this correct? Would it be better to build a projection matrix directly?
                 const auto inverse_view_matrix = transform.get_local_to_world();
                 player_view.set_view_matrix(glm::inverse(inverse_view_matrix));
             });
@@ -107,6 +108,7 @@ namespace render {
             RenderBackend::get().execute_graph(graph);
         }
 
+        handle->calculate_worldspace_bounds();
         handle->data.inverse_model = glm::inverse(handle->data.model);
         primitive_upload_buffer.add_data(handle.index, handle->data);
     }
@@ -145,19 +147,11 @@ namespace render {
             .visible_to_ray_tracing = visible_to_ray_tracing
         };
 
-        const auto& bounds = mesh->bounds;
-        const auto radius = glm::max(
-            glm::max(bounds.max.x - bounds.min.x, bounds.max.y - bounds.min.y),
-            bounds.max.z - bounds.min.z
-            );
-
-        primitive.data.bounds_min_and_radius = float4{bounds.min, radius};
-        primitive.data.bounds_max = float4{bounds.max, 0};
-
         const auto material_buffer_address = materials.get_material_instance_buffer()->address;
         primitive.data.material = material_buffer_address + primitive.material.index * sizeof(BasicPbrMaterialGpu);
         primitive.data.mesh_id = primitive.mesh.index;
-        primitive.data.type = static_cast<uint32_t>(primitive.material->first.transparency_mode);
+        const auto transparency_mode_bit = static_cast<uint32_t>(primitive.material->first.transparency_mode);
+        primitive.data.flags = PRIMITIVE_FLAG_ENABLED | (1 << transparency_mode_bit);
 
         const auto index_buffer_address = meshes.get_index_buffer()->address;
         primitive.data.indices = index_buffer_address + primitive.mesh->first_index * sizeof(uint32_t);
@@ -242,6 +236,11 @@ namespace render {
         return handle;
     }
 
+    void RenderWorld::mark_proxy_inactive(const MeshPrimitiveProxyHandle primitive) {
+        primitive->data.flags &= ~PRIMITIVE_FLAG_ENABLED;
+        update_mesh_proxy(primitive);
+    }
+
     void RenderWorld::destroy_primitive(const MeshPrimitiveProxyHandle primitive) {
         switch(primitive->material->first.transparency_mode) {
         case TransparencyMode::Solid:
@@ -260,6 +259,8 @@ namespace render {
         if(raytracing_world) {
             raytracing_world->remove_primitive(primitive);
         }
+
+        mark_proxy_inactive(primitive);
 
         static_mesh_primitives.free_object(primitive);
     }

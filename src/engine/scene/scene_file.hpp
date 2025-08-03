@@ -6,6 +6,9 @@
 #include <entt/entt.hpp>
 #include <spdlog/logger.h>
 
+#include "animation/animation_system.hpp"
+#include "animation/animation_system.hpp"
+#include "animation/animation_system.hpp"
 #include "resources/resource_path.hpp"
 #include "reflection/serialization/serializers.hpp"
 #include "reflection/serialization/eastl/vector.hpp"
@@ -73,6 +76,18 @@ public:
     SceneObject& add_object(const ResourcePath& filepath, float3 location, bool add_to_world = false);
 
     const eastl::vector<SceneObject>& get_objects() const;
+
+    /**
+     * Deletes the scene object with the specified entity. No-op if no scene objects have this entity
+     *
+     * Does NOT remove the entity from the world!
+     *
+     * To delete an entity, use World::destroy_entity. That'll remove the entire transform hierarchy and also ensure
+     * that child entities are removed from their respective scenes
+     *
+     * \see World::destroy_entity
+     */
+    void delete_object_by_entity(entt::handle entity);
 
     template<typename Archive>
     void save(Archive& ar) {

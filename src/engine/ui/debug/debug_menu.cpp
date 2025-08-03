@@ -97,6 +97,8 @@ void DebugUI::draw() {
     }
 
     if(are_tools_visible) {
+        handle_debug_input();
+
         if(show_demo) {
             ImGui::ShowDemoWindow(&show_demo);
         }
@@ -193,6 +195,15 @@ void DebugUI::create_font_texture() {
                                  .build();
 
     io.Fonts->TexID = reinterpret_cast<ImTextureID>(font_atlas_descriptor_set);
+}
+
+void DebugUI::handle_debug_input() {
+    if(ImGui::IsKeyPressed(ImGuiKey_Delete) && selected_entity.valid()) {
+        auto& world = Engine::get().get_world();
+        world.destroy_entity(selected_entity);
+
+        selected_entity = {};
+    }
 }
 
 void DebugUI::draw_editor_menu() {
@@ -492,19 +503,20 @@ void DebugUI::draw_world_info_window() {
                 } else {
                     auto& scene = engine.get_scene(selected_scene);
                     const auto& objects = scene.get_objects();
-                    auto names = eastl::vector<ResourcePath>{};
-                    names.reserve(objects.size());
-                    for(const auto& obj : objects) {
-                        names.emplace_back(obj.filepath);
-                    }
 
-                    for(const auto& path : names) {
-                        const auto pathstring = path.to_string();
+                    auto idx = 0;
+                    for(const auto& obj : objects) {
+                        ImGui::PushID(idx);
+                        ImGui::Separator();
+                        const auto pathstring = obj.filepath.to_string();
                         ImGui::Text("%s", pathstring.c_str());
-                        const auto deletetext = "Delete##" + pathstring;
-                        if(ImGui::Button(deletetext.c_str())) {
-                            TODO: Find a unique identifier for the scene object to delete. Maybe index in the list?
+                        if(ImGui::Button("Select")) {
+                            if(obj.entity.valid()) {
+                                selected_entity = obj.entity;
+                            }
                         }
+                        ImGui::PopID();
+                        idx++;
                     }
                 }
 
@@ -551,7 +563,9 @@ void DebugUI::draw_world_info_window() {
                 // Sort them so I don't go insane
                 eastl::sort(all_scene_names.begin(), all_scene_names.end());
 
+                auto idx = 0;
                 for(const auto& name : all_scene_names) {
+                    ImGui::PushID(idx);
                     const auto is_loaded = eastl::find(loaded_scene_names.begin(), loaded_scene_names.end(), name)
                                            != loaded_scene_names.end();
                     if(is_loaded) {
@@ -580,6 +594,9 @@ void DebugUI::draw_world_info_window() {
                     if(ImGui::Button(display_name.c_str())) {
                         selected_scene = name;
                     }
+
+                    ImGui::PopID();
+                    idx++;
                 }
 
                 ImGui::EndTabItem();

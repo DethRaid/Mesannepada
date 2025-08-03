@@ -3,9 +3,19 @@
 
 #include "shared/prelude.h"
 
-#define PRIMITIVE_TYPE_SOLID 0
-#define PRIMITIVE_TYPE_CUTOUT 1
-#define PRIMITIVE_TYPE_TRANSPARENT 2
+// Various flags that can apply to primitives
+
+// This is a completely opaque primitive
+#define PRIMITIVE_FLAG_SOLID            1 << 0
+
+// This primitive has an alpha mask, either from a texture or calculated in a shader
+#define PRIMITIVE_FLAG_CUTOUT           1 << 1
+
+// This primitive has an alpha texture and should be partially translucent
+#define PRIMITIVE_FLAG_TRANSPARENT      1 << 2
+
+// This primitive is currently active and should be drawn
+#define PRIMITIVE_FLAG_ENABLED          1 << 3
 
 #if defined(__cplusplus)
 using MaterialPointer = uint64_t;
@@ -54,7 +64,7 @@ struct PrimitiveDataGPU {
     MaterialPointer material;                               // Offset 160, size 8
 
     uint mesh_id;                                           // Offset 168, size 4
-    uint type;  // See the PRIMITIVE_TYPE_ defines above    // Offset 172, size 4
+    uint flags;  // See the PRIMITIVE_FLAG_ defines above   // Offset 172, size 4
 
     IndexPointer indices;                                   // Offset 176, size 8
     VertexPositionPointer vertex_positions;                 // Offset 184, size 8

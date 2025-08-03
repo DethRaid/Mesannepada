@@ -63,6 +63,8 @@ private:
 
     void create_font_texture();
 
+    void handle_debug_input();
+
     void draw_editor_menu();
 
     eastl::ring_buffer<float> frame_time_samples;

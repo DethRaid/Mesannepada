@@ -14,6 +14,7 @@
 #include "player/first_person_player.hpp"
 #include "reflection/reflection_macros.hpp"
 #include "render/components/light_component.hpp"
+#include "render/components/static_mesh_component.hpp"
 #include "resources/model_components.hpp"
 #include "scene/camera_component.hpp"
 #include "scene/entity_info_component.hpp"
@@ -78,10 +79,27 @@ namespace reflection {
             TRAITS(Trivial);
 
         entt::meta_factory<JPH::BodyID>{}
-            TRAITS(EditorReadOnly);
+            TRAITS(EditorReadOnly)
+            TRAITS(Transient);
 
-        entt::meta_factory<eastl::fixed_vector<entt::entity, 16>>{};
-        entt::meta_factory<eastl::vector<entt::handle>>{};
+        entt::meta_factory<render::MeshHandle>{}
+            TRAITS(EditorReadOnly)
+            TRAITS(Transient)
+            DATA(render::MeshHandle, index);
+
+        entt::meta_factory<PooledObject<render::BasicPbrMaterialProxy> >{}
+            TRAITS(EditorReadOnly)
+            TRAITS(Transient)
+            DATA(PooledObject<render::BasicPbrMaterialProxy>, index);
+
+        entt::meta_factory<render::MeshPrimitiveProxyHandle>{}
+            TRAITS(EditorReadOnly)
+            TRAITS(Transient)
+            DATA(render::MeshPrimitiveProxyHandle, index);
+
+        entt::meta_factory<eastl::fixed_vector<entt::entity, 16> >{};
+        entt::meta_factory<eastl::fixed_vector<render::StaticMeshPrimitive, 8> >{};
+        entt::meta_factory<eastl::vector<entt::handle> >{};
 
         // And our component types
         REFLECT_COMPONENT(TransformComponent)
@@ -103,6 +121,16 @@ namespace reflection {
         REFLECT_COMPONENT(physics::CollisionComponent)
             DATA(physics::CollisionComponent, body_id)
             TRAITS(Transient);
+
+        entt::meta_factory<render::StaticMeshPrimitive>{}
+            TRAITS(EditorReadOnly)
+            DATA(render::StaticMeshPrimitive, mesh)
+            DATA(render::StaticMeshPrimitive, material)
+            DATA(render::StaticMeshPrimitive, proxy)
+            DATA(render::StaticMeshPrimitive, visible_to_ray_tracing);
+
+        REFLECT_COMPONENT(render::StaticMeshComponent)
+            DATA(render::StaticMeshComponent, primitives);
 
         REFLECT_COMPONENT(render::PointLightComponent)
             DATA(render::PointLightComponent, color)

@@ -69,6 +69,8 @@ namespace render {
             BufferHandle bone_matrices_buffer
             );
 
+        void mark_proxy_inactive(MeshPrimitiveProxyHandle primitive);
+
         void update_mesh_proxy(MeshPrimitiveProxyHandle handle);
 
         void update_mesh_proxy(SkeletalMeshPrimitiveProxyHandle handle);

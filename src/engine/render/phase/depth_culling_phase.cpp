@@ -217,7 +217,7 @@ namespace render {
                     },
                 },
                 .execute = [&](CommandBuffer& commands) {
-                    auto& texture_descriptor_pool = backend.get_texture_descriptor_pool();
+                    const auto& texture_descriptor_pool = backend.get_texture_descriptor_pool();
                     commands.bind_descriptor_set(0, texture_descriptor_pool.get_descriptor_set());
 
                     commands.bind_buffer_reference(0, primitive_buffer);
@@ -229,6 +229,9 @@ namespace render {
 
                     commands.set_push_constant(10, num_primitives);
                     commands.set_push_constant(11, hi_z_index);
+                    commands.set_push_constant(12, static_cast<float>(hi_z_buffer->get_resolution().x));
+                    commands.set_push_constant(13, static_cast<float>(hi_z_buffer->get_resolution().y));
+                    commands.set_push_constant(14, static_cast<float>(hi_z_buffer->create_info.mipLevels));
 
                     commands.bind_pipeline(hi_z_culling_shader);
 
@@ -292,7 +295,7 @@ namespace render {
                 primitive_buffer,
                 num_primitives,
                 world.get_mesh_storage().get_draw_args_buffer(),
-                PRIMITIVE_TYPE_SOLID
+                PRIMITIVE_FLAG_SOLID
                 );
 
         BufferHandle indirect_commands_buffer;
@@ -416,7 +419,7 @@ namespace render {
             primitive_buffer,
             num_primitives,
             world.get_mesh_storage().get_draw_args_buffer(),
-            PRIMITIVE_TYPE_SOLID
+            PRIMITIVE_FLAG_SOLID
             );
 
         const auto cutout_buffers = translate_visibility_list_to_draw_commands(
@@ -425,7 +428,7 @@ namespace render {
             primitive_buffer,
             num_primitives,
             world.get_mesh_storage().get_draw_args_buffer(),
-            PRIMITIVE_TYPE_CUTOUT
+            PRIMITIVE_FLAG_CUTOUT
             );
 
         const auto& pipelines = world.get_material_storage().get_pipelines();

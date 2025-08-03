@@ -1,6 +1,8 @@
 #include "world.hpp"
 
 #include <simdjson.h>
+
+#include "core/engine.hpp"
 #include "tracy/Tracy.hpp"
 
 #include "core/issue_breakpoint.hpp"
@@ -52,6 +54,11 @@ void World::destroy_entity(const entt::entity entity) {
         for(const auto child_entity : transform->children) {
             destroy_entity(child_entity);
         }
+    }
+
+    auto& scenes = Engine::get().get_loaded_scenes();
+    for(auto& [name, scene] : scenes) {
+        scene.delete_object_by_entity(entt::handle{registry, entity});
     }
 
     top_level_entities.erase(entity);

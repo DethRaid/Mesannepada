@@ -358,14 +358,14 @@ namespace render {
             world->get_primitive_buffer(),
             world->get_total_num_primitives(),
             world->get_meshes().get_draw_args_buffer(),
-            PRIMITIVE_TYPE_SOLID);
+            PRIMITIVE_FLAG_SOLID);
         const auto visible_masked_buffers = translate_visibility_list_to_draw_commands(
             render_graph,
             visible_objects_list,
             world->get_primitive_buffer(),
             world->get_total_num_primitives(),
             world->get_meshes().get_draw_args_buffer(),
-            PRIMITIVE_TYPE_CUTOUT);
+            PRIMITIVE_FLAG_CUTOUT);
 
         if(needs_motion_vectors) {
             motion_vectors_phase.render(
