@@ -122,10 +122,10 @@ void main(uint primitive_id : SV_DispatchThreadID) {
         return;
     }
         
-    if(is_occluded(center, radius)) {
-        mark_invisible(primitive_id);
-        return;
-    }
+    // if(is_occluded(center, radius)) {
+    //     mark_invisible(primitive_id);
+    //     return;
+    // }
  
     const uint visible_last_frame = last_frame_visibility[primitive_id];
     const uint newly_visible = visible_last_frame == 0 ? 1 : 0;
