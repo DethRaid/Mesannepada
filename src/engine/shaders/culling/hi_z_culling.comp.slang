@@ -74,7 +74,7 @@ bool is_occluded(const float3 center, const float radius) {
     float4 aabb;
     const bool success = projectSphere(center, radius, view_data.z_near, view_data.projection[0][0], view_data.projection[1][1], aabb);
     if(!success) {
-        return true;
+        return false;
     }
 
     // Reversed AABB order because... reasons. If I use the order vkguide uses the AABB size is negative and I sample
@@ -122,10 +122,13 @@ void main(uint primitive_id : SV_DispatchThreadID) {
         return;
     }
         
-    // if(is_occluded(center, radius)) {
-    //     mark_invisible(primitive_id);
-    //     return;
-    // }
+    // center has a negative z, which seems wrong?
+    // When we project the AABB, we check if the bounding sphere overlaps the near plane or is below it. A negative 
+    // center.z causes that check to reject all objects
+    if(is_occluded(center, radius)) {
+        mark_invisible(primitive_id);
+        return;
+    }
  
     const uint visible_last_frame = last_frame_visibility[primitive_id];
     const uint newly_visible = visible_last_frame == 0 ? 1 : 0;
