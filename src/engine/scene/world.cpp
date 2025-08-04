@@ -50,6 +50,10 @@ entt::handle World::find_entity(const eastl::string_view name) {
 }
 
 void World::destroy_entity(const entt::entity entity) {
+    if(!registry.valid(entity)) {
+        return;
+    }
+
     if(auto* transform = registry.try_get<TransformComponent>(entity)) {
         for(const auto child_entity : transform->children) {
             destroy_entity(child_entity);

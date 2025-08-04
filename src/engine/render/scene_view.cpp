@@ -51,6 +51,8 @@ namespace render {
         aspect = aspect_in;
         near_value = near_value_in;
 
+        gpu_data.z_near = near_value;
+
         is_dirty = true;
     }
 

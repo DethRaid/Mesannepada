@@ -62,17 +62,22 @@ bool is_in_frustum(const float3 center, const float radius) {
     visible = visible && center.z * view_data.frustum[1] - abs(center.x) * view_data.frustum[0] > -radius;
     visible = visible && center.z * view_data.frustum[3] - abs(center.y) * view_data.frustum[2] > -radius;
 
+    visible = visible && -center.z + radius > view_data.z_near;
+
     return visible;
 }
 
 bool is_occluded(const float3 center, const float radius) {
+    // Flip z because stinky
+    const float3 corrected_center = center * float3(1, 1, -1);
+
     // If the sphere overlaps with the near plane, we get NaNs. Avoid that issue
-    if(abs(center.z) < radius) {
+    if(abs(corrected_center.z) < radius) {
         return false;
     }
 
     float4 aabb;
-    const bool success = projectSphere(center, radius, view_data.z_near, view_data.projection[0][0], view_data.projection[1][1], aabb);
+    const bool success = projectSphere(corrected_center, radius, view_data.z_near, view_data.projection[0][0], view_data.projection[1][1], aabb);
     if(!success) {
         return false;
     }
@@ -89,10 +94,9 @@ bool is_occluded(const float3 center, const float radius) {
 
     float depth = textures[hi_z_texture_index].SampleLevel((aabb.xy + aabb.zw) * 0.5f, level).r;
 
-    float depth_of_sphere = view_data.z_near / (center.z - radius);
-    depth_of_sphere = clamp(depth_of_sphere, 0, 1);
+    float depth_of_sphere = view_data.z_near / (corrected_center.z + radius);
 
-    return depth_of_sphere >= depth;
+    return depth_of_sphere < depth;
 }
 
 void mark_invisible(uint primitive_id) {
@@ -122,13 +126,11 @@ void main(uint primitive_id : SV_DispatchThreadID) {
         return;
     }
         
-    // center has a negative z, which seems wrong?
-    // When we project the AABB, we check if the bounding sphere overlaps the near plane or is below it. A negative 
-    // center.z causes that check to reject all objects
-    if(is_occluded(center, radius)) {
-        mark_invisible(primitive_id);
-        return;
-    }
+    // Something is wrong here... I don't know what, and I have enough performance overhead to not worry about it
+    // if(is_occluded(center, radius)) {
+    //     mark_invisible(primitive_id);
+    //     return;
+    // }
  
     const uint visible_last_frame = last_frame_visibility[primitive_id];
     const uint newly_visible = visible_last_frame == 0 ? 1 : 0;
