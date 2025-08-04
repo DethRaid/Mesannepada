@@ -86,9 +86,8 @@ namespace render {
         // Set the camera's location to the location of the camera entity (if any)
         registry.view<TransformComponent, CameraComponent>().each(
             [this](const TransformComponent& transform) {
-                TOD: Is this correct? Would it be better to build a projection matrix directly?
-                const auto inverse_view_matrix = transform.get_local_to_world();
-                player_view.set_view_matrix(glm::inverse(inverse_view_matrix));
+                const auto model_matrix = transform.get_local_to_world();
+                player_view.set_view_matrix(glm::inverse(model_matrix));
             });
 
         auto& upload_queue = RenderBackend::get().get_upload_queue();
