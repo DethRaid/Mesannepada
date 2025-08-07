@@ -68,16 +68,13 @@ bool is_in_frustum(const float3 center, const float radius) {
 }
 
 bool is_occluded(const float3 center, const float radius) {
-    // Flip z because stinky
-    const float3 corrected_center = center * float3(1, 1, -1);
-
     // If the sphere overlaps with the near plane, we get NaNs. Avoid that issue
-    if(abs(corrected_center.z) < radius) {
+    if(abs(center.z) < radius) {
         return false;
     }
 
     float4 aabb;
-    const bool success = projectSphere(corrected_center, radius, view_data.z_near, view_data.projection[0][0], view_data.projection[1][1], aabb);
+    const bool success = projectSphere(center, radius, view_data.z_near, view_data.projection[0][0], view_data.projection[1][1], aabb);
     if(!success) {
         return false;
     }
@@ -94,9 +91,9 @@ bool is_occluded(const float3 center, const float radius) {
 
     float depth = textures[hi_z_texture_index].SampleLevel((aabb.xy + aabb.zw) * 0.5f, level).r;
 
-    float depth_of_sphere = view_data.z_near / (corrected_center.z + radius);
+    float depth_of_sphere = view_data.z_near / (center.z - radius);
 
-    return depth_of_sphere < depth;
+    return -depth_of_sphere < depth;
 }
 
 void mark_invisible(uint primitive_id) {
