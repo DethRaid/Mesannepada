@@ -23,24 +23,38 @@ bool AnimationEventSampler::is_ended(const float time) const {
     return local_time > timeline->timestamps.back();
 }
 
-bool NodeAnimator::has_animation_ended(const float time) const {
-    const auto local_time = time - start_time;
+float NodeAnimator::get_duration() const {
+    float duration = 0;
 
+    if(position_sampler) {
+        duration = eastl::max(duration, position_sampler->timeline->timestamps.back());
+    }
+    if (rotation_sampler) {
+        duration = eastl::max(duration,  rotation_sampler->timeline->timestamps.back());
+    }
+    if (scale_sampler) {
+        duration = eastl::max(duration,  scale_sampler->timeline->timestamps.back());
+    }
+
+    return duration;
+}
+
+bool NodeAnimator::has_animation_ended(const float time) const {
     auto position_ended = true;
     if(position_sampler) {
-        if(local_time < position_sampler->timeline->timestamps.back()) {
+        if(time < position_sampler->timeline->timestamps.back()) {
             position_ended = false;
         }
     }
     auto rotation_ended = true;
     if (rotation_sampler) {
-        if (local_time < rotation_sampler->timeline->timestamps.back()) {
+        if (time < rotation_sampler->timeline->timestamps.back()) {
             rotation_ended = false;
         }
     }
     auto scale_ended = true;
     if (scale_sampler) {
-        if (local_time < scale_sampler->timeline->timestamps.back()) {
+        if (time < scale_sampler->timeline->timestamps.back()) {
             scale_ended = false;
         }
     }
@@ -48,21 +62,18 @@ bool NodeAnimator::has_animation_ended(const float time) const {
 }
 
 float4x4 NodeAnimator::sample(const float time) {
-    const auto local_time = time - start_time;
-
     float4x4 transform{1.f};
     if(position_sampler) {
-        const auto position = position_sampler->sample(local_time);
+        const auto position = position_sampler->sample(time);
         transform = glm::translate(transform, position);
         // spdlog::debug("Position: {}, {}, {}", position.x, position.y, position.z);
     }
     if(rotation_sampler) {
-        const auto rotation = rotation_sampler->sample(local_time);
-        const auto euler_rotation = glm::eulerAngles(rotation);
+        const auto rotation = rotation_sampler->sample(time);
         transform = transform * glm::mat4_cast(rotation);
     }
     if(scale_sampler) {
-        const auto scale = scale_sampler->sample(local_time);
+        const auto scale = scale_sampler->sample(time);
         transform = glm::scale(transform, scale);
     }
 

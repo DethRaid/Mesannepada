@@ -30,6 +30,7 @@ void AnimationSystem::tick(float delta_time) {
 
     registry.view<PlayAnimationComponent>().each(
         [&](const entt::entity entity, const PlayAnimationComponent& comp) {
+            logger->debug("Playing a animation on entity {}", static_cast<uint32_t>(entity));
             const auto handle = world.make_handle(entity);
             if(const auto skelly = World::find_component_in_children<render::SkeletalMeshComponent>(handle);
                 skelly.valid()) {
@@ -46,13 +47,15 @@ void AnimationSystem::tick(float delta_time) {
 
     registry.view<TransformComponent, NodeAnimationComponent>().each(
         [&](const entt::entity entity, const TransformComponent& transform, NodeAnimationComponent& animator) {
-            if(animator.animator.has_animation_ended(current_time)) {
+            const auto local_time = current_time - animator.start_time;
+
+            if(animator.animator.has_animation_ended(local_time)) {
                 registry.remove<NodeAnimationComponent>(entity);
             } else {
                 registry.patch<TransformComponent>(
                     entity,
                     [&](TransformComponent& trans) {
-                        trans.set_local_transform(animator.animator.sample(current_time));
+                        trans.set_local_transform(animator.animator.sample(local_time));
                     });
             }
         });
@@ -61,10 +64,14 @@ void AnimationSystem::tick(float delta_time) {
 
     registry.view<render::SkeletalMeshComponent, SkeletalAnimatorComponent>().each(
         [&](const entt::entity entity, render::SkeletalMeshComponent& skelly, SkeletalAnimatorComponent& animator) {
-            if(animator.animator.has_animation_ended(current_time)) {
+            auto local_time = current_time - animator.start_time;
+            const auto num_iterations = floor(local_time / animator.duration);
+            local_time -= num_iterations * animator.duration;
+
+            if(!animator.looping && animator.animator.has_animation_ended(local_time)) {
                 registry.remove<SkeletalAnimatorComponent>(entity);
             } else {
-                animator.animator.update_bones(skelly.bones, current_time);
+                animator.animator.update_bones(skelly.bones, local_time);
             }
         });
 
@@ -160,7 +167,7 @@ void AnimationSystem::play_node_animation_on_entity(const entt::handle entity, c
 
     // Add animator components to all the nodes referenced by the animation
     for(const auto& [node, node_animation] : itr->second->channels) {
-        auto animator = NodeAnimator{.start_time = start_time};
+        auto animator = NodeAnimator{};
 
         if(node_animation.position) {
             animator.position_sampler = PositionAnimationSampler{.timeline = &*node_animation.position};
@@ -173,7 +180,10 @@ void AnimationSystem::play_node_animation_on_entity(const entt::handle entity, c
         }
 
         const auto node_entity = model_component.node_to_entity.at(node);
-        node_entity.emplace<NodeAnimationComponent>(NodeAnimationComponent{.animator = animator});
+        node_entity.emplace<NodeAnimationComponent>(NodeAnimationComponent{
+            .animator = animator,
+            .start_time = start_time
+        });
     }
 
     if(!itr->second->events.timestamps.empty()) {
@@ -198,10 +208,11 @@ void AnimationSystem::play_skeletal_animation_on_entity(entt::handle entity, con
 
     const auto start_time = Engine::get().get_current_time();
 
+    auto duration = 0.f;
+
     for(const auto& [idx, channel] : itr->second->channels) {
         auto& channel_animator = animator.joint_animators.emplace_back(NodeAnimator{
-            .target_node = idx,
-            .start_time = start_time
+            .target_node = idx
         });
 
         if(channel.position) {
@@ -213,7 +224,13 @@ void AnimationSystem::play_skeletal_animation_on_entity(entt::handle entity, con
         if(channel.scale) {
             channel_animator.scale_sampler = ScaleAnimationSampler{.timeline = &*channel.scale};
         }
+
+        duration = eastl::max(duration, channel_animator.get_duration());
     }
 
-    entity.emplace<SkeletalAnimatorComponent>(animator);
+    entity.emplace<SkeletalAnimatorComponent>(SkeletalAnimatorComponent{
+        .animator = animator,
+        .start_time = start_time,
+        .duration = duration,
+    });
 }

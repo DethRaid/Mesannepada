@@ -94,7 +94,7 @@ struct NodeAnimator {
     eastl::optional<RotationAnimationSampler> rotation_sampler = eastl::nullopt;
     eastl::optional<ScaleAnimationSampler> scale_sampler = eastl::nullopt;
 
-    float start_time;
+    float get_duration() const;
 
     /**
      * Checks if the animation has ended at the given time, e.g. is the given time past the end of all the samplers
