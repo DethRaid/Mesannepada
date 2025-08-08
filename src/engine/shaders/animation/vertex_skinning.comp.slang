@@ -39,7 +39,7 @@ void main(uint vertex_id : SV_DispatchThreadID) {
 
     normal.xyz = normalize(normal.xyz);
 
-    primitive_data.vertex_positions[vertex_id] = original_position.xyz;
+    primitive_data.vertex_positions[vertex_id] = position.xyz;
     primitive_data.vertex_data[vertex_id] = skeletal_primitive_data.original_data[vertex_id];
     primitive_data.vertex_data[vertex_id].normal = normal.xyz;
 }
