@@ -4,6 +4,7 @@
 #include <RmlUi/Core/Types.h>
 #include <EASTL/string.h>
 
+#include "core/engine.hpp"
 #include "scalability/settings_controller.hpp"
 #include "ui/ui_screen.hpp"
 
@@ -22,10 +23,15 @@ namespace ui {
         bool graphics_dirty = false;
 
         uint32_t antialiasing = 0;
-
+        
+        inline static auto supports_dlss = SAH_USE_STREAMLINE;
         uint32_t dlss_mode = 3;
         bool dlss_ray_reconstruction = true;
 
+        inline static auto supports_xess = SAH_USE_XESS;
+        uint32_t xess_mode = 3;
+
+        inline static auto supports_fsr = SAH_USE_FFX;
         uint32_t fsr3_mode = 1;
 
         std::string shadow_fidelity = "Ultra";
@@ -54,6 +60,8 @@ namespace ui {
         void on_submit_graphics_options(Rml::DataModelHandle handle, Rml::Event& event, const Rml::VariantList& params);
 
         void set_dlss_options(SettingsController& settings);
+
+        void set_xess_options(SettingsController& settings);
 
         void set_fsr3_options(SettingsController& settings);
 

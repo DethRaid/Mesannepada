@@ -16,7 +16,8 @@ SettingsController::SettingsController() {
         logger = SystemInterface::get().get_logger("SettingsController");
     }
     try {
-        auto* scalability_file = SystemInterface::get().open_file(ResourcePath{ResourcePath::Scope::Resource, SCALABILITY_FILE_NAME});
+        auto* scalability_file = SystemInterface::get().open_file(
+            ResourcePath{ResourcePath::Scope::Resource, SCALABILITY_FILE_NAME});
         scalability_data = toml::parse(scalability_file, SCALABILITY_FILE_NAME);
     } catch(const std::exception& e) {
         logger->error(e.what());
@@ -44,6 +45,12 @@ void SettingsController::set_dlss_mode(const sl::DLSSMode dlss_mode) {
 void SettingsController::set_use_ray_reconstruction(const bool use_ray_reconstruction_in) {
     use_ray_reconstruction = use_ray_reconstruction_in;
 }
+
+#if SAH_USE_XESS
+void SettingsController::set_xess_mode(xess_quality_settings_t xess_quality_setting_in) {
+    xess_quality_setting = xess_quality_setting_in;
+}
+#endif
 
 #if SAH_USE_FFX
 void SettingsController::set_fsr3_mode(FfxApiUpscaleQualityMode fsr3_mode_in) {
@@ -108,6 +115,12 @@ bool SettingsController::get_ray_reconstruction() const {
     return use_ray_reconstruction;
 }
 
+#if SAH_USE_XESS
+xess_quality_settings_t SettingsController::get_xess_mode() const {
+    return xess_quality_setting;
+}
+#endif
+
 #if SAH_USE_FFX
 FfxApiUpscaleQualityMode SettingsController::get_fsr3_mode() const {
     return fsr3_mode;
@@ -136,6 +149,11 @@ void SettingsController::apply_graphics_settings() {
         cvars->SetIntCVar("r.DLSS-RR.Enabled", use_ray_reconstruction);
     } else
 #endif
+#if SAH_USE_XESS
+    if(anti_aliasing == render::AntiAliasingType::XeSS) {
+        cvars->SetEnumCVar("r.XeSS.Mode", xess_quality_setting);
+    } else
+#endif
 #if SAH_USE_FFX
     if(anti_aliasing == render::AntiAliasingType::FSR3) {
         cvars->SetIntCVar("r.FSR3.Quality", fsr3_mode);
@@ -157,7 +175,7 @@ void SettingsController::save_graphics_settings_file() const {
 
     data_file_path /= "settings.toml";
 
-    if (!exists(data_file_path)) {
+    if(!exists(data_file_path)) {
         SystemInterface::get().write_file(data_file_path, "");
     }
 
@@ -168,7 +186,9 @@ void SettingsController::save_graphics_settings_file() const {
     data_file["graphics"]["dlss_mode"] = static_cast<uint32_t>(dlss_mode);
     data_file["graphics"]["dlss_ray_reconstruction"] = use_ray_reconstruction;
 #endif
-
+#if SAH_USE_XESS
+    data_file["graphics"]["xess_mode"] = static_cast<uint32_t>(xess_quality_setting);
+#endif
 #if SAH_USE_FFX
     data_file["graphics"]["fsr3_mode"] = static_cast<uint32_t>(fsr3_mode);
 #endif
@@ -206,7 +226,7 @@ void SettingsController::save_audio_settings_file() const {
 
     data_file_path /= "settings.toml";
 
-    if (!exists(data_file_path)) {
+    if(!exists(data_file_path)) {
         SystemInterface::get().write_file(data_file_path, "");
     }
 
@@ -234,13 +254,19 @@ void SettingsController::load_settings_file() {
             anti_aliasing = static_cast<render::AntiAliasingType>(itr->second.as_integer());
         }
 #if SAH_USE_STREAMLINE
-        if (const auto itr = graphics_settings.find("dlss_mode"); itr != graphics_settings.end()) {
+        if(const auto itr = graphics_settings.find("dlss_mode"); itr != graphics_settings.end()) {
             dlss_mode = static_cast<sl::DLSSMode>(itr->second.as_integer());
         }
 #endif
         if(const auto itr = graphics_settings.find("dlss_ray_reconstruction"); itr != graphics_settings.end()) {
             use_ray_reconstruction = itr->second.as_boolean();
         }
+
+#if SAH_USE_XESS
+        if(const auto itr = graphics_settings.find("xess_mode"); itr != graphics_settings.end()) {
+            xess_quality_setting = static_cast<xess_quality_settings_t>(itr->second.as_integer());
+        }
+#endif
 #if SAH_USE_FFX
         if(const auto itr = graphics_settings.find("fsr3_mode"); itr != graphics_settings.end()) {
             fsr3_mode = static_cast<FfxApiUpscaleQualityMode>(itr->second.as_integer());
@@ -259,7 +285,7 @@ void SettingsController::load_settings_file() {
     if(data_file.contains("audio")) {
         const auto& audio_settings = data_file.at("audio").as_table();
 
-        if (const auto itr = audio_settings.find("master_volume"); itr != audio_settings.end()) {
+        if(const auto itr = audio_settings.find("master_volume"); itr != audio_settings.end()) {
             master_volume = itr->second.as_floating();
         }
         if(const auto itr = audio_settings.find("music_volume"); itr != audio_settings.end()) {
