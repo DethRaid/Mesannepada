@@ -280,7 +280,7 @@ if(SAH_USE_XESS)
         FetchContent_Declare(
                 xess
                 GIT_REPOSITORY  https://github.com/intel/xess.git     
-                GIT_TAG         v2.0.1
+                GIT_TAG         v2.1.0
         )
         FetchContent_GetProperties(xess)
         if(xess_POPULATED)

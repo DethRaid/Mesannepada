@@ -218,7 +218,7 @@ std::filesystem::path SystemInterface::get_write_folder() const {
     eastl::string str(count, 0);
     WideCharToMultiByte(CP_UTF8, 0, chonker.c_str(), -1, str.data(), count, nullptr, nullptr);
 
-    base_folder = std::filesystem::path{ str };
+    base_folder = std::filesystem::path{str.c_str()};
 #endif
 
     return base_folder / "mesannepada";
