@@ -4,11 +4,16 @@
 #include <sl.h>
 #include <sl_dlss.h>
 #endif
+
 #include <RmlUi/Core/Context.h>
 #include <RmlUi/Core/DataModelHandle.h>
 
 #if SAH_USE_FFX
 #include <ffx_api/ffx_upscale.h>
+#endif
+
+#if SAH_USE_XESS
+#include <xess/xess.h>
 #endif
 
 #include "console/cvars.hpp"
@@ -38,9 +43,14 @@ namespace ui {
 
             graphics_data_model.Bind("antialiasing", &antialiasing);
 
+            graphics_data_model.Bind("supports_dlss", &supports_dlss);
             graphics_data_model.Bind("dlss_mode", &dlss_mode);
             graphics_data_model.Bind("dlss_ray_reconstruction", &dlss_ray_reconstruction);
 
+            graphics_data_model.Bind("supports_xess", &supports_xess);
+            graphics_data_model.Bind("xess_mode", &xess_mode);
+
+            graphics_data_model.Bind("supports_fsr", &supports_fsr);
             graphics_data_model.Bind("fsr3_mode", &fsr3_mode);
 
             graphics_data_model.Bind("shadow_fidelity", &shadow_fidelity);
@@ -153,9 +163,17 @@ namespace ui {
             break;
 #endif
 
+#if SAH_USE_XESS
         case 2:
+            settings.set_antialiasing(render::AntiAliasingType::XeSS);
+            break;
+#endif
+        
+#if SAH_USE_FSR
+        case 3:
             settings.set_antialiasing(render::AntiAliasingType::FSR3);
             break;
+#endif
 
         default:
             settings.set_antialiasing(render::AntiAliasingType::None);
@@ -181,8 +199,11 @@ namespace ui {
         } else if(antialiasing == 1) {
             settings.set_antialiasing(render::AntiAliasingType::DLSS);
             set_dlss_options(settings);
-
         } else if(antialiasing == 2) {
+            settings.set_antialiasing(render::AntiAliasingType::XeSS);
+            set_xess_options(settings);
+
+        } else if(antialiasing == 3) {
             settings.set_antialiasing(render::AntiAliasingType::FSR3);
             set_fsr3_options(settings);
         }
@@ -199,6 +220,12 @@ namespace ui {
 #if SAH_USE_STREAMLINE
         settings.set_dlss_mode(static_cast<sl::DLSSMode>(dlss_mode));
         settings.set_use_ray_reconstruction(dlss_ray_reconstruction);
+#endif
+    }
+
+    void SettingsScreen::set_xess_options(SettingsController& settings) {
+#if SAH_USE_XESS
+        settings.set_xess_mode(static_cast<xess_quality_settings_t>(xess_mode + 100));
 #endif
     }
 
@@ -254,13 +281,23 @@ namespace ui {
         } else if(aa == render::AntiAliasingType::DLSS) {
             antialiasing = 1;
 #endif
-        } else if(aa == render::AntiAliasingType::FSR3) {
+#if SAH_USE_XESS
+        } else if(aa == render::AntiAliasingType::XeSS) {
             antialiasing = 2;
+#endif
+#if SAH_USE_FSR
+        } else if(aa == render::AntiAliasingType::FSR3) {
+            antialiasing = 3;
+#endif
         }
 
 #if SAH_USE_STREAMLINE
         dlss_mode = static_cast<uint32_t>(settings.get_dlss_mode());
         dlss_ray_reconstruction = settings.get_ray_reconstruction();
+#endif
+
+#if SAH_USE_XESS
+        xess_mode = static_cast<uint32_t>(settings.get_xess_mode()) - 100u;
 #endif
 
 #if SAH_USE_FFX

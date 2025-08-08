@@ -134,7 +134,8 @@ namespace render {
             cached_output_resolution = output_resolution;
             cached_quality_mode = cvar_xess_mode.get();
 
-            uint32_t flags = XESS_INIT_FLAG_JITTERED_MV | XESS_INIT_FLAG_INVERTED_DEPTH;
+            uint32_t flags =
+                XESS_INIT_FLAG_JITTERED_MV | XESS_INIT_FLAG_INVERTED_DEPTH | XESS_INIT_FLAG_EXPOSURE_SCALE_TEXTURE;
             if(MotionVectorsPhase::render_full_res()) {
                 flags |= XESS_INIT_FLAG_HIGH_RES_MV;
             }
@@ -172,6 +173,10 @@ namespace render {
         params.exposureScale = 1;
         params.inputWidth = render_resolution.x;
         params.inputHeight = render_resolution.y;
+    }
+
+    float2 XeSSAdapter::get_jitter() {
+        return IUpscaler::get_jitter() / 2.f;
     }
 
     static xess_vk_image_view_info wrap_image(TextureHandle texture);

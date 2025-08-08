@@ -89,9 +89,10 @@
                     <div>
                         <div class="option-heading">Antialiasing</div>
                         <div class="option-value">
-                            <button data-event-click="dirty=true; on_antialiasing(0)" class="tri-button">Off</button>  
-                            <button data-event-click="dirty=true; on_antialiasing(1)" class="tri-button">Nvidia DLSS</button>  
-                            <button data-event-click="dirty=true; on_antialiasing(2)" class="tri-button">AMD FSR 3</button>
+                            <button data-event-click="dirty=true; on_antialiasing(0)" class="quad-button">Off</button>  
+                            <button data-if="supports_dlss == 1" data-event-click="dirty=true; on_antialiasing(1)" class="quad-button">Nvidia DLSS</button>  
+                            <button data-if="supports_xess == 1" data-event-click="dirty=true; on_antialiasing(2)" class="quad-button">Intel XeSS-SR</button>  
+                            <button data-if="supports_fsr == 1" data-event-click="dirty=true; on_antialiasing(3)" class="quad-button">AMD FSR 3</button>
                         </div> 
                     </div>
                     
@@ -129,6 +130,24 @@
                     </div>
 
                     <div data-if="antialiasing == 2">
+                        <div class="option-heading">XeSS-SR Mode</div>
+                        <div class="option-value">
+                            <select data-value="xess_mode" data-event-click="dirty=true">
+                                <option value="6">Native Anti-Aliasing</option>
+                                <option value="5">Ultra Quality Plus</option>
+                                <option value="4">Ultra Quality</option>
+                                <option value="3">Quality</option>
+                                <option value="2">Balanced</option>
+                                <option value="1">Performance</option>
+                                <option value="0">Ultra Performance</option>
+                            </select>
+                        </div>  
+
+                        <div class="divider" style="width: 110%">
+                        </div>
+                    </div>
+
+                    <div data-if="antialiasing == 3">
                         <div class="option-heading">AMD FSR Upscaling</div>
                         <div class="option-value">
                             <select data-value="fsr3_mode" data-event-click="dirty=true">

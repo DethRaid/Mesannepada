@@ -12,6 +12,7 @@
 #include <vulkan/vulkan_core.h>
 #include <glm/vec2.hpp>
 
+#include "shared/prelude.h"
 #include "render/upscaling/upscaler.hpp"
 
 namespace render {
@@ -43,6 +44,8 @@ namespace render {
         glm::uvec2 get_optimal_render_resolution() const override;
 
         void set_constants(const SceneView& scene_view, glm::uvec2 render_resolution) override;
+
+        float2 get_jitter() override;
 
         void evaluate(
             RenderGraph& graph, const SceneView& view, const GBuffer& gbuffer, TextureHandle color_in,
