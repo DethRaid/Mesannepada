@@ -131,7 +131,7 @@ void Engine::update_resolution() const {
 }
 
 void Engine::tick() {
-    ZoneScoped;
+    ZoneScopedN("Engine::tick");
 
     update_time();
 

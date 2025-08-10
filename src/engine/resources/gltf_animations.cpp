@@ -2,8 +2,10 @@
 
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
+#include <tracy/Tracy.hpp>
 
 void AnimationEventSampler::tick(const float time) {
+    ZoneScopedN("AnimationEventSampler::tick");
     const auto local_time = time - start_time;
     auto index = current_index;
 

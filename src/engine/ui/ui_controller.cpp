@@ -104,7 +104,7 @@ namespace ui {
     }
 
     void Controller::tick() {
-        ZoneScoped;
+        ZoneScopedN("ui::Controller::tick");
         context->Update();
         context->Render();
     }

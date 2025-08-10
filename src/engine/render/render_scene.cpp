@@ -80,7 +80,7 @@ namespace render {
     }
 
     void RenderWorld::tick(World& world) {
-        ZoneScoped;
+        ZoneScopedN("RenderWorld::tick");
         auto& registry = world.get_registry();
 
         // Set the camera's location to the location of the camera entity (if any)

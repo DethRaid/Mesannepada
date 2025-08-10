@@ -1,6 +1,7 @@
 #include "player_input_manager.hpp"
 
 #include <glm/geometric.hpp>
+#include <tracy/Tracy.hpp>
 
 #include "player/first_person_player.hpp"
 #include "scene/game_object_component.hpp"
@@ -35,6 +36,7 @@ void PlayerInputManager::set_controlled_entity(const entt::entity entity) {
 }
 
 void PlayerInputManager::tick(const float delta_time, World& world) {
+    ZoneScopedN("PlayerInputManager::tick");
     if(!enabled) {
         return;
     }

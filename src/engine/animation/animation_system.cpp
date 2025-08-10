@@ -20,7 +20,7 @@ AnimationSystem::AnimationSystem(World& world_in) :
 }
 
 void AnimationSystem::tick(float delta_time) {
-    ZoneScoped;
+    ZoneScopedN("AnimationSystem::tick");
 
     auto& registry = world.get_registry();
 

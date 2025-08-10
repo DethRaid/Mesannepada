@@ -98,7 +98,7 @@ namespace physics {
     }
 
     void PhysicsWorld::tick(const float delta_time, World& world) {
-        ZoneScoped;
+        ZoneScopedN("PhysicsWorld::tick");
 
         physics_system->Update(delta_time, 1, temp_allocator.get(), thread_pool.get());
 
