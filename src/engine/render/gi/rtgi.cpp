@@ -22,7 +22,7 @@ namespace render {
     };
 
     static auto cvar_denoiser = AutoCVar_Enum{"r.GI.Denoiser", "Which denoiser to use. 0 = none, 1 = ReBLUR, 2 = ReLAX",
-                                              DenoiserType::None};
+                                              DenoiserType::ReLAX};
 
 #if SAH_USE_IRRADIANCE_CACHE
     static AutoCVar_Int cvar_gi_cache{ "r.GI.Cache.Enabled", "Whether to enable the GI irradiance cache", false };
@@ -76,9 +76,14 @@ namespace render {
         ) {
         ZoneScoped;
 
-        if(cvar_denoiser.get() != DenoiserType::None && denoiser == nullptr) {
+        auto using_ray_reconstruction = false;
+        if(const auto* cvar_rr = CVarSystem::Get()->GetIntCVar("r.DLSS-RR.Enabled"); cvar_rr) {
+            using_ray_reconstruction = *cvar_rr != 0;
+        }
+
+        if(cvar_denoiser.get() != DenoiserType::None && denoiser == nullptr && !using_ray_reconstruction) {
             denoiser = eastl::make_unique<NvidiaRealtimeDenoiser>();
-        } else if(cvar_denoiser.get() == DenoiserType::None && denoiser) {
+        } else if((cvar_denoiser.get() == DenoiserType::None || using_ray_reconstruction) && denoiser) {
             RenderBackend::get().wait_for_idle();
             denoiser = nullptr;
         }
