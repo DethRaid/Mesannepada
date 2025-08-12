@@ -167,6 +167,18 @@ namespace render {
 
                     world.draw_masked(commands, masked_buffers, motion_vectors_masked_pso);
 
+                    okay so
+                    /*
+                     * The view needs to store the buffers of which objects are visible, and the indirect draw buffers
+                     * for those objects. That'll both save us some time translating visibility lists, and let us re-use
+                     * the culling results in other places (like here)
+                     *
+                     * I desparately want my mesh components to be a higher-level "render this asset here" and less
+                     * "here's the primitives we imported with no context". Transforms can have some information about
+                     * if they're static or dynamic. Then, we can generate separate draw lists for dynamic objects and
+                     * give them better motion vectors. And of course render animated meshes separately... sigh
+                     */
+
                     commands.clear_descriptor_set(0);
                 }
             });

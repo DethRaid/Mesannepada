@@ -16,6 +16,8 @@ namespace render {
 
         BufferHandle bone_transforms = nullptr;
 
+        BufferHandle previous_bone_transforms = nullptr;
+
         BufferHandle transformed_vertices = nullptr;
 
         BufferHandle transformed_data = nullptr;

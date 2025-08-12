@@ -66,7 +66,8 @@ namespace render {
         SkeletalMeshPrimitiveProxyHandle create_skeletal_mesh_proxy(
             const float4x4& transform,
             const SkeletalMeshPrimitive& primitive,
-            BufferHandle bone_matrices_buffer
+            BufferHandle bone_matrices_buffer,
+            BufferHandle previous_bone_matrices_buffer
             );
 
         void mark_proxy_inactive(MeshPrimitiveProxyHandle primitive);

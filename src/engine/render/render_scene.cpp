@@ -94,6 +94,7 @@ namespace render {
         // Pull bone matrices from skeletal animators
         registry.view<SkeletalMeshComponent>().each([&](const SkeletalMeshComponent& skinny) {
             upload_queue.upload_to_buffer(skinny.bone_matrices_buffer, eastl::span{skinny.worldspace_bone_matrices});
+            upload_queue.upload_to_buffer(skinny.previous_bone_matrices_buffer, eastl::span{skinny.previous_worldspace_bone_matrices});
         });
     }
 
@@ -192,14 +193,16 @@ namespace render {
     }
 
     SkeletalMeshPrimitiveProxyHandle RenderWorld::create_skeletal_mesh_proxy(
-        const float4x4& transform, const SkeletalMeshPrimitive& primitive, const BufferHandle bone_matrices_buffer
+        const float4x4& transform, const SkeletalMeshPrimitive& primitive, const BufferHandle bone_matrices_buffer,
+        const BufferHandle previous_bone_matrices_buffer
         ) {
         auto proxy = SkeletalMeshPrimitiveProxy{
             .mesh_proxy = create_mesh_proxy(transform,
                                             primitive.mesh,
                                             primitive.material,
                                             primitive.visible_to_ray_tracing),
-            .bone_transforms = bone_matrices_buffer
+            .bone_transforms = bone_matrices_buffer,
+            .previous_bone_transforms = previous_bone_matrices_buffer,
         };
 
         // Allocate per-instance buffers for transformed vertex data. Set those as the data's vertex buffers to maintain
@@ -612,13 +615,19 @@ namespace render {
             mesh.bones.size() * sizeof(float4x4),
             BufferUsage::StorageBuffer);
 
+        mesh.previous_bone_matrices_buffer = RenderBackend::get().get_global_allocator().create_buffer(
+            "Previous bone matrices",
+            mesh.bones.size() * sizeof(float4x4),
+            BufferUsage::StorageBuffer);
+
         // TODO: We need to make per-primitive BLASes for skeletal meshes, since they can all be deformed individually
         const auto& transform = registry.get<TransformComponent>(entity);
         for(auto& primitive : mesh.primitives) {
             primitive.proxy = create_skeletal_mesh_proxy(
                 transform.get_local_to_world(),
                 primitive,
-                mesh.bone_matrices_buffer
+                mesh.bone_matrices_buffer,
+                mesh.previous_bone_matrices_buffer
                 );
             active_skeletal_meshes.emplace_back(primitive.proxy);
         }
@@ -628,6 +637,7 @@ namespace render {
         const auto& mesh = registry.get<SkeletalMeshComponent>(entity);
 
         RenderBackend::get().get_global_allocator().destroy_buffer(mesh.bone_matrices_buffer);
+        RenderBackend::get().get_global_allocator().destroy_buffer(mesh.previous_bone_matrices_buffer);
 
         for(auto& primitive : mesh.primitives) {
             destroy_primitive(primitive.proxy);
