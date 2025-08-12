@@ -213,10 +213,10 @@ void main_miss(inout uint payload) {
 [vk::binding(1, 0)]
 ConstantBuffer<SunLightConstants> sun_light;
 
-[vk::binding(11, 0)]
+[vk::binding(12, 0)]
 Sampler2D transmittance_lut;
 
-[vk::binding(12, 0)]
+[vk::binding(13, 0)]
 Sampler2D sky_view_lut;
 
 [shader("miss")]

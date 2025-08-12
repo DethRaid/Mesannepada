@@ -80,6 +80,11 @@ namespace render {
         TextureHandle ray_irradiance = nullptr;
 
         /**
+         * Viewspace depth from the camera
+         */
+        TextureHandle linear_depth_texture = nullptr;
+
+        /**
          * Irradiance but denoised!
          */
         TextureHandle denoised_irradiance = nullptr;

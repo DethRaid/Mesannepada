@@ -328,6 +328,8 @@ namespace render {
             ray_trace_shadows(graph, gbuffer, world, noise);
             break;
 
+        case SunShadowMode::Off:
+            [[fallthrough]];
         default:
             // This page intentionally left blank
             break;

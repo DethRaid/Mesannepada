@@ -102,7 +102,8 @@ namespace render {
     void NvidiaRealtimeDenoiser::do_denoising(
         RenderGraph& graph, const BufferHandle view_buffer, const TextureHandle gbuffer_depth,
         const TextureHandle motion_vectors, const TextureHandle noisy_diffuse,
-        const TextureHandle packed_normals_roughness, const TextureHandle denoised_diffuse
+        const TextureHandle packed_normals_roughness, const TextureHandle linear_depth_texture,
+        const TextureHandle denoised_diffuse
         ) {
         auto& allocator = RenderBackend::get().get_global_allocator();
         if(cvar_nrd_validation.get() != 0 && validation_texture == nullptr) {
@@ -116,33 +117,6 @@ namespace render {
             allocator.destroy_texture(validation_texture);
             validation_texture = nullptr;
         }
-
-        if(linearize_depth_shader == nullptr) {
-            linearize_depth_shader = RenderBackend::get().get_pipeline_cache()
-                                                         .create_pipeline("shader://gi/rtgi/linearize_depth.comp.spv"_res);
-        }
-
-        if(linear_depth_texture == nullptr) {
-            linear_depth_texture = allocator.create_texture("nrd_linear_depth",
-                                                            {
-                                                                .format = VK_FORMAT_R32_SFLOAT,
-                                                                .resolution = gbuffer_depth->get_resolution(),
-                                                                .usage = TextureUsage::StorageImage,
-                                                            });
-        }
-
-        const auto set = RenderBackend::get().get_transient_descriptor_allocator()
-                                             .build_set(linearize_depth_shader, 0)
-                                             .bind(view_buffer)
-                                             .bind(gbuffer_depth)
-                                             .bind(linear_depth_texture)
-                                             .build();
-        graph.add_compute_dispatch(ComputeDispatch<uint32_t>{
-            .name = "linearize_depth",
-            .descriptor_sets = {set},
-            .num_workgroups = uint3{linear_depth_texture->get_resolution() + uint2{7} / uint2{8}, 1},
-            .compute_shader = linearize_depth_shader
-        });
 
         auto texture_usages = TextureUsageList{
             {

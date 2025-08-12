@@ -168,6 +168,18 @@ namespace render {
                     .usage = TextureUsage::StorageImage
                 });
         }
+
+        if(linear_depth_texture == nullptr || linear_depth_texture->get_resolution() != render_resolution) {
+            allocator.destroy_texture(linear_depth_texture);
+            linear_depth_texture = allocator.create_texture(
+                "nrd_linear_depth",
+                {
+                    .format = VK_FORMAT_R16_SFLOAT,
+                    .resolution = render_resolution,
+                    .usage = TextureUsage::StorageImage,
+                });
+        }
+
         if(rtgi_pipeline == nullptr) {
             rtgi_pipeline = backend.get_pipeline_cache()
                                    .create_ray_tracing_pipeline("shader://gi/rtgi/rtgi.rt.spv"_res);
@@ -193,6 +205,7 @@ namespace render {
                                 .bind(ray_texture)
                                 .bind(ray_irradiance)
                                 .bind(denoiser_data)
+                                .bind(linear_depth_texture)
                                 .bind(sky.get_sky_view_lut(), sky.get_sampler())
                                 .bind(sky.get_transmittance_lut(), sky.get_sampler())
                                 .build();
@@ -224,6 +237,7 @@ namespace render {
                                    motion_vectors,
                                    ray_irradiance,
                                    denoiser_data,
+                                   linear_depth_texture,
                                    denoised_irradiance);
         } else {
             graph.add_copy_pass(ImageCopyPass{

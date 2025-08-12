@@ -30,7 +30,8 @@ namespace render {
 
         void do_denoising(
             RenderGraph& graph, BufferHandle view_buffer, TextureHandle gbuffer_depth, TextureHandle motion_vectors,
-            TextureHandle noisy_diffuse, TextureHandle packed_normals_roughness, TextureHandle denoised_diffuse
+            TextureHandle noisy_diffuse, TextureHandle packed_normals_roughness, TextureHandle linear_depth_texture,
+            TextureHandle denoised_diffuse
             );
 
         TextureHandle get_validation_texture() const;
@@ -48,10 +49,6 @@ namespace render {
         TextureHandle validation_texture = nullptr;
 
         eastl::unique_ptr<nrd::Integration> instance;
-
-        TextureHandle linear_depth_texture = nullptr;
-
-        static inline ComputePipelineHandle linearize_depth_shader = nullptr;
 
         static inline ComputePipelineHandle validation_overlay_shader = nullptr;
 
