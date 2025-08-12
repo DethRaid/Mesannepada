@@ -138,7 +138,7 @@ FetchContent_Declare(
 FetchContent_Declare(
         toml11
         GIT_REPOSITORY https://github.com/ToruNiina/toml11.git
-        GIT_SHALLOW     ON
+        GIT_SHALLOW    ON
         GIT_TAG        v4.4.0
 )
 
@@ -146,7 +146,7 @@ FetchContent_Declare(
         fetch_tracy
         GIT_REPOSITORY  https://github.com/wolfpld/tracy.git
         GIT_SHALLOW     ON
-        GIT_TAG         v0.11.1
+        GIT_TAG         v0.12.2 
 )
 
 FetchContent_Declare(
