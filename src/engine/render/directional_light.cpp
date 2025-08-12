@@ -298,8 +298,13 @@ namespace render {
     void DirectionalLight::render_shadows(
         RenderGraph& graph, const GBuffer& gbuffer, const RenderWorld& world, const TextureHandle noise
         ) {
+        auto& allocator = RenderBackend::get().get_global_allocator();
+        if(shadow_mask_texture != nullptr && shadow_mask_texture->get_resolution() != gbuffer.depth->get_resolution()) {
+            allocator.destroy_texture(shadow_mask_texture);
+            shadow_mask_texture = nullptr;
+        }
         if(shadow_mask_texture == nullptr) {
-            shadow_mask_texture = RenderBackend::get().get_global_allocator().create_texture(
+            shadow_mask_texture = allocator.create_texture(
                 "sun_shadow_mask",
                 {
                     .format = VK_FORMAT_R8_UNORM,
