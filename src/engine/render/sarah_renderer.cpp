@@ -652,6 +652,7 @@ namespace render {
         case AntiAliasingType::XeSS:
             if(upscaler) {
                 const auto motion_vectors_handle = motion_vectors_phase.get_motion_vectors();
+                const auto denoiser_data = gi->get_denoiser_data_texture();
                 upscaler->evaluate(
                     render_graph,
                     player_view,
@@ -659,7 +660,8 @@ namespace render {
                     lit_scene_handle,
                     antialiased_scene_handle,
                     motion_vectors_handle,
-                    exposure_factor);
+                    exposure_factor, 
+                    denoiser_data);
                 break;
             } else {
                 [[fallthrough]];

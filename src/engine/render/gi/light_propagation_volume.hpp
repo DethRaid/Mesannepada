@@ -76,6 +76,8 @@ namespace render {
              TextureHandle motion_vectors, TextureHandle noise_tex
         ) override;
 
+        TextureHandle get_denoiser_data_texture() override;
+
         void get_lighting_resource_usages(
             TextureUsageList& textures, BufferUsageList& buffers
         ) const override;

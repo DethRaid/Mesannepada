@@ -40,6 +40,8 @@ namespace render {
              TextureHandle motion_vectors, TextureHandle noise_tex
         ) override;
 
+        TextureHandle get_denoiser_data_texture() override;
+
         /**
          * Retrieves resource usages for applying this effect to the lit scene
          */

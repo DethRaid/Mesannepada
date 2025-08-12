@@ -21,8 +21,9 @@ namespace render {
         "r.GI.Reconstruction.Size", "Size in pixels of the screenspace reconstruction filter", 16
     };
 
-    static auto cvar_denoiser = AutoCVar_Enum{"r.GI.Denoiser", "Which denoiser to use. 0 = none, 1 = ReBLUR, 2 = ReLAX",
-                                              DenoiserType::ReLAX};
+    static auto cvar_denoiser = AutoCVar_Enum{"r.GI.Denoiser",
+                                              "Which denoiser to use. 0 = none, 1 = ReBLUR, 2 = ReLAX, 3 = DLSS-RR\nReBLUR seems to handle our low-poly art a little better than ReLAX, but DLSS-RR is best",
+                                              DenoiserType::ReBLUR};
 
 #if SAH_USE_IRRADIANCE_CACHE
     static AutoCVar_Int cvar_gi_cache{ "r.GI.Cache.Enabled", "Whether to enable the GI irradiance cache", false };
@@ -81,15 +82,13 @@ namespace render {
         ) {
         ZoneScoped;
 
-        auto using_ray_reconstruction = false;
-        if(const auto* cvar_rr = CVarSystem::Get()->GetIntCVar("r.DLSS-RR.Enabled"); cvar_rr) {
-            using_ray_reconstruction = *cvar_rr != 0;
-        }
+        const bool should_use_nrd = cvar_denoiser.get() != DenoiserType::None &&
+                                    cvar_denoiser.get() != DenoiserType::DLSS_RR;
 
-        if(cvar_denoiser.get() != DenoiserType::None && denoiser == nullptr && !using_ray_reconstruction) {
+        if(should_use_nrd && denoiser == nullptr) {
             logger->debug("Creating NRD instance");
             denoiser = eastl::make_unique<NvidiaRealtimeDenoiser>();
-        } else if((cvar_denoiser.get() == DenoiserType::None || using_ray_reconstruction) && denoiser) {
+        } else if(!should_use_nrd && denoiser) {
             logger->debug("Destroying NRD instance");
             RenderBackend::get().wait_for_idle();
             denoiser = nullptr;
@@ -163,7 +162,7 @@ namespace render {
             denoiser_data = allocator.create_texture(
                 "denoiser_data",
                 {
-                    .format = VK_FORMAT_R16G16B16A16_SNORM,
+                    .format = VK_FORMAT_R16G16B16A16_SFLOAT,
                     .resolution = render_resolution,
                     .usage = TextureUsage::StorageImage
                 });
@@ -245,6 +244,10 @@ namespace render {
                 .dst = denoised_irradiance,
                 .src = ray_irradiance});
         }
+    }
+
+    TextureHandle RayTracedGlobalIllumination::get_denoiser_data_texture() {
+        return denoiser_data;
     }
 
     void RayTracedGlobalIllumination::get_lighting_resource_usages(

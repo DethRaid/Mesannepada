@@ -6,6 +6,7 @@
 #include "console/cvars.hpp"
 #include "core/issue_breakpoint.hpp"
 #include "core/toml_config.hpp"
+#include "render/gi/denoiser/denoiser_type.hpp"
 
 static constexpr auto SCALABILITY_FILE_NAME = "config/scalability.toml";
 
@@ -146,7 +147,7 @@ void SettingsController::apply_graphics_settings() {
 #if SAH_USE_STREAMLINE
     if(anti_aliasing == render::AntiAliasingType::DLSS) {
         cvars->SetEnumCVar("r.DLSS.Mode", dlss_mode);
-        cvars->SetIntCVar("r.DLSS-RR.Enabled", use_ray_reconstruction);
+        cvars->SetIntCVar("r.GI.Denoiser", static_cast<int32_t>(use_ray_reconstruction ? render::DenoiserType::DLSS_RR : render::DenoiserType::ReBLUR));
     } else
 #endif
 #if SAH_USE_XESS

@@ -245,6 +245,10 @@ namespace render {
         propagate_lighting(graph);
     }
 
+    TextureHandle LightPropagationVolume::get_denoiser_data_texture() {
+        return nullptr;
+    }
+
     void LightPropagationVolume::get_lighting_resource_usages(
         TextureUsageList& textures, BufferUsageList& buffers
     ) const {

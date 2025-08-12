@@ -69,10 +69,6 @@ DebugUI::DebugUI(render::SarahRenderer& renderer_in) :
         current_taa = 3;
     }
 
-#if SAH_USE_STREAMLINE
-    use_ray_reconstruction = *CVarSystem::Get()->GetIntCVar("r.DLSS-RR.Enabled") != 0;
-#endif
-
     new_scene_name.resize(256);
 }
 
@@ -340,9 +336,6 @@ void DebugUI::draw_taa_menu() {
             *dlss_quality = static_cast<int32_t>(sl::DLSSMode::eMaxPerformance);
             break;
         }
-
-        ImGui::Checkbox("DLSS Ray Reconstruction", &use_ray_reconstruction);
-        CVarSystem::Get()->SetIntCVar("r.DLSS-RR.Enabled", use_ray_reconstruction);
 
     } else
 #endif

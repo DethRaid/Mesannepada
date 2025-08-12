@@ -179,7 +179,8 @@ namespace render {
 
     void XeSSAdapter::evaluate(
         RenderGraph& graph, const SceneView& view, const GBuffer& gbuffer, const TextureHandle color_in,
-        const TextureHandle color_out, const TextureHandle motion_vectors_in, const TextureHandle average_exposure_in
+        const TextureHandle color_out, const TextureHandle motion_vectors_in, const TextureHandle average_exposure_in,
+        const TextureHandle packed_normals_roughness
         ) {
         graph.add_pass(
         {

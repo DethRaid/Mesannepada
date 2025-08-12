@@ -28,6 +28,8 @@ namespace render {
              TextureHandle motion_vectors, TextureHandle noise_tex
         ) = 0;
 
+        virtual TextureHandle get_denoiser_data_texture() = 0;
+
         virtual void get_lighting_resource_usages(
             TextureUsageList& textures, BufferUsageList& buffers
         ) const = 0;

@@ -90,10 +90,7 @@ namespace render {
                                           &reblur_settings);
 
         } else if(cached_denoiser_type == DenoiserType::ReLAX) {
-            // TODO: Play with the settings?
-            auto relax_settings = nrd::RelaxSettings{
-                .depthThreshold = 0.00001f,
-            };
+            auto relax_settings = nrd::RelaxSettings{};
 
             instance->SetDenoiserSettings(static_cast<nrd::Identifier>(nrd::Denoiser::RELAX_DIFFUSE), &relax_settings);
         }

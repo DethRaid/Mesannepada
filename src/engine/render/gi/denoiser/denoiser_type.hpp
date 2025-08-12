@@ -4,6 +4,7 @@ namespace render {
     enum class DenoiserType {
         None,
         ReBLUR,
-        ReLAX
+        ReLAX,
+        DLSS_RR
     };
 }
