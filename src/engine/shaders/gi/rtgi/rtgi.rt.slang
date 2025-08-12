@@ -91,7 +91,7 @@ void main_raygen() {
     ray.Origin = location;
     ray.Direction = ray_direction;
     ray.TMin = 0.01f;
-    ray.TMax = 100000.f;
+    ray.TMax = 65535.f;
 
     // irradiance that comes in along the ray
     IrradiancePayload payload = (IrradiancePayload)0;
@@ -113,19 +113,18 @@ void main_raygen() {
 
     ray_buffer[thread_id] = float4(ray_direction, payload.ray_distance);
 
-    const float3 exposed_irradiance = payload.irradiance;
+    const float3 exposed_irradiance = payload.irradiance * view_data.exposure;
 
-    float4 irradiance_info = float4(exposed_irradiance, 0);
+    float4 irradiance_info = float4(exposed_irradiance, 1);
     float4 denoiser_info = 0;
 
     if(denoiser_type == 1) {    // ReBLUR
-        irradiance_info = REBLUR_FrontEnd_PackRadianceAndNormHitDist(exposed_irradiance, payload.ray_distance, false);
+        irradiance_info = REBLUR_FrontEnd_PackRadianceAndNormHitDist(exposed_irradiance, payload.ray_distance, true);
         denoiser_info = NRD_FrontEnd_PackNormalAndRoughness(normal, sqrt(data.g), 0);
 
     } else if(denoiser_type == 2) { // ReLAX
-        irradiance_info = RELAX_FrontEnd_PackRadianceAndHitDist(exposed_irradiance, payload.ray_distance, false);
+        irradiance_info = RELAX_FrontEnd_PackRadianceAndHitDist(exposed_irradiance, payload.ray_distance, true);
         denoiser_info = NRD_FrontEnd_PackNormalAndRoughness(normal, sqrt(data.g), 0);
-    
     }
     
     ray_irradiance[thread_id] = irradiance_info;

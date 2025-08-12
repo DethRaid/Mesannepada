@@ -116,5 +116,5 @@ float4 main(float4 sv_position: SV_Position) {
 
     // We already applied the exposure to the irradiance buffer, we don't need to apply it twice
 
-    return float4(3.h * view_data.exposure * radiance / (half)num_samples, 1);
+    return float4(radiance / (half)num_samples, 1);
 }

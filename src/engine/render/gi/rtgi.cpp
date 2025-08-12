@@ -208,7 +208,7 @@ namespace render {
                 commands.bind_descriptor_set(1, backend.get_texture_descriptor_pool().get_descriptor_set());
 
                 commands.set_push_constant(0, static_cast<uint32_t>(cvar_num_bounces.get()));
-                commands.set_push_constant(1, denoiser == nullptr ? 0u : 1u);
+                commands.set_push_constant(1, static_cast<uint32_t>(cvar_denoiser.get()));
 
                 commands.dispatch_rays(render_resolution);
 
@@ -311,6 +311,8 @@ namespace render {
                                                  .build();
 
             commands.set_cull_mode(VK_CULL_MODE_NONE);
+
+            commands.set_push_constant(0, static_cast<uint32_t>(cvar_denoiser.get()));
 
             commands.bind_pipeline(overlay_pso);
 

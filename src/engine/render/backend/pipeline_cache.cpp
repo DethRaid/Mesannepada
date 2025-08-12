@@ -730,7 +730,7 @@ namespace render {
 
         constexpr auto lib_interface = VkRayTracingPipelineInterfaceCreateInfoKHR{
             .sType = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_INTERFACE_CREATE_INFO_KHR,
-            .maxPipelineRayPayloadSize = 32,
+            .maxPipelineRayPayloadSize = 20,
             .maxPipelineRayHitAttributeSize = sizeof(glm::vec2)
         };
 

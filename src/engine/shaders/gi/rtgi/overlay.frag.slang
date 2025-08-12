@@ -81,5 +81,5 @@ float4 main(float2 texcoord, float4 sv_position : SV_Position) {
         irradiance = RELAX_BackEnd_UnpackRadiance(irradiance);
     } 
 
-    return float4(irradiance.rgb * brdf_result * ndotl * view_data.exposure, 1.0);
+    return float4(irradiance.rgb * brdf_result * ndotl, 1.0);
 }

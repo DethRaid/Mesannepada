@@ -466,8 +466,8 @@ void main_closesthit(inout IrradiancePayload payload, in float2 barycentrics) {
         RayDesc bounce_ray;
         bounce_ray.Origin = surface.location;
         bounce_ray.Direction = ray_direction;
-        bounce_ray.TMin = 0.05f;
-        bounce_ray.TMax = 100000.f;
+        bounce_ray.TMin = 0.01f;
+        bounce_ray.TMax = 65535.f;
 
         // irradiance that comes in along the ray
         IrradiancePayload new_payload = (IrradiancePayload)0;
