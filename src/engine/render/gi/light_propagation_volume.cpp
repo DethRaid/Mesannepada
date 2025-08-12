@@ -498,7 +498,7 @@ namespace render {
         ZoneScoped;
 
         const auto num_cells = cvar_lpv_resolution.get();
-        const auto base_cell_size = cvar_lpv_cell_size.GetFloat();
+        const auto base_cell_size = cvar_lpv_cell_size.get();
 
         const auto& view_position = view.get_position();
 
@@ -506,7 +506,7 @@ namespace render {
 
         const auto num_cascades = cvar_lpv_num_cascades.get();
 
-        const auto offset_distance_scale = 0.5f - cvar_lpv_behind_camera_percent.GetFloat();
+        const auto offset_distance_scale = 0.5f - cvar_lpv_behind_camera_percent.get();
 
         const auto texel_scale = 4.f / static_cast<float>(cvar_lpv_rsm_resolution.get());
         const auto inverse_texel_scale = 1.f / texel_scale;

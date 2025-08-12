@@ -313,7 +313,7 @@ namespace render {
             commands.bind_descriptor_set(1, set);
 
             commands.set_push_constant(0, static_cast<uint32_t>(cvar_num_reconstruction_rays.get()));
-            commands.set_push_constant(1, cvar_reconstruction_size.GetFloat());
+            commands.set_push_constant(1, cvar_reconstruction_size.get());
 
             commands.draw_triangle();
 
