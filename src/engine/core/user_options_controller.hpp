@@ -38,6 +38,6 @@ private:
     using CvarListenerMap = eastl::unordered_map<uint32_t, eastl::vector<std::function<void(CvarType value)>>>;
 
     CvarListenerMap<int32_t> int_cvar_listeners;
-    CvarListenerMap<double> float_cvar_listeners;
+    CvarListenerMap<float> float_cvar_listeners;
     CvarListenerMap<std::string> string_cvar_listeners;
 };
