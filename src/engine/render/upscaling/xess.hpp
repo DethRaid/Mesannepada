@@ -45,8 +45,6 @@ namespace render {
 
         void set_constants(const SceneView& scene_view, glm::uvec2 render_resolution) override;
 
-        float2 get_jitter() override;
-
         void evaluate(
             RenderGraph& graph, const SceneView& view, const GBuffer& gbuffer, TextureHandle color_in,
             TextureHandle color_out, TextureHandle motion_vectors_in, TextureHandle average_exposure_in

@@ -27,5 +27,6 @@ void main(uint2 thread_id : SV_DispatchThreadID) {
 
     const float3 viewspace_location = get_viewspace_location(thread_id);
     
-    viewspace_depth[thread_id] = viewspace_location.z;
+    viewspace_depth[thread_id] = abs(viewspace_location.z);
 }
+

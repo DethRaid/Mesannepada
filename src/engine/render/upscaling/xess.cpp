@@ -175,10 +175,6 @@ namespace render {
         params.inputHeight = render_resolution.y;
     }
 
-    float2 XeSSAdapter::get_jitter() {
-        return IUpscaler::get_jitter() / 2.f;
-    }
-
     static xess_vk_image_view_info wrap_image(TextureHandle texture);
 
     void XeSSAdapter::evaluate(

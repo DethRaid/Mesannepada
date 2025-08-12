@@ -30,11 +30,16 @@ namespace render {
     static AutoCVar_Int cvar_gi_cache_debug{ "r.GI.Cache.Debug", "Enable a debug draw of the irradiance cache", true };
 #endif
 
+    static std::shared_ptr<spdlog::logger> logger;
+
     bool RayTracedGlobalIllumination::should_render() {
         return cvar_num_bounces.get() > 0;
     }
 
     RayTracedGlobalIllumination::RayTracedGlobalIllumination() {
+        if(logger == nullptr) {
+            logger = SystemInterface::get().get_logger("RayTracedGlobalIllumination");
+        }
         const auto& backend = RenderBackend::get();
         if(overlay_pso == nullptr) {
             overlay_pso = backend.begin_building_pipeline("rtgi_application")
@@ -82,8 +87,10 @@ namespace render {
         }
 
         if(cvar_denoiser.get() != DenoiserType::None && denoiser == nullptr && !using_ray_reconstruction) {
+            logger->debug("Creating NRD instance");
             denoiser = eastl::make_unique<NvidiaRealtimeDenoiser>();
         } else if((cvar_denoiser.get() == DenoiserType::None || using_ray_reconstruction) && denoiser) {
+            logger->debug("Destroying NRD instance");
             RenderBackend::get().wait_for_idle();
             denoiser = nullptr;
         }
@@ -297,19 +304,21 @@ namespace render {
         } else {
             // Simple copy thing?
             const auto set = RenderBackend::get().get_transient_descriptor_allocator()
-                                                 .build_set(overlay_pso, 0)
+                                                 .build_set(overlay_pso, 1)
                                                  .bind(denoised_irradiance)
+                                                 .bind(ray_texture)
+                                                 .bind(view_buffer)
                                                  .build();
 
             commands.set_cull_mode(VK_CULL_MODE_NONE);
 
             commands.bind_pipeline(overlay_pso);
 
-            commands.bind_descriptor_set(0, set);
+            commands.bind_descriptor_set(1, set);
 
             commands.draw_triangle();
 
-            commands.clear_descriptor_set(0);
+            commands.clear_descriptor_set(1);
         }
     }
 

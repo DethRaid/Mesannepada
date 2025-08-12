@@ -113,7 +113,7 @@ void main_raygen() {
 
     ray_buffer[thread_id] = float4(ray_direction, payload.ray_distance);
 
-    const float3 exposed_irradiance = payload.irradiance * view_data.exposure;
+    const float3 exposed_irradiance = payload.irradiance;
 
     float4 irradiance_info = float4(exposed_irradiance, 0);
     float4 denoiser_info = 0;

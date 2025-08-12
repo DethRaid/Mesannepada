@@ -371,13 +371,13 @@ void GltfModel::add_collider_component(
 
 static float calculate_light_range(const fastgltf::num intensity) {
     // Calculate the light range based on where the light's intensity is this value
-    constexpr auto min_intensity = 10.0f;
+    constexpr auto min_intensity = 1.0f;
 
     // Attenuation factor needed to reach that intensity
     const auto attenuation = min_intensity / intensity;
 
     // Use the simple point light attenuation. Won't be exactly correct, should be plausible
-    return sqrt(1.f / (attenuation));
+    return sqrt(1.f / attenuation);
 }
 
 void GltfModel::add_light_component(const entt::handle& entity, const fastgltf::Light& light) {

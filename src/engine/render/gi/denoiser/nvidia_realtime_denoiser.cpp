@@ -140,7 +140,6 @@ namespace render {
         graph.add_compute_dispatch(ComputeDispatch<uint32_t>{
             .name = "linearize_depth",
             .descriptor_sets = {set},
-            .push_constants = static_cast<uint32_t>(cached_denoiser_type),
             .num_workgroups = uint3{linear_depth_texture->get_resolution() + uint2{7} / uint2{8}, 1},
             .compute_shader = linearize_depth_shader
         });
