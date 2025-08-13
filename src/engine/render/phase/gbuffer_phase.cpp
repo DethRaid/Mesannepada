@@ -12,8 +12,9 @@ namespace render {
     GbufferPhase::GbufferPhase() {}
 
     void GbufferPhase::render(
-        RenderGraph& graph, const RenderWorld& world, const IndirectDrawingBuffers& buffers,
-        const IndirectDrawingBuffers& visible_masked_buffers, const GBuffer& gbuffer, const eastl::optional<TextureHandle> shading_rate, const SceneView& player_view
+        RenderGraph& graph, const RenderWorld& world, const IndirectDrawingBuffers& visible_solid_drawcalls,
+        const IndirectDrawingBuffers& visible_cutout_drawcalls, const GBuffer& gbuffer,
+        const eastl::optional<TextureHandle> shading_rate, const SceneView& player_view
     ) {
         const auto& pipelines = world.get_material_storage().get_pipelines();
         const auto solid_pso = pipelines.get_gbuffer_pso();
@@ -30,32 +31,32 @@ namespace render {
                 .name = "gbuffer",
                 .buffers = {
                     {
-                        buffers.commands,
+                        visible_solid_drawcalls.commands,
                         VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
                         VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
                     },
                     {
-                        buffers.count,
+                        visible_solid_drawcalls.count,
                         VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
                         VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
                     },
                     {
-                        buffers.primitive_ids,
+                        visible_solid_drawcalls.primitive_ids,
                         VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
                         VK_ACCESS_2_SHADER_READ_BIT
                     },
                     {
-                        visible_masked_buffers.commands,
+                        visible_cutout_drawcalls.commands,
                         VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
                         VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
                     },
                     {
-                        visible_masked_buffers.count,
+                        visible_cutout_drawcalls.count,
                         VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
                         VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
                     },
                     {
-                        visible_masked_buffers.primitive_ids,
+                        visible_cutout_drawcalls.primitive_ids,
                         VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
                         VK_ACCESS_2_SHADER_READ_BIT
                     },
@@ -89,9 +90,9 @@ namespace render {
                 .execute = [&](CommandBuffer& commands) {
                     commands.bind_descriptor_set(0, gbuffer_set);
 
-                    world.draw_opaque(commands, buffers, solid_pso);
+                    world.draw_opaque(commands, visible_solid_drawcalls, solid_pso);
 
-                    world.draw_masked(commands, visible_masked_buffers, masked_pso);
+                    world.draw_masked(commands, visible_cutout_drawcalls, masked_pso);
 
                     commands.clear_descriptor_set(0);
                 }

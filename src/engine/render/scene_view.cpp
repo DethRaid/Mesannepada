@@ -150,10 +150,6 @@ namespace render {
         }
     }
 
-    void SceneView::set_visible_objects_buffer(const BufferHandle new_visible_objects) {
-        visible_objects = new_visible_objects;
-    }
-
     uint32_t SceneView::get_frame_count() const {
         return frame_count;
     }
@@ -176,9 +172,6 @@ namespace render {
 
     float SceneView::get_max_log_luminance() const {
         return static_cast<float>(log2(cvar_max_luminance.get()));
-    }
-    BufferHandle SceneView::get_visible_objects_buffer() const {
-        return visible_objects;
     }
 
     void SceneView::set_view_matrix(const float4x4& view_matrix) {

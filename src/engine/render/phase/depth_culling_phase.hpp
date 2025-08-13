@@ -10,6 +10,10 @@
 #include "render/backend/handles.hpp"
 
 namespace render {
+    struct IndirectDrawingBuffers;
+}
+
+namespace render {
     class SceneView;
     class RenderWorld;
     class MaterialStorage;
@@ -34,8 +38,8 @@ namespace render {
         void set_render_resolution(const glm::uvec2& resolution);
 
         void render(
-            RenderGraph& graph, const RenderWorld& world, MaterialStorage& materials, SceneView& view
-        );
+            RenderGraph& graph, const RenderWorld& world, SceneView& view
+            );
 
         TextureHandle get_depth_buffer() const;
 
@@ -52,21 +56,15 @@ namespace render {
 
         ComputePipelineHandle hi_z_culling_shader;
 
-        VkIndirectCommandsLayoutNV command_signature = VK_NULL_HANDLE;
-
-        void create_command_signature();
-
-        eastl::optional<BufferHandle> create_preprocess_buffer(GraphicsPipelineHandle pipeline, uint32_t num_primitives);
-
         /**
-         * Draws visible objects, using a different draw command for each material type. Uses the visible_objects buffer
-         *
-         * @see visible_objects
+         * Generates indirect drawcall buffers for each obejct type, and stores them in the provided view
          */
+        static void generate_drawcall_buffers(RenderGraph& graph, const RenderWorld& world, SceneView& view);
+
         void draw_visible_objects(
             RenderGraph& graph, const RenderWorld& world, const DescriptorSet& view_descriptor,
-            const DescriptorSet& masked_view_descriptor, BufferHandle primitive_buffer,
-            BufferHandle visible_objects, uint32_t num_primitives
+            const DescriptorSet& masked_view_descriptor, const IndirectDrawingBuffers& solid_drawcalls,
+            const IndirectDrawingBuffers& cutout_drawcalls
         ) const;
     };
 }

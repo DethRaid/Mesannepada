@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 
 #include "backend/descriptor_set_builder.hpp"
+#include "render/indirect_drawing_utils.hpp"
 #include "render/backend/handles.hpp"
 #include "shared/view_data.hpp"
 
@@ -16,6 +17,17 @@ namespace render {
      */
     class SceneView {
     public:
+        /**
+         * \brief uint list of visible primitives
+         *
+         * 1:1 correspondence with a scene's list of primitives. 1 = visible, 0 = not visible
+         */
+        BufferHandle visible_objects = nullptr;
+
+        IndirectDrawingBuffers solid_buffers = {};
+
+        IndirectDrawingBuffers cutout_buffers = {};
+
         explicit SceneView();
 
         ~SceneView();
@@ -67,8 +79,6 @@ namespace render {
          */
         void init_visible_objects_buffer(uint32_t num_primitives);
 
-        void set_visible_objects_buffer(BufferHandle new_visible_objects);
-
         uint32_t get_frame_count() const;
 
         uint2 get_render_resolution() const;
@@ -80,8 +90,6 @@ namespace render {
         float get_min_log_luminance() const;
 
         float get_max_log_luminance() const;
-
-        BufferHandle get_visible_objects_buffer() const;
 
     private:
         float aperture_size = 16;
@@ -112,13 +120,6 @@ namespace render {
         glm::mat4 last_frame_projection = {};
 
         BufferHandle constant_buffer = {};
-
-        /**
-         * \brief uint list of visible primitives
-         *
-         * 1:1 correspondence with a scene's list of primitives. 1 = visible, 0 = not visible
-         */
-        BufferHandle visible_objects = nullptr;
 
         bool is_dirty = true;
 
