@@ -12,9 +12,20 @@ namespace render {
 
     static ComputePipelineHandle visibility_list_to_draw_commands = nullptr;
 
+    IndirectDrawingBuffers::~IndirectDrawingBuffers() {
+        auto& allocator = RenderBackend::get().get_global_allocator();
+        allocator.destroy_buffer(commands);
+        allocator.destroy_buffer(count);
+        allocator.destroy_buffer(primitive_ids);
+
+        commands = nullptr;
+        count = nullptr;
+        primitive_ids = nullptr;
+    }
+
     IndirectDrawingBuffers translate_visibility_list_to_draw_commands(
         RenderGraph& graph, const BufferHandle visibility_list, const BufferHandle primitive_buffer,
-        const uint32_t num_primitives, const BufferHandle mesh_draw_args_buffer, const uint32_t primitive_type
+        const uint32_t num_primitives, const BufferHandle mesh_draw_args_buffer, const uint16_t primitive_type
     ) {
         ZoneScoped;
 

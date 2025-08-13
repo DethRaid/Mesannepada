@@ -357,8 +357,8 @@ namespace render {
                 *world,
                 player_view.get_constant_buffer(),
                 depth_culling_phase.get_depth_buffer(),
-                player_view.solid_buffers,
-                player_view.cutout_buffers);
+                player_view.solid_drawcalls,
+                player_view.cutout_drawcalls);
         }
 
         if(gi) {
@@ -404,8 +404,6 @@ namespace render {
         gbuffer_phase.render(
             render_graph,
             *world,
-            player_view.solid_buffers,
-            player_view.cutout_buffers,
             gbuffer,
             vrsaa_shading_rate_image,
             player_view);

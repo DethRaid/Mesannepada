@@ -64,7 +64,7 @@ namespace render {
         void draw_visible_objects(
             RenderGraph& graph, const RenderWorld& world, const DescriptorSet& view_descriptor,
             const DescriptorSet& masked_view_descriptor, const IndirectDrawingBuffers& solid_drawcalls,
-            const IndirectDrawingBuffers& cutout_drawcalls
+            const IndirectDrawingBuffers& cutout_drawcalls, const IndirectDrawingBuffers& skinned_drawcalls
         ) const;
     };
 }

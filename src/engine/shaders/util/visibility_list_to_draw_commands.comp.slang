@@ -41,7 +41,7 @@ void main(uint thread_id: SV_DispatchThreadID) {
         PrimitiveDataGPU primitive_data = primitive_datas[primitive_id];
 
         uint draw_id;
-        if ((primitive_data.flags & primitive_type) == primitive_type) {
+        if (primitive_data.type_flags == primitive_type) {
             InterlockedAdd(draw_count_buffer[0].draw_count, 1, draw_id);
             
             primitive_ids[draw_id] = primitive_id;

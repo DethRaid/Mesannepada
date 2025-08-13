@@ -5,12 +5,15 @@
 #include "backend/handles.hpp"
 
 namespace render {
+    class ResourceAllocator;
     class RenderGraph;
 
     struct IndirectDrawingBuffers {
         BufferHandle commands;
         BufferHandle count;
         BufferHandle primitive_ids;
+
+        ~IndirectDrawingBuffers();
     };
 
     /**
@@ -30,6 +33,6 @@ namespace render {
      */
     IndirectDrawingBuffers translate_visibility_list_to_draw_commands(
         RenderGraph& graph, BufferHandle visibility_list, BufferHandle primitive_buffer, uint32_t num_primitives,
-        BufferHandle mesh_draw_args_buffer, uint32_t primitive_type
+        BufferHandle mesh_draw_args_buffer, uint16_t primitive_type
     );
 }

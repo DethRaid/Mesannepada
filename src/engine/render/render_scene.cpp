@@ -16,8 +16,8 @@
 #include "render/backend/resource_allocator.hpp"
 #include "render/components/static_mesh_component.hpp"
 #include "scene/camera_component.hpp"
-#include "scene/world.hpp"
 #include "scene/transform_component.hpp"
+#include "scene/world.hpp"
 
 namespace render {
     constexpr uint32_t MAX_NUM_PRIMITIVES = 65536;
@@ -114,7 +114,6 @@ namespace render {
     }
 
     void RenderWorld::update_mesh_proxy(const SkeletalMeshPrimitiveProxyHandle handle) {
-        const auto& mesh_data = *handle->mesh_proxy;
         update_mesh_proxy(handle->mesh_proxy);
 
         if(skeletal_data_upload_buffer.is_full()) {
@@ -151,7 +150,8 @@ namespace render {
         primitive.data.material = material_buffer_address + primitive.material.index * sizeof(BasicPbrMaterialGpu);
         primitive.data.mesh_id = primitive.mesh.index;
         const auto transparency_mode_bit = static_cast<uint32_t>(primitive.material->first.transparency_mode);
-        primitive.data.flags = PRIMITIVE_FLAG_ENABLED | (1 << transparency_mode_bit);
+        primitive.data.type_flags = 1 << transparency_mode_bit;
+        primitive.data.runtime_flags = PRIMITIVE_RUNTIME_FLAG_ENABLED;
 
         const auto index_buffer_address = meshes.get_index_buffer()->address;
         primitive.data.indices = index_buffer_address + primitive.mesh->first_index * sizeof(uint32_t);
@@ -163,7 +163,7 @@ namespace render {
         const auto data_buffer_address = meshes.get_vertex_data_buffer()->address;
         primitive.data.vertex_data = data_buffer_address + primitive.mesh->first_vertex * sizeof(StandardVertexData);
 
-        auto handle = static_mesh_primitives.emplace(std::move(primitive));
+        const auto handle = static_mesh_primitives.emplace(std::move(primitive));
 
         switch(handle->material->first.transparency_mode) {
         case TransparencyMode::Solid:
@@ -205,6 +205,8 @@ namespace render {
             .previous_bone_transforms = previous_bone_matrices_buffer,
         };
 
+        proxy.mesh_proxy->data.type_flags |= PRIMITIVE_TYPE_SKINNED;
+
         // Allocate per-instance buffers for transformed vertex data. Set those as the data's vertex buffers to maintain
         // a consistent interface, and set the original buffers in the skeletal data
 
@@ -239,7 +241,7 @@ namespace render {
     }
 
     void RenderWorld::mark_proxy_inactive(const MeshPrimitiveProxyHandle primitive) {
-        primitive->data.flags &= ~PRIMITIVE_FLAG_ENABLED;
+        primitive->data.runtime_flags &= ~PRIMITIVE_RUNTIME_FLAG_ENABLED;
         update_mesh_proxy(primitive);
     }
 
@@ -522,7 +524,7 @@ namespace render {
         }
     }
 
-    void RenderWorld::draw_transparent(CommandBuffer& commands, GraphicsPipelineHandle pso) const {
+    void RenderWorld::draw_transparent(CommandBuffer& commands, const GraphicsPipelineHandle pso) const {
         draw_primitives(commands, pso, translucent_primitives);
     }
 

@@ -5,6 +5,7 @@
 
 #include "core/string_utils.hpp"
 #include "core/system_interface.hpp"
+#include "fastgltf/types.hpp"
 #include "render/indirect_drawing_utils.hpp"
 #include "render/material_pipelines.hpp"
 #include "render/material_storage.hpp"
@@ -131,8 +132,9 @@ namespace render {
             world,
             view_descriptor,
             masked_view_descriptor,
-            view.solid_buffers,
-            view.cutout_buffers);
+            view.solid_drawcalls,
+            view.cutout_drawcalls,
+            view.skinned_drawcalls);
 
         // Build Hi-Z pyramid
 
@@ -199,20 +201,30 @@ namespace render {
 
         // Generate drawcall buffers for newly-visible objects
         const auto new_solid_drawcalls =
-            translate_visibility_list_to_draw_commands(graph,
-                                                       view.visible_objects,
-                                                       primitive_buffer,
-                                                       num_primitives,
-                                                       world.get_mesh_storage().get_draw_args_buffer(),
-                                                       PRIMITIVE_FLAG_SOLID);
+            translate_visibility_list_to_draw_commands(
+                graph,
+                view.visible_objects,
+                primitive_buffer,
+                num_primitives,
+                world.get_mesh_storage().get_draw_args_buffer(),
+                PRIMITIVE_TYPE_SOLID);
 
         const auto new_cutout_drawcalls =
-            translate_visibility_list_to_draw_commands(graph,
-                                                       view.visible_objects,
-                                                       primitive_buffer,
-                                                       num_primitives,
-                                                       world.get_mesh_storage().get_draw_args_buffer(),
-                                                       PRIMITIVE_FLAG_CUTOUT);
+            translate_visibility_list_to_draw_commands(
+                graph,
+                view.visible_objects,
+                primitive_buffer,
+                num_primitives,
+                world.get_mesh_storage().get_draw_args_buffer(),
+                PRIMITIVE_TYPE_CUTOUT);
+
+        const auto new_skinned_drawcalls = translate_visibility_list_to_draw_commands(
+            graph,
+            view.visible_objects,
+            primitive_buffer,
+            num_primitives,
+            world.get_mesh_storage().get_draw_args_buffer(),
+            PRIMITIVE_TYPE_SOLID | PRIMITIVE_TYPE_SKINNED);
 
         // Draw ONLY newly-visible objects
         draw_visible_objects(
@@ -221,16 +233,11 @@ namespace render {
             view_descriptor,
             masked_view_descriptor,
             new_solid_drawcalls,
-            new_cutout_drawcalls
+            new_cutout_drawcalls,
+            new_skinned_drawcalls
             );
 
         // cleanup
-        allocator.destroy_buffer(new_solid_drawcalls.commands);
-        allocator.destroy_buffer(new_solid_drawcalls.count);
-        allocator.destroy_buffer(new_solid_drawcalls.primitive_ids);
-        allocator.destroy_buffer(new_cutout_drawcalls.commands);
-        allocator.destroy_buffer(new_cutout_drawcalls.count);
-        allocator.destroy_buffer(new_cutout_drawcalls.primitive_ids);
         allocator.destroy_buffer(newly_visible_objects);
 
         graph.end_label();
@@ -244,31 +251,31 @@ namespace render {
         const auto primitive_buffer = world.get_primitive_buffer();
         const auto num_primitives = world.get_total_num_primitives();
 
-        auto& allocator = RenderBackend::get().get_global_allocator();
-        allocator.destroy_buffer(view.solid_buffers.commands);
-        allocator.destroy_buffer(view.solid_buffers.count);
-        allocator.destroy_buffer(view.solid_buffers.primitive_ids);
-        allocator.destroy_buffer(view.cutout_buffers.commands);
-        allocator.destroy_buffer(view.cutout_buffers.count);
-        allocator.destroy_buffer(view.cutout_buffers.primitive_ids);
-
         graph.begin_label("DepthCullingPhase::generate_drawcall_buffers");
 
-        view.solid_buffers =
-            translate_visibility_list_to_draw_commands(graph,
-                                                       view.visible_objects,
-                                                       primitive_buffer,
-                                                       num_primitives,
-                                                       world.get_mesh_storage().get_draw_args_buffer(),
-                                                       PRIMITIVE_FLAG_SOLID);
+        view.solid_drawcalls = translate_visibility_list_to_draw_commands(
+            graph,
+            view.visible_objects,
+            primitive_buffer,
+            num_primitives,
+            world.get_mesh_storage().get_draw_args_buffer(),
+            PRIMITIVE_TYPE_SOLID);
 
-        view.cutout_buffers =
-            translate_visibility_list_to_draw_commands(graph,
-                                                       view.visible_objects,
-                                                       primitive_buffer,
-                                                       num_primitives,
-                                                       world.get_mesh_storage().get_draw_args_buffer(),
-                                                       PRIMITIVE_FLAG_CUTOUT);
+        view.cutout_drawcalls = translate_visibility_list_to_draw_commands(
+            graph,
+            view.visible_objects,
+            primitive_buffer,
+            num_primitives,
+            world.get_mesh_storage().get_draw_args_buffer(),
+            PRIMITIVE_TYPE_CUTOUT);
+
+        view.skinned_drawcalls = translate_visibility_list_to_draw_commands(
+            graph,
+            view.visible_objects,
+            primitive_buffer,
+            num_primitives,
+            world.get_mesh_storage().get_draw_args_buffer(),
+            PRIMITIVE_TYPE_SOLID | PRIMITIVE_TYPE_SKINNED);
 
         graph.end_label();
     }
@@ -277,7 +284,8 @@ namespace render {
                                                  const DescriptorSet& view_descriptor,
                                                  const DescriptorSet& masked_view_descriptor,
                                                  const IndirectDrawingBuffers& solid_drawcalls,
-                                                 const IndirectDrawingBuffers& cutout_drawcalls
+                                                 const IndirectDrawingBuffers& cutout_drawcalls,
+                                                 const IndirectDrawingBuffers& skinned_drawcalls
         ) const {
         const auto& pipelines = world.get_material_storage().get_pipelines();
         const auto depth_pso = pipelines.get_depth_pso();
