@@ -85,7 +85,7 @@ namespace render {
 
         auto point_lights_descriptor_set_builder = backend.get_transient_descriptor_allocator()
                                                           .build_set(point_lights_pipeline, 1)
-                                                          .bind(view.get_buffer())
+                                                          .bind(view.get_constant_buffer())
                                                           .bind(world.get_point_lights_buffer());
         if(backend.supports_ray_tracing()) {
             point_lights_descriptor_set_builder.bind(world.get_raytracing_world().get_acceleration_structure());
@@ -138,7 +138,7 @@ namespace render {
                 if(gi) {
                     gi->render_to_lit_scene(
                         commands,
-                        view.get_buffer(),
+                        view.get_constant_buffer(),
                         sun.get_constant_buffer(),
                         ao_texture,
                         noise_2d);
@@ -147,7 +147,7 @@ namespace render {
                 commands.bind_descriptor_set(0, gbuffers_descriptor_set);
                 add_emissive_lighting(commands);
 
-                world.get_sky().render_sky(commands, view.get_buffer(), sun.get_constant_buffer(), gbuffer.depth);
+                world.get_sky().render_sky(commands, view.get_constant_buffer(), sun.get_constant_buffer(), gbuffer.depth);
 
                 // The sky uses different descriptor sets, so if we add anything after this we'll have to re-bind the gbuffer descriptor set
             }

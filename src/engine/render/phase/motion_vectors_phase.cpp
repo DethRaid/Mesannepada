@@ -167,7 +167,6 @@ namespace render {
 
                     world.draw_masked(commands, masked_buffers, motion_vectors_masked_pso);
 
-                    okay so
                     /*
                      * The view needs to store the buffers of which objects are visible, and the indirect draw buffers
                      * for those objects. That'll both save us some time translating visibility lists, and let us re-use

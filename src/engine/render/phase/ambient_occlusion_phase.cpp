@@ -60,7 +60,7 @@ namespace render {
 
         const auto set = backend.get_transient_descriptor_allocator()
                              .build_set(rtao_pipeline, 0)
-                             .bind(view.get_buffer())
+                             .bind(view.get_constant_buffer())
                              .bind(world.get_raytracing_world().get_acceleration_structure())
                              .bind(gbuffer_depth)
                              .bind(gbuffer_normals)

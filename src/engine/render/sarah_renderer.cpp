@@ -181,6 +181,7 @@ namespace render {
 
         auto& player_view = world->get_player_view();
         player_view.increment_frame_count();
+        player_view.init_visible_objects_buffer(world->get_total_num_primitives());
 
         logger->trace("Beginning frame");
 
@@ -349,9 +350,9 @@ namespace render {
             render_graph,
             *world,
             material_storage,
-            player_view.get_buffer());
+            player_view);
 
-        const auto visible_objects_list = depth_culling_phase.get_visible_objects_buffer();
+        const auto visible_objects_list = player_view.get_visible_objects_buffer();
         const auto visible_solids_buffers = translate_visibility_list_to_draw_commands(
             render_graph,
             visible_objects_list,
@@ -371,7 +372,7 @@ namespace render {
             motion_vectors_phase.render(
                 render_graph,
                 *world,
-                player_view.get_buffer(),
+                player_view.get_constant_buffer(),
                 depth_culling_phase.get_depth_buffer(),
                 visible_solids_buffers,
                 visible_masked_buffers);

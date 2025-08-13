@@ -85,7 +85,7 @@ namespace render {
 
         auto barriers = BufferUsageList{
             {
-                .buffer = view.get_buffer(),
+                .buffer = view.get_constant_buffer(),
                 .stage = VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT,
                 .access = VK_ACCESS_2_SHADER_READ_BIT,
             },
@@ -131,7 +131,7 @@ namespace render {
                     .clear_value = {.depthStencil = {.depth = 0.f}}
                 },
                 .execute = [&](CommandBuffer& commands) {
-                    commands.bind_buffer_reference(0, view.get_buffer());
+                    commands.bind_buffer_reference(0, view.get_constant_buffer());
                     commands.bind_buffer_reference(2, sun.get_constant_buffer());
 
                     commands.bind_pipeline(jolt_debug_pipeline);

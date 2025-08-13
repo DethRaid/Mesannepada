@@ -238,7 +238,7 @@ namespace render {
                 graph,
                 gbuffer.depth,
                 gbuffer.normals,
-                view.get_buffer()
+                view.get_constant_buffer()
             );
         }
 
@@ -320,7 +320,7 @@ namespace render {
 
         const auto set = backend.get_persistent_descriptor_allocator()
                                 .build_set(fog_pipeline, 0)
-                                .bind(player_view.get_buffer())
+                                .bind(player_view.get_constant_buffer())
                                 .bind(cascade_data_buffer)
                                 .bind(gbuffer.depth)
                                 .bind(lpv_a_red, linear_sampler)
@@ -353,7 +353,7 @@ namespace render {
             visualize_geometry_volume(graph, view, lit_scene_texture, gbuffer.depth);
             break;
         case 1:
-            visualize_vpls(graph, view.get_buffer(), lit_scene_texture, gbuffer.depth);
+            visualize_vpls(graph, view.get_constant_buffer(), lit_scene_texture, gbuffer.depth);
             break;
         }
     }
@@ -1156,7 +1156,7 @@ namespace render {
         }
 
         const auto set = backend.get_transient_descriptor_allocator().build_set(gv_visualization_pipeline, 0)
-                                .bind(view.get_buffer())
+                                .bind(view.get_constant_buffer())
                                 .bind(cascade_data_buffer)
                                 .bind(geometry_volume_handle, linear_sampler)
                                 .bind(depth)

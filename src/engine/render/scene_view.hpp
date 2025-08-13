@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 
+#include "backend/descriptor_set_builder.hpp"
 #include "render/backend/handles.hpp"
 #include "shared/view_data.hpp"
 
@@ -17,11 +18,13 @@ namespace render {
     public:
         explicit SceneView();
 
+        ~SceneView();
+
         void set_render_resolution(glm::uvec2 render_resolution);
 
         void set_perspective_projection(float fov_in, float aspect_in, float near_value_in);
 
-        BufferHandle get_buffer() const;
+        BufferHandle get_constant_buffer() const;
 
         void set_view_matrix(const float4x4& view_matrix);
 
@@ -59,6 +62,13 @@ namespace render {
 
         void increment_frame_count();
 
+        /**
+         * Ensures that the primitive visibility buffer has enough space
+         */
+        void init_visible_objects_buffer(uint32_t num_primitives);
+
+        void set_visible_objects_buffer(BufferHandle new_visible_objects);
+
         uint32_t get_frame_count() const;
 
         uint2 get_render_resolution() const;
@@ -70,6 +80,8 @@ namespace render {
         float get_min_log_luminance() const;
 
         float get_max_log_luminance() const;
+
+        BufferHandle get_visible_objects_buffer() const;
 
     private:
         float aperture_size = 16;
@@ -99,7 +111,14 @@ namespace render {
          */
         glm::mat4 last_frame_projection = {};
 
-        BufferHandle buffer = {};
+        BufferHandle constant_buffer = {};
+
+        /**
+         * \brief uint list of visible primitives
+         *
+         * 1:1 correspondence with a scene's list of primitives. 1 = visible, 0 = not visible
+         */
+        BufferHandle visible_objects = nullptr;
 
         bool is_dirty = true;
 

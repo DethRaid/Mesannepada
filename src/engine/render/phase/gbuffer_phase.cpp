@@ -21,7 +21,7 @@ namespace render {
         auto& backend = RenderBackend::get();
         auto gbuffer_set = backend.get_transient_descriptor_allocator().build_set(solid_pso, 0)
             .bind(world.get_primitive_buffer())
-            .bind(player_view.get_buffer())
+            .bind(player_view.get_constant_buffer())
             .build();
 
         const auto masked_pso = pipelines.get_gbuffer_masked_pso();
