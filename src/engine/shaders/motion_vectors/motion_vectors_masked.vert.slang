@@ -17,12 +17,12 @@ struct VertexOutput {
 
 [shader("vertex")]
 VertexOutput main(
-    const uint primitive_id_in,
+    const uint primitive_id : SV_StartInstanceLocation,
     const uint vertex_id : SV_VertexID
 ) {
     VertexOutput output;
 
-    output.primitive_id = primitive_id_in;
+    output.primitive_id = primitive_id;
     const PrimitiveDataGPU data = primitive_datas[output.primitive_id];
 
     const float3 vertex_position = data.vertex_positions[vertex_id];

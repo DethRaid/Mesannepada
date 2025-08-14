@@ -25,7 +25,6 @@ cbuffer Constants {
     uint primitive_type;
 };
 
-[require(SPV_KHR_non_semantic_info)]
 [shader("compute")]
 [numthreads(96, 1, 1)]
 void main(uint thread_id: SV_DispatchThreadID) {
@@ -47,7 +46,7 @@ void main(uint thread_id: SV_DispatchThreadID) {
             primitive_ids[draw_id] = primitive_id;
 
             draw_commands[draw_id] = meshes[primitive_data.mesh_id];
-            draw_commands[draw_id].firstInstance = draw_id;
+            draw_commands[draw_id].firstInstance = primitive_id;
         }
     }
 }

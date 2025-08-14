@@ -112,7 +112,7 @@ struct RsmOutput {
 VertexOutput main_vs(
     const uint vertex_id : SV_VertexID
 #if SAH_MAIN_VIEW
-    , const uint primitive_id_in
+    , const uint primitive_id : SV_StartInstanceLocation
 #endif
 #if SAH_MULTIVIEW
     , const uint view_id : SV_ViewId
@@ -120,7 +120,6 @@ VertexOutput main_vs(
 ) {
     VertexOutput output;
 
-    const uint primitive_id = primitive_id_in;
     output.primitive_id = primitive_id;
 
     PrimitiveDataGPU data = primitive_datas[primitive_id];
@@ -260,8 +259,7 @@ main_fs(const VertexOutput vertex) {
 
 #else // SAH_RT
 
-StandardVertexData interpolate_vertex(const StandardVertexData v0, const StandardVertexData v1, const StandardVertexData v2, const float2 bary)
-{
+StandardVertexData interpolate_vertex(const StandardVertexData v0, const StandardVertexData v1, const StandardVertexData v2, const float2 bary) {
     float3 barycentrics = float3(1.f - bary.x - bary.y, bary.x, bary.y);
     StandardVertexData v = (StandardVertexData)0;
     v.normal = barycentrics.x * v0.normal + barycentrics.y * v1.normal + barycentrics.z * v2.normal;
