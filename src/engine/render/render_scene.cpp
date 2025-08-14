@@ -490,7 +490,6 @@ namespace render {
 
         commands.draw_indexed_indirect(
             drawcalls.commands,
-            drawcalls.count,
             static_cast<uint32_t>(solid_primitives.size()));
 
         if(solid_pso->descriptor_sets.size() > 1) {
@@ -514,7 +513,6 @@ namespace render {
 
         commands.draw_indexed_indirect(
             draw_buffers.commands,
-            draw_buffers.count,
             static_cast<uint32_t>(masked_primitives.size()));
 
         if(masked_pso->descriptor_sets.size() > 1) {

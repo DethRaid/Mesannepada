@@ -298,23 +298,14 @@ namespace render {
             buffers.emplace_back(solid_drawcalls.commands,
                                  VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
                                  VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT);
-            buffers.emplace_back(solid_drawcalls.count,
-                                 VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
-                                 VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT);
         }
         if(skinned_drawcalls.commands != nullptr) {
             buffers.emplace_back(skinned_drawcalls.commands,
                                  VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
                                  VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT);
-            buffers.emplace_back(skinned_drawcalls.count,
-                                 VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
-                                 VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT);
         }
         if(cutout_drawcalls.commands != nullptr) {
             buffers.emplace_back(cutout_drawcalls.commands,
-                                 VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
-                                 VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT);
-            buffers.emplace_back(cutout_drawcalls.count,
                                  VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
                                  VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT);
         }

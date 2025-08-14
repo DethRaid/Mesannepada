@@ -90,6 +90,8 @@ namespace render {
 
         const auto view_data_buffer = view.get_constant_buffer();
 
+
+
         if(cvar_rasterize_motion_vectors.get() == 0) {
             const auto set = motion_vectors_pso->begin_building_set(0)
                                                .bind(view_data_buffer)
@@ -125,27 +127,12 @@ namespace render {
                         .access = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
                     },
                     {
-                        .buffer = view.solid_drawcalls.count,
-                        .stage = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
-                        .access = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
-                    },
-                    {
                         .buffer = view.cutout_drawcalls.commands,
                         .stage = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
                         .access = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
                     },
                     {
-                        .buffer = view.cutout_drawcalls.count,
-                        .stage = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
-                        .access = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
-                    },
-                    {
                         .buffer = view.skinned_drawcalls.commands,
-                        .stage = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
-                        .access = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
-                    },
-                    {
-                        .buffer = view.skinned_drawcalls.count,
                         .stage = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
                         .access = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
                     },

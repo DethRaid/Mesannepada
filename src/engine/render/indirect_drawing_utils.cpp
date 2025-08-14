@@ -15,10 +15,8 @@ namespace render {
     IndirectDrawingBuffers::~IndirectDrawingBuffers() {
         auto& allocator = RenderBackend::get().get_global_allocator();
         allocator.destroy_buffer(commands);
-        allocator.destroy_buffer(count);
 
         commands = nullptr;
-        count = nullptr;
     }
 
     IndirectDrawingBuffers translate_visibility_list_to_draw_commands(
@@ -44,19 +42,15 @@ namespace render {
         const auto buffers = IndirectDrawingBuffers{
             .commands = allocator.create_buffer(
                 "Draw commands",
-                sizeof(VkDrawIndexedIndirectCommand) * num_primitives,
+                sizeof(VkDrawIndexedIndirectCommand) * num_primitives + sizeof(uint32_t),
                 BufferUsage::IndirectBuffer
             ),
-            .count = allocator.create_buffer(
-                "draw_count",
-                sizeof(uint32_t),
-                BufferUsage::IndirectBuffer)
         };
 
         auto& descriptor_allocator = backend.get_transient_descriptor_allocator();
 
         const auto init_set = descriptor_allocator.build_set(init_count_buffer_pipeline, 0)
-            .bind(buffers.count)
+            .bind(buffers.commands)
             .build();
         graph.add_compute_dispatch<uint>(
             {
@@ -70,8 +64,8 @@ namespace render {
             .bind(primitive_buffer)
             .bind(visibility_list)
             .bind(mesh_draw_args_buffer)
+            .bind(buffers.commands, sizeof(uint32_t))
             .bind(buffers.commands)
-            .bind(buffers.count)
             .build();
         graph.add_compute_dispatch<glm::uvec2>(
             {

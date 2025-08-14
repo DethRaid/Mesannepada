@@ -29,6 +29,8 @@ namespace render {
                 CombinedImageSampler combined_image_sampler;
                 AccelerationStructureHandle acceleration_structure = {};
             };
+
+            uint32_t offset = 0;
         };
     }
 
@@ -55,7 +57,7 @@ namespace render {
             DescriptorSetInfo set_info_in, std::string_view name_in
         );
 
-        DescriptorSetBuilder& bind(BufferHandle buffer);
+        DescriptorSetBuilder& bind(BufferHandle buffer, uint32_t offset = 0);
 
         DescriptorSetBuilder& bind(TextureHandle texture);
 
