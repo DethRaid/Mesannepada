@@ -183,17 +183,22 @@ namespace render {
 
                     world.draw_masked(commands, view.cutout_drawcalls, motion_vectors_masked_pso);
 
-                    world.draw_opaque(commands, view.skinned_drawcalls, motion_vectors_opaque_pso);
-
                     /*
-                     * The view needs to store the buffers of which objects are visible, and the indirect draw buffers
-                     * for those objects. That'll both save us some time translating visibility lists, and let us re-use
-                     * the culling results in other places (like here)
+                     * we need to draw skinned meshes
                      *
-                     * I desparately want my mesh components to be a higher-level "render this asset here" and less
-                     * "here's the primitives we imported with no context". Transforms can have some information about
-                     * if they're static or dynamic. Then, we can generate separate draw lists for dynamic objects and
-                     * give them better motion vectors. And of course render animated meshes separately... sigh
+                     * skinned meshes are special. They need their post-skinning vertices for the previous frame
+                     * somehow. we can either use the previous frame's bone matrices or the previous frame's skinned
+                     * vertices. i want to do the latter
+                     *
+                     * the skinned mesh primitive proxy can store the post-skinning buffers from the previous frame, i
+                     * can just swap the gpu pointers. no biggie. what is biggie is accessing them here
+                     *
+                     * i guess i need... a pass to generate draw buffers for the skinned meshes
+                     *
+                     * what we really need is a pointer to the skinned mesh primitive proxy, instaed of the regular mesh
+                     * primitive proxy. we need to emit that to a buffer. that's kinda it
+                     *
+                     *
                      */
 
                     commands.clear_descriptor_set(0);

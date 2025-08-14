@@ -355,10 +355,8 @@ namespace render {
             motion_vectors_phase.render(
                 render_graph,
                 *world,
-                player_view.get_constant_buffer(),
-                depth_culling_phase.get_depth_buffer(),
-                player_view.solid_drawcalls,
-                player_view.cutout_drawcalls);
+                player_view,
+                depth_culling_phase.get_depth_buffer());
         }
 
         if(gi) {
