@@ -89,6 +89,11 @@ struct SkeletalPrimitiveDataGPU {
     WeightsPointer weights;
 
     BoneTransformsPointer bone_transforms;
+
+    VertexPositionPointer last_frame_skinned_positions;
+    VertexDataPointer last_frame_skinned_data;
+
+    uint primitive_id;
 };
 
 #if defined(__cplusplus)

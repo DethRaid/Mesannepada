@@ -1,11 +1,11 @@
 #include "shared/primitive_data.hpp"
 
 struct DrawCommand {
-    uint indexCount;
-    uint instanceCount;
-    uint firstIndex;
-    int  vertexOffset;
-    uint firstInstance;
+    uint index_count;
+    uint instance_count;
+    uint first_index;
+    int  vertex_offset;
+    uint first_instance;
 };
 
 struct DrawCountBuffer {
@@ -43,7 +43,7 @@ void main(uint thread_id: SV_DispatchThreadID) {
             InterlockedAdd(draw_count_buffer[0].draw_count, 1, draw_id);
             
             draw_commands[draw_id] = meshes[primitive_data.mesh_id];
-            draw_commands[draw_id].firstInstance = primitive_id;
+            draw_commands[draw_id].first_instance = primitive_id;
         }
     }
 }
