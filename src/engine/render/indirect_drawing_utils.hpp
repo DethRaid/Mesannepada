@@ -11,7 +11,6 @@ namespace render {
     struct IndirectDrawingBuffers {
         BufferHandle commands;
         BufferHandle count;
-        BufferHandle primitive_ids;
 
         ~IndirectDrawingBuffers();
     };

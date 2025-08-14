@@ -17,7 +17,6 @@ StructuredBuffer<uint> visibility_array;
 StructuredBuffer<DrawCommand> meshes;
 RWStructuredBuffer<DrawCommand> draw_commands;
 RWStructuredBuffer<DrawCountBuffer> draw_count_buffer;
-RWStructuredBuffer<uint> primitive_ids;
 
 [[vk::push_constant]]
 cbuffer Constants {
@@ -43,8 +42,6 @@ void main(uint thread_id: SV_DispatchThreadID) {
         if (primitive_data.type_flags == primitive_type) {
             InterlockedAdd(draw_count_buffer[0].draw_count, 1, draw_id);
             
-            primitive_ids[draw_id] = primitive_id;
-
             draw_commands[draw_id] = meshes[primitive_data.mesh_id];
             draw_commands[draw_id].firstInstance = primitive_id;
         }

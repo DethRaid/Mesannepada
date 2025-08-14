@@ -55,7 +55,7 @@ namespace render {
     }
 
     void MotionVectorsPhase::set_render_resolution(const glm::uvec2& resolution, const glm::uvec2& output_resolution) {
-        auto& backend = RenderBackend::get();
+        const auto& backend = RenderBackend::get();
         auto& allocator = backend.get_global_allocator();
 
         const auto mv_resolution = cvar_full_res_motion_vectors.get() == 0 ? resolution : output_resolution;
@@ -85,7 +85,7 @@ namespace render {
     void MotionVectorsPhase::render(
         RenderGraph& graph, const RenderWorld& world, const SceneView& view,
         const TextureHandle depth_buffer
-        ) {
+        ) const {
         auto& allocator = RenderBackend::get().get_transient_descriptor_allocator();
 
         const auto view_data_buffer = view.get_constant_buffer();
@@ -130,11 +130,6 @@ namespace render {
                         .access = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
                     },
                     {
-                        .buffer = view.solid_drawcalls.primitive_ids,
-                        .stage = VK_PIPELINE_STAGE_2_VERTEX_ATTRIBUTE_INPUT_BIT,
-                        .access = VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT
-                    },
-                    {
                         .buffer = view.cutout_drawcalls.commands,
                         .stage = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
                         .access = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
@@ -143,11 +138,6 @@ namespace render {
                         .buffer = view.cutout_drawcalls.count,
                         .stage = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
                         .access = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
-                    },
-                    {
-                        .buffer = view.cutout_drawcalls.primitive_ids,
-                        .stage = VK_PIPELINE_STAGE_2_VERTEX_ATTRIBUTE_INPUT_BIT,
-                        .access = VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT
                     },
                     {
                         .buffer = view.skinned_drawcalls.commands,
@@ -159,11 +149,6 @@ namespace render {
                         .stage = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
                         .access = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
                     },
-                    {
-                        .buffer = view.skinned_drawcalls.primitive_ids,
-                        .stage = VK_PIPELINE_STAGE_2_VERTEX_ATTRIBUTE_INPUT_BIT,
-                        .access = VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT
-                    }
                 },
                 .descriptor_sets = {masked_set},
                 .color_attachments = {

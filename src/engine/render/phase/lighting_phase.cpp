@@ -19,7 +19,7 @@ namespace render {
     };
 
     LightingPhase::LightingPhase() {
-        auto& backend = RenderBackend::get();
+        const auto& backend = RenderBackend::get();
 
         auto point_lights_fragment_shader_name = "shader://lighting/point_lights.frag.spv"_res;
         if(!backend.supports_ray_tracing()) {
@@ -155,7 +155,7 @@ namespace render {
     }
 
     void LightingPhase::rasterize_sky_shadow(RenderGraph& render_graph, const SceneView& view) {
-        auto& backend = RenderBackend::get();
+        const auto& backend = RenderBackend::get();
         auto& allocator = backend.get_global_allocator();
 
         if(sky_occlusion_map == nullptr) {

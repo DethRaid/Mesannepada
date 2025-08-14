@@ -135,7 +135,7 @@ namespace render {
          * Draws the commands in the IndirectDrawingBuffers with the provided opaque PSO
          */
         void draw_opaque(
-            CommandBuffer& commands, const IndirectDrawingBuffers& drawbuffers, GraphicsPipelineHandle solid_pso
+            CommandBuffer& commands, const IndirectDrawingBuffers& drawcalls, GraphicsPipelineHandle solid_pso
             ) const;
 
         void draw_masked(

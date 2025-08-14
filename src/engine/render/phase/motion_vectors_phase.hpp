@@ -19,7 +19,7 @@ namespace render {
 
         void set_render_resolution(const glm::uvec2& resolution, const glm::uvec2& output_resolution);
 
-        void render(RenderGraph& graph, const RenderWorld& world, const SceneView& view, TextureHandle depth_buffer);
+        void render(RenderGraph& graph, const RenderWorld& world, const SceneView& view, TextureHandle depth_buffer) const;
 
         TextureHandle get_motion_vectors() const;
 

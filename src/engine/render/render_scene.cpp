@@ -475,10 +475,9 @@ namespace render {
     }
 
     void RenderWorld::draw_opaque(
-        CommandBuffer& commands, const IndirectDrawingBuffers& drawbuffers, const GraphicsPipelineHandle solid_pso
+        CommandBuffer& commands, const IndirectDrawingBuffers& drawcalls, const GraphicsPipelineHandle solid_pso
         ) const {
         commands.bind_index_buffer(meshes.get_index_buffer());
-        commands.bind_vertex_buffer(0, drawbuffers.primitive_ids);
 
         if(solid_pso->descriptor_sets.size() > 1) {
             commands.bind_descriptor_set(1, commands.get_backend().get_texture_descriptor_pool().get_descriptor_set());
@@ -490,8 +489,8 @@ namespace render {
         commands.set_front_face(VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
         commands.draw_indexed_indirect(
-            drawbuffers.commands,
-            drawbuffers.count,
+            drawcalls.commands,
+            drawcalls.count,
             static_cast<uint32_t>(solid_primitives.size()));
 
         if(solid_pso->descriptor_sets.size() > 1) {
@@ -503,7 +502,6 @@ namespace render {
         CommandBuffer& commands, const IndirectDrawingBuffers& draw_buffers, const GraphicsPipelineHandle masked_pso
         ) const {
         commands.bind_index_buffer(meshes.get_index_buffer());
-        commands.bind_vertex_buffer(0, draw_buffers.primitive_ids);
 
         if(masked_pso->descriptor_sets.size() > 1) {
             commands.bind_descriptor_set(1, commands.get_backend().get_texture_descriptor_pool().get_descriptor_set());
@@ -578,13 +576,12 @@ namespace render {
                 commands.set_front_face(VK_FRONT_FACE_CLOCKWISE);
             }
 
-            commands.set_push_constant(0, primitive.index);
             commands.draw_indexed(
                 mesh->num_indices,
                 1,
                 static_cast<uint32_t>(mesh->first_index),
                 0,
-                0);
+                primitive.index);
         }
 
         if(pso->descriptor_sets.size() > 1) {

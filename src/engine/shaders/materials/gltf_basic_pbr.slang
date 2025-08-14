@@ -62,20 +62,8 @@ ConstantBuffer<ViewDataGPU> view_data;
 ConstantBuffer<float4x4[4]> world_to_ndc_matrices;
 #endif
 
-#if SAH_CSM
-[vk::push_constant]
-cbuffer Constants {
-    uint primitive_id_in;
-}
-#endif
-
 #if SAH_RSM
 ConstantBuffer<SunLightConstants> sun_light;
-
-[vk::push_constant]
-cbuffer Constants {
-    uint primitive_id_in;
-}
 #endif
 
 [vk::binding(0, 1)]
@@ -110,10 +98,8 @@ struct RsmOutput {
 #if !SAH_RT
 [shader("vertex")]
 VertexOutput main_vs(
-    const uint vertex_id : SV_VertexID
-#if SAH_MAIN_VIEW
-    , const uint primitive_id : SV_StartInstanceLocation
-#endif
+    const uint vertex_id : SV_VertexID,
+    const uint primitive_id : SV_StartInstanceLocation
 #if SAH_MULTIVIEW
     , const uint view_id : SV_ViewId
 #endif
