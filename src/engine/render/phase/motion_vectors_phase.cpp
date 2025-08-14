@@ -83,11 +83,12 @@ namespace render {
     }
 
     void MotionVectorsPhase::render(
-        RenderGraph& graph, const RenderWorld& world, const BufferHandle view_data_buffer,
-        const TextureHandle depth_buffer, const IndirectDrawingBuffers& buffers,
-        const IndirectDrawingBuffers& masked_buffers
+        RenderGraph& graph, const RenderWorld& world, const SceneView& view,
+        const TextureHandle depth_buffer
         ) {
         auto& allocator = RenderBackend::get().get_transient_descriptor_allocator();
+
+        const auto view_data_buffer = view.get_constant_buffer();
 
         if(cvar_rasterize_motion_vectors.get() == 0) {
             const auto set = motion_vectors_pso->begin_building_set(0)
@@ -119,32 +120,47 @@ namespace render {
                 .name = "motion_vectors",
                 .buffers = {
                     {
-                        .buffer = buffers.commands,
+                        .buffer = view.solid_drawcalls.commands,
                         .stage = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
                         .access = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
                     },
                     {
-                        .buffer = buffers.count,
+                        .buffer = view.solid_drawcalls.count,
                         .stage = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
                         .access = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
                     },
                     {
-                        .buffer = buffers.primitive_ids,
+                        .buffer = view.solid_drawcalls.primitive_ids,
                         .stage = VK_PIPELINE_STAGE_2_VERTEX_ATTRIBUTE_INPUT_BIT,
                         .access = VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT
                     },
                     {
-                        .buffer = masked_buffers.commands,
+                        .buffer = view.cutout_drawcalls.commands,
                         .stage = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
                         .access = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
                     },
                     {
-                        .buffer = masked_buffers.count,
+                        .buffer = view.cutout_drawcalls.count,
                         .stage = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
                         .access = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
                     },
                     {
-                        .buffer = masked_buffers.primitive_ids,
+                        .buffer = view.cutout_drawcalls.primitive_ids,
+                        .stage = VK_PIPELINE_STAGE_2_VERTEX_ATTRIBUTE_INPUT_BIT,
+                        .access = VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT
+                    },
+                    {
+                        .buffer = view.skinned_drawcalls.commands,
+                        .stage = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
+                        .access = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
+                    },
+                    {
+                        .buffer = view.skinned_drawcalls.count,
+                        .stage = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
+                        .access = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
+                    },
+                    {
+                        .buffer = view.skinned_drawcalls.primitive_ids,
                         .stage = VK_PIPELINE_STAGE_2_VERTEX_ATTRIBUTE_INPUT_BIT,
                         .access = VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT
                     }
@@ -161,11 +177,13 @@ namespace render {
                 .execute = [&](CommandBuffer& commands) {
                     commands.bind_descriptor_set(0, set);
 
-                    world.draw_opaque(commands, buffers, motion_vectors_opaque_pso);
+                    world.draw_opaque(commands, view.solid_drawcalls, motion_vectors_opaque_pso);
 
                     commands.bind_descriptor_set(0, masked_set);
 
-                    world.draw_masked(commands, masked_buffers, motion_vectors_masked_pso);
+                    world.draw_masked(commands, view.cutout_drawcalls, motion_vectors_masked_pso);
+
+                    world.draw_opaque(commands, view.skinned_drawcalls, motion_vectors_opaque_pso);
 
                     /*
                      * The view needs to store the buffers of which objects are visible, and the indirect draw buffers

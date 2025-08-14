@@ -3,11 +3,11 @@
 #include <EASTL/optional.h>
 #include <glm/vec2.hpp>
 
-#include "render/mip_chain_generator.hpp"
 #include "render/backend/compute_shader.hpp"
 #include "render/backend/descriptor_set_builder.hpp"
 #include "render/backend/graphics_pipeline.hpp"
 #include "render/backend/handles.hpp"
+#include "render/mip_chain_generator.hpp"
 
 namespace render {
     struct IndirectDrawingBuffers;
@@ -24,8 +24,8 @@ namespace render {
      * \brief Render phase that culls visible objects and produces a depth buffer in the process
      *
      * This implements a two-pass culling algorithm. First, we draw the objects that were visible last frame. Second, we
-     * build a HiZ depth pyramid from the depth buffer. Third, we cull all scene objects against that pyramid. Fourth, we
-     * draw objects that were visible this frame but not visible last frame
+     * build a HiZ depth pyramid from the depth buffer. Third, we cull all scene objects against that pyramid. Fourth,
+     * we draw objects that were visible this frame but not visible last frame
      *
      * This class is stateful. It owns its depth buffer and the list of visible objects
      */
@@ -37,9 +37,7 @@ namespace render {
 
         void set_render_resolution(const glm::uvec2& resolution);
 
-        void render(
-            RenderGraph& graph, const RenderWorld& world, SceneView& view
-            );
+        void render(RenderGraph& graph, const RenderWorld& world, SceneView& view);
 
         TextureHandle get_depth_buffer() const;
 
@@ -61,10 +59,10 @@ namespace render {
          */
         static void generate_drawcall_buffers(RenderGraph& graph, const RenderWorld& world, SceneView& view);
 
-        void draw_visible_objects(
-            RenderGraph& graph, const RenderWorld& world, const DescriptorSet& view_descriptor,
-            const DescriptorSet& masked_view_descriptor, const IndirectDrawingBuffers& solid_drawcalls,
-            const IndirectDrawingBuffers& cutout_drawcalls, const IndirectDrawingBuffers& skinned_drawcalls
-        ) const;
+        void draw_visible_objects(RenderGraph& graph, const RenderWorld& world, const DescriptorSet& view_descriptor,
+                                  const DescriptorSet& masked_view_descriptor,
+                                  const IndirectDrawingBuffers& solid_drawcalls,
+                                  const IndirectDrawingBuffers& cutout_drawcalls,
+                                  const IndirectDrawingBuffers& skinned_drawcalls) const;
     };
-}
+} // namespace render
