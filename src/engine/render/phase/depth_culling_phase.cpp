@@ -305,6 +305,17 @@ namespace render {
                                  VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
                                  VK_ACCESS_2_SHADER_READ_BIT);
         }
+        if(skinned_drawcalls.commands != nullptr) {
+            buffers.emplace_back(skinned_drawcalls.commands,
+                                 VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
+                                 VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT);
+            buffers.emplace_back(skinned_drawcalls.count,
+                                 VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
+                                 VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT);
+            buffers.emplace_back(skinned_drawcalls.primitive_ids,
+                                 VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
+                                 VK_ACCESS_2_SHADER_READ_BIT);
+        }
         if(cutout_drawcalls.commands != nullptr) {
             buffers.emplace_back(cutout_drawcalls.commands,
                                  VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
@@ -330,6 +341,11 @@ namespace render {
                 if(solid_drawcalls.commands != nullptr) {
                     commands.bind_descriptor_set(0, view_descriptor);
                     world.draw_opaque(commands, solid_drawcalls, depth_pso);
+                }
+
+                if(skinned_drawcalls.commands != nullptr) {
+                    commands.bind_descriptor_set(0, view_descriptor);
+                    world.draw_opaque(commands, skinned_drawcalls, depth_pso);
                 }
 
                 if(cutout_drawcalls.commands != nullptr) {
