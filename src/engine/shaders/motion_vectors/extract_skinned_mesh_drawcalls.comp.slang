@@ -46,7 +46,7 @@ void main(uint thread_id : SV_DispatchThreadID) {
     uint draw_id;
     InterlockedAdd(draw_count[0], 1, draw_id);
 
-    const PrimitiveDataGPU primitive_data = primitive_daa_buffer[primitive_id];
+    const PrimitiveDataGPU primitive_data = primitive_data_buffer[primitive_id];
     draw_commands[draw_id] = meshes[primitive_data.mesh_id];
     draw_commands[draw_id].first_instance = thread_id;
 }
