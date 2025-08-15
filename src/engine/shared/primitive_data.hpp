@@ -91,7 +91,6 @@ struct SkeletalPrimitiveDataGPU {
     BoneTransformsPointer bone_transforms;
 
     VertexPositionPointer last_frame_skinned_positions;
-    VertexDataPointer last_frame_skinned_data;
 
     uint primitive_id;
 };

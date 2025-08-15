@@ -21,6 +21,8 @@ namespace render {
         BufferHandle transformed_vertices = nullptr;
 
         BufferHandle transformed_data = nullptr;
+
+        BufferHandle previous_skinned_vertices = nullptr;
     };
 
     using SkeletalMeshPrimitiveProxyHandle = PooledObject<SkeletalMeshPrimitiveProxy>;

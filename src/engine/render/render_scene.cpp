@@ -94,7 +94,8 @@ namespace render {
         // Pull bone matrices from skeletal animators
         registry.view<SkeletalMeshComponent>().each([&](const SkeletalMeshComponent& skinny) {
             upload_queue.upload_to_buffer(skinny.bone_matrices_buffer, eastl::span{skinny.worldspace_bone_matrices});
-            upload_queue.upload_to_buffer(skinny.previous_bone_matrices_buffer, eastl::span{skinny.previous_worldspace_bone_matrices});
+            upload_queue.upload_to_buffer(skinny.previous_bone_matrices_buffer,
+                                          eastl::span{skinny.previous_worldspace_bone_matrices});
         });
     }
 
@@ -222,7 +223,7 @@ namespace render {
         auto& allocator = backend.get_global_allocator();
 
         proxy.transformed_vertices = allocator.create_buffer(
-            "transformed_vertex_positions",
+            "transformed_vertex_positions_a",
             primitive.mesh->num_vertices * sizeof(StandardVertexPosition),
             BufferUsage::VertexBuffer);
         proxy.mesh_proxy->data.vertex_positions = proxy.transformed_vertices->address;
@@ -232,6 +233,14 @@ namespace render {
             primitive.mesh->num_vertices * sizeof(StandardVertexData),
             BufferUsage::VertexBuffer);
         proxy.mesh_proxy->data.vertex_data = proxy.transformed_data->address;
+
+        proxy.skeletal_data.primitive_id = proxy.mesh_proxy.index;
+        proxy.previous_skinned_vertices = allocator.create_buffer(
+            "transformed_vertex_positions_b",
+            primitive.mesh->num_vertices * sizeof(StandardVertexPosition),
+            BufferUsage::VertexBuffer
+            );
+        proxy.skeletal_data.last_frame_skinned_positions = proxy.previous_skinned_vertices->address;
 
         const auto handle = skeletal_mesh_primitives.emplace(eastl::move(proxy));
 
@@ -382,6 +391,9 @@ namespace render {
                 // enough workgroups that we have the number of vertices in the x
 
                 for(const auto& mesh : active_skeletal_meshes) {
+                    eastl::swap(mesh->mesh_proxy->data.vertex_data, mesh->skeletal_data.last_frame_skinned_positions);
+                    update_mesh_proxy(mesh);
+
                     commands.set_push_constant(0, mesh.index);
                     commands.set_push_constant(1, mesh->mesh_proxy.index);
                     commands.set_push_constant(2, mesh->mesh_proxy->mesh->num_vertices);
@@ -681,7 +693,8 @@ namespace render {
     }
 
     void RenderWorld::on_transform_update(entt::registry& registry, const entt::entity entity) {
-        if(!registry.any_of<SkeletalMeshComponent, StaticMeshComponent, PointLightComponent, SpotLightComponent, DirectionalLightComponent>(entity)) {
+        if(!registry.any_of<SkeletalMeshComponent, StaticMeshComponent, PointLightComponent, SpotLightComponent,
+                            DirectionalLightComponent>(entity)) {
             return;
         }
 
