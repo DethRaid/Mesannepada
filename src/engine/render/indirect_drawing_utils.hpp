@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <EASTL/string.h>
 
 #include "backend/handles.hpp"
 
@@ -10,8 +11,6 @@ namespace render {
 
     struct IndirectDrawingBuffers {
         BufferHandle commands;
-
-        ~IndirectDrawingBuffers();
     };
 
     /**
@@ -31,6 +30,6 @@ namespace render {
      */
     IndirectDrawingBuffers translate_visibility_list_to_draw_commands(
         RenderGraph& graph, BufferHandle visibility_list, BufferHandle primitive_buffer, uint32_t num_primitives,
-        BufferHandle mesh_draw_args_buffer, uint16_t primitive_type
+        BufferHandle mesh_draw_args_buffer, uint16_t primitive_type, const eastl::string& debug_string
     );
 }

@@ -163,7 +163,7 @@ namespace render {
         /**
          * Draws many meshes, pulling draw args and count from the provided buffer
          *
-         * Draw count must be the first uint, draw commands must be tightly packed after that
+         * Draw count must be the first uint, draw commands start at byte 16 and must be tightly packed
          *
          * @param indirect_buffer Buffer with the count and commands to use when drawing
          * @param max_count Maximum number of things to draw

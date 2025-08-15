@@ -234,7 +234,7 @@ namespace render {
             if (is_buffer_type(binding_info.descriptorType)) {
                 builder.bind_buffer(
                     binding_idx,
-                    { .buffer = resource.buffer, .offset = resource.offset },
+                    { .buffer = resource.buffer, .offset = resource.offset, .range = resource.buffer->create_info.size - resource.offset },
                     binding_info.descriptorType,
                     binding_info.stageFlags
                 );

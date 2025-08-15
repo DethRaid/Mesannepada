@@ -10,7 +10,6 @@ StructuredBuffer<PrimitiveDataGPU> primitive_datas;
 struct VertexOutput {
     float4 position : SV_Position;
     float3 previous_clipspace_location : PREVIOUS_CLIPSPACE_LOCATION;
-    uint primitive_id : PRIMITIVE_ID;
 };
 
 [shader("fragment")]

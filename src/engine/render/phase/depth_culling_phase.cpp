@@ -207,7 +207,8 @@ namespace render {
                 primitive_buffer,
                 num_primitives,
                 world.get_mesh_storage().get_draw_args_buffer(),
-                PRIMITIVE_TYPE_SOLID);
+                PRIMITIVE_TYPE_SOLID,
+                "new_solid");
 
         const auto new_cutout_drawcalls =
             translate_visibility_list_to_draw_commands(
@@ -216,7 +217,8 @@ namespace render {
                 primitive_buffer,
                 num_primitives,
                 world.get_mesh_storage().get_draw_args_buffer(),
-                PRIMITIVE_TYPE_CUTOUT);
+                PRIMITIVE_TYPE_CUTOUT,
+                "new_cutout");
 
         const auto new_skinned_drawcalls = translate_visibility_list_to_draw_commands(
             graph,
@@ -224,7 +226,8 @@ namespace render {
             primitive_buffer,
             num_primitives,
             world.get_mesh_storage().get_draw_args_buffer(),
-            PRIMITIVE_TYPE_SOLID | PRIMITIVE_TYPE_SKINNED);
+            PRIMITIVE_TYPE_SOLID | PRIMITIVE_TYPE_SKINNED,
+            "new_skinned");
 
         // Draw ONLY newly-visible objects
         draw_visible_objects(
@@ -239,6 +242,9 @@ namespace render {
 
         // cleanup
         allocator.destroy_buffer(newly_visible_objects);
+        allocator.destroy_buffer(new_solid_drawcalls.commands);
+        allocator.destroy_buffer(new_cutout_drawcalls.commands);
+        allocator.destroy_buffer(new_skinned_drawcalls.commands);
 
         graph.end_label();
     }
@@ -253,13 +259,19 @@ namespace render {
 
         graph.begin_label("DepthCullingPhase::generate_drawcall_buffers");
 
+        auto& allocator = RenderBackend::get().get_global_allocator();
+        allocator.destroy_buffer(view.solid_drawcalls.commands);
+        allocator.destroy_buffer(view.cutout_drawcalls.commands);
+        allocator.destroy_buffer(view.skinned_drawcalls.commands);
+
         view.solid_drawcalls = translate_visibility_list_to_draw_commands(
             graph,
             view.visible_objects,
             primitive_buffer,
             num_primitives,
             world.get_mesh_storage().get_draw_args_buffer(),
-            PRIMITIVE_TYPE_SOLID);
+            PRIMITIVE_TYPE_SOLID,
+            "solid");
 
         view.cutout_drawcalls = translate_visibility_list_to_draw_commands(
             graph,
@@ -267,7 +279,8 @@ namespace render {
             primitive_buffer,
             num_primitives,
             world.get_mesh_storage().get_draw_args_buffer(),
-            PRIMITIVE_TYPE_CUTOUT);
+            PRIMITIVE_TYPE_CUTOUT,
+            "cutout");
 
         view.skinned_drawcalls = translate_visibility_list_to_draw_commands(
             graph,
@@ -275,7 +288,8 @@ namespace render {
             primitive_buffer,
             num_primitives,
             world.get_mesh_storage().get_draw_args_buffer(),
-            PRIMITIVE_TYPE_SOLID | PRIMITIVE_TYPE_SKINNED);
+            PRIMITIVE_TYPE_SOLID | PRIMITIVE_TYPE_SKINNED,
+            "skinned");
 
         graph.end_label();
     }

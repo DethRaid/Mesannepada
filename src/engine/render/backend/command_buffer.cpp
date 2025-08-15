@@ -340,7 +340,7 @@ namespace render {
         vkCmdDrawIndexedIndirectCount(
             commands,
             indirect_buffer->buffer,
-            sizeof(uint32_t),
+            16,
             indirect_buffer->buffer,
             0,
             max_count,
