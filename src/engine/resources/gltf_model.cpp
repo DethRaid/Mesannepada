@@ -761,7 +761,7 @@ void GltfModel::import_skins(AnimationSystem& animation_system) {
      */
 
     // I don't want to deal with multiple skins per file. Do not
-    assert(asset.skins.size() < 2);
+    assert(asset.skins.size() < 2); 
 
     for(const auto& original_skin : asset.skins) {
         auto skeleton = Skeleton{};

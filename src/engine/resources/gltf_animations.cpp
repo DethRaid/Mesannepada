@@ -2,6 +2,7 @@
 
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
+#include <spdlog/spdlog.h>
 #include <tracy/Tracy.hpp>
 
 void AnimationEventSampler::tick(const float time) {
@@ -68,15 +69,17 @@ float4x4 NodeAnimator::sample(const float time) {
     if(position_sampler) {
         const auto position = position_sampler->sample(time);
         transform = glm::translate(transform, position);
-        // spdlog::debug("Position: {}, {}, {}", position.x, position.y, position.z);
+        spdlog::debug("position: {}, {}, {}", position.x, position.y, position.z);
     }
     if(rotation_sampler) {
         const auto rotation = rotation_sampler->sample(time);
         transform = transform * glm::mat4_cast(rotation);
+        spdlog::debug("rotation: {} + {}i + {}j + {}k", rotation.w, rotation.x, rotation.y, rotation.z);
     }
     if(scale_sampler) {
         const auto scale = scale_sampler->sample(time);
         transform = glm::scale(transform, scale);
+        spdlog::debug("scale: {}, {}, {}", scale.x, scale.y, scale.z);
     }
 
     return transform;
