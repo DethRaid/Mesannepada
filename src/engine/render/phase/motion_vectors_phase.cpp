@@ -124,6 +124,8 @@ namespace render {
                                                             .bind(skinned_draws, 16)
                                                             .build();
 
+       graph.add_clear_pass(skinned_draws);
+
         graph.add_compute_dispatch(ComputeDispatch<uint32_t>{
             .name = "build_skinned_drawcall_buffer",
             .descriptor_sets = {skinned_set},

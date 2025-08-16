@@ -8,8 +8,6 @@
 #include "resources/resource_path.hpp"
 
 namespace render {
-    static ComputePipelineHandle init_count_buffer_pipeline = nullptr;
-
     static ComputePipelineHandle visibility_list_to_draw_commands = nullptr;
 
     BufferHandle translate_visibility_list_to_draw_commands(
@@ -23,10 +21,6 @@ namespace render {
 
         auto& pipeline_cache = backend.get_pipeline_cache();
 
-        if (!init_count_buffer_pipeline) {
-            init_count_buffer_pipeline = pipeline_cache.create_pipeline(
-                "shader://util/init_count_buffer.comp.spv"_res);
-        }
         if (!visibility_list_to_draw_commands) {
             visibility_list_to_draw_commands = pipeline_cache.create_pipeline(
                 "shader://util/visibility_list_to_draw_commands.comp.spv"_res);
@@ -39,20 +33,9 @@ namespace render {
                 BufferUsage::IndirectBuffer
         );
 
-        auto& descriptor_allocator = backend.get_transient_descriptor_allocator();
+        graph.add_clear_pass(drawcall_buffer);
 
-        const auto init_set = descriptor_allocator.build_set(init_count_buffer_pipeline, 0)
-            .bind(drawcall_buffer)
-            .build();
-        graph.add_compute_dispatch<uint>(
-            {
-                .name = "Init dual bump point",
-                .descriptor_sets = {init_set},
-                .num_workgroups = {1, 1, 1},
-                .compute_shader = init_count_buffer_pipeline
-            });
-
-        const auto tvl_set = descriptor_allocator.build_set(visibility_list_to_draw_commands, 0)
+        const auto tvl_set = visibility_list_to_draw_commands->begin_building_set(0)
             .bind(primitive_buffer)
             .bind(visibility_list)
             .bind(mesh_draw_args_buffer)
