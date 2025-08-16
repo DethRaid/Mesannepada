@@ -24,7 +24,7 @@ StructuredBuffer<PrimitiveDataGPU> primitive_data_buffer;
 RWStructuredBuffer<uint> draw_count;
 RWStructuredBuffer<DrawCommand> draw_commands;
 
-[vk::push_constants]
+[vk::push_constant]
 cbuffer Constants {
     uint num_skeletal_primitives;
 };

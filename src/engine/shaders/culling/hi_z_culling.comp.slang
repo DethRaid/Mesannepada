@@ -30,6 +30,7 @@ cbuffer Constants {
 
 // 2D Polyhedral Bounds of a Clipped, Perspective-Projected 3D Sphere. Michael Mara, Morgan McGuire. 2013
 bool projectSphere(float3 center, float radius, float znear, float P00, float P11, out float4 aabb) {
+    aabb = (float4)0;
     if(center.z < radius + znear) {
         return false;
     }

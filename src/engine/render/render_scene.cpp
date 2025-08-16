@@ -222,17 +222,17 @@ namespace render {
         const auto& backend = RenderBackend::get();
         auto& allocator = backend.get_global_allocator();
 
-        proxy.transformed_vertices = allocator.create_buffer(
+        proxy.skinned_vertices = allocator.create_buffer(
             "transformed_vertex_positions_a",
             primitive.mesh->num_vertices * sizeof(StandardVertexPosition),
             BufferUsage::VertexBuffer);
-        proxy.mesh_proxy->data.vertex_positions = proxy.transformed_vertices->address;
+        proxy.mesh_proxy->data.vertex_positions = proxy.skinned_vertices->address;
 
-        proxy.transformed_data = allocator.create_buffer(
+        proxy.skinned_data = allocator.create_buffer(
             "transformed_vertex_data",
             primitive.mesh->num_vertices * sizeof(StandardVertexData),
             BufferUsage::VertexBuffer);
-        proxy.mesh_proxy->data.vertex_data = proxy.transformed_data->address;
+        proxy.mesh_proxy->data.vertex_data = proxy.skinned_data->address;
 
         proxy.skeletal_data.primitive_id = proxy.mesh_proxy.index;
         proxy.previous_skinned_vertices = allocator.create_buffer(
@@ -282,8 +282,8 @@ namespace render {
         destroy_primitive(proxy->mesh_proxy);
 
         auto& allocator = RenderBackend::get().get_global_allocator();
-        allocator.destroy_buffer(proxy->transformed_vertices);
-        allocator.destroy_buffer(proxy->transformed_data);
+        allocator.destroy_buffer(proxy->skinned_vertices);
+        allocator.destroy_buffer(proxy->skinned_data);
 
         active_skeletal_meshes.erase_first_unsorted(proxy);
 
@@ -360,13 +360,17 @@ namespace render {
         auto barriers = BufferUsageList{};
         barriers.reserve(active_skeletal_meshes.size() * 3);
         for(const auto& mesh : active_skeletal_meshes) {
+            eastl::swap(mesh->mesh_proxy->data.vertex_positions, mesh->skeletal_data.last_frame_skinned_positions);
+            eastl::swap(mesh->skinned_vertices, mesh->previous_skinned_vertices);
+            update_mesh_proxy(mesh);
+
             barriers.emplace_back(mesh->bone_transforms,
                                   VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
                                   VK_ACCESS_2_SHADER_READ_BIT);
-            barriers.emplace_back(mesh->transformed_vertices,
+            barriers.emplace_back(mesh->skinned_vertices,
                                   VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
                                   VK_ACCESS_2_SHADER_WRITE_BIT);
-            barriers.emplace_back(mesh->transformed_data,
+            barriers.emplace_back(mesh->skinned_data,
                                   VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
                                   VK_ACCESS_2_SHADER_WRITE_BIT);
         }
@@ -391,9 +395,6 @@ namespace render {
                 // enough workgroups that we have the number of vertices in the x
 
                 for(const auto& mesh : active_skeletal_meshes) {
-                    eastl::swap(mesh->mesh_proxy->data.vertex_data, mesh->skeletal_data.last_frame_skinned_positions);
-                    update_mesh_proxy(mesh);
-
                     commands.set_push_constant(0, mesh.index);
                     commands.set_push_constant(1, mesh->mesh_proxy.index);
                     commands.set_push_constant(2, mesh->mesh_proxy->mesh->num_vertices);
