@@ -16,9 +16,13 @@ namespace render {
 
         BufferHandle bone_transforms = nullptr;
 
-        BufferHandle transformed_vertices = nullptr;
+        BufferHandle previous_bone_transforms = nullptr;
 
-        BufferHandle transformed_data = nullptr;
+        BufferHandle skinned_vertices = nullptr;
+
+        BufferHandle skinned_data = nullptr;
+
+        BufferHandle previous_skinned_vertices = nullptr;
     };
 
     using SkeletalMeshPrimitiveProxyHandle = PooledObject<SkeletalMeshPrimitiveProxy>;

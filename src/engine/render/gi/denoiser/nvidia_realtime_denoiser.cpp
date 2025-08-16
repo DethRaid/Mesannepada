@@ -24,6 +24,162 @@ namespace render {
     static auto cvar_nrd_validation = AutoCVar_Int{"r.NRD.Validation",
                                                    "Whether to enable NRD validation", 1};
 
+    static auto cvar_reblur_antilag_sigma = AutoCVar_Float{
+        "r.NRD.ReBLUR.AntiLag.LuminanceSigmaScale",
+        "[1; 5] - delta is reduced by local variance multiplied by this value",
+        4.0
+    };
+
+    static auto cvar_reblur_antilag_sensitivity = AutoCVar_Float{
+        "r.NRD.ReBLUR.LuminanceSigmaSensitivity",
+        "[1; 5] - antilag sensitivity (smaller values increase sensitivity)",
+        3.0
+    };
+
+    static auto cvar_reblur_max_accumulated_frames = AutoCVar_Int{
+        "r.NRD.ReBLUR.MaxAccumulatedFrameNum",
+        "[0; 63] - maximum number of linearly accumulated frames",
+        30
+    };
+
+    static auto cvar_reblur_max_fast_frames = AutoCVar_Int{
+        "r.NRD.ReBLUR.MaxFastAccumulatedFrameNum",
+        "[0; maxAccumulatedFrameNum) - maximum number of linearly accumulated frames for fast history\nValues \">= maxAccumulatedFrameNum\" disable fast history\nUsually 5x times shorter than the main history",
+        6
+    };
+
+    static auto cvar_reblur_max_stabilized_frames = AutoCVar_Int{
+        "r.NRD.ReBLUR.MaxStabilizedFrameNum",
+        "[0; maxAccumulatedFrameNum] - maximum number of linearly accumulated frames for stabilized radiance\n\"0\" disables the stabilization pass\nValues \">= maxAccumulatedFrameNum\"  get clamped to \"maxAccumulatedFrameNum\"",
+        nrd::REBLUR_MAX_HISTORY_FRAME_NUM
+    };
+
+    static auto cvar_reblur_history_fix_frame_num = AutoCVar_Int{
+        "r.NRD.ReBLUR.HistoryFrameFixNum",
+        "[0; 3] - number of reconstructed frames after history reset (less than \"maxFastAccumulatedFrameNum\")",
+        3
+    };
+
+    static auto cvar_reblur_history_fix_pixel_stride = AutoCVar_Int{
+        "r.NRD.ReBLUR.HistoryFixBasePixelStride",
+        "(> 0) - base stride between pixels in 5x5 history reconstruction kernel (gets reduced over time)",
+        14
+    };
+
+    static auto cvar_reblur_diffuse_prepass_blur_radius = AutoCVar_Float{
+        "r.NRD.ReBLUR.DiffusePrepassBlurRadius",
+        "(pixels) - pre-accumulation spatial reuse pass blur radius (0 = disabled, must be used in case of badly defined signals and probabilistic sampling)",
+        30.f
+    };
+
+    static auto cvar_reblur_specular_prepass_blur_radius = AutoCVar_Float{
+        "r.NRD.ReBLUR.SpecularPrepassBlurRadius",
+        "(pixels) - pre-accumulation spatial reuse pass blur radius (0 = disabled, must be used in case of badly defined signals and probabilistic sampling)",
+        50.f
+    };
+
+    static auto cvar_reblur_min_hit_dist_weight = AutoCVar_Float{
+        "r.NRD.ReBLUR.MinHitDistanceWeight",
+        "(0; 0.2] - bigger values reduce sensitivity to shadows in spatial passes, smaller values are recommended for signals with relatively clean hit distance (like RTXDI/RESTIR)",
+        0.1f
+    };
+
+    static auto cvar_reblur_min_blur_radius = AutoCVar_Float{
+        "r.NRD.ReBLUR.MinBlurRadius",
+        "(pixels) - min denoising radius (for converged state)",
+        1.f
+    };
+
+    static auto cvar_reblur_max_blur_radius = AutoCVar_Float{
+        "r.NRD.ReBLUR.MaxBlurRadius",
+        "(pixels) - base (max) denoising radius (gets reduced over time)",
+        30.f
+    };
+
+    static auto cvar_reblur_lobe_angle_fraction = AutoCVar_Float{
+        "r.NRD.ReBLUR.LobeAngleFraction",
+        "(normalized %) - base fraction of diffuse or specular lobe angle used to drive normal based rejection",
+        0.15f
+    };
+
+    static auto cvar_reblur_roughness_fraction = AutoCVar_Float{
+        "r.NRD.ReBLUR.RoughnessFraction",
+        "(normalized %) - base fraction of center roughness used to drive roughness based rejection",
+        0.15f
+    };
+
+    static auto cvar_reblur_accumulation_roughness_threshold = AutoCVar_Float{
+        "r.NRD.ReBLUR.ResponsiveAccumulationRoughnessThreshold",
+        "[0; 1] - if roughness < this, temporal accumulation becomes responsive and driven by roughness (useful for animated water)",
+        0.f
+    };
+
+    static auto cvar_reblur_plane_dist_sensitivity = AutoCVar_Float{
+        "r.NRD.ReBLUR.PlaneDistanceSensitivity",
+        "(normalized %) - represents maximum allowed deviation from the local tangent plane",
+        0.02f
+    };
+
+    static auto cvar_reblur_specular_threshold_mv_x = AutoCVar_Float{
+        "r.NRD.SpecularProbabilityThresholdsForMvModification.x",
+        "IN_MV = lerp(IN_MV, specularMotion, smoothstep(this[0], this[1], specularProbability))",
+        0.5f
+    };
+
+    static auto cvar_reblur_specular_threshold_mv_y = AutoCVar_Float{
+        "r.NRD.SpecularProbabilityThresholdsForMvModification.y",
+        "IN_MV = lerp(IN_MV, specularMotion, smoothstep(this[0], this[1], specularProbability))",
+        0.9f
+    };
+
+    static auto cvar_reblur_firefly_suppressor_min_scale = AutoCVar_Float{
+        "r.NRD.ReBLUR.FireflySuppressorMinRelativeScale",
+        "[1; 3] - undesired sporadic outliers suppression to keep output stable (smaller values maximize suppression in exchange of bias)",
+        2.f
+    };
+
+    static auto cvar_reblur_checkerboard_mode = AutoCVar_Enum<nrd::CheckerboardMode>{
+        "r.NRD.ReBLUR.CheckerboardMode",
+        "If not OFF and used for DIFFUSE_SPECULAR, defines diffuse orientation, specular orientation is the opposite",
+        nrd::CheckerboardMode::OFF
+    };
+
+    static auto cvar_reblur_hit_dist_reconstruction = AutoCVar_Enum<nrd::HitDistanceReconstructionMode>{
+        "r.NRD.ReBLUR.HitDistanceReconstructionMode",
+        "Must be used only in case of probabilistic sampling (not checkerboarding), when a pixel can be skipped and have \"0\" (invalid) hit distance",
+        nrd::HitDistanceReconstructionMode::OFF
+    };
+
+    static auto cvar_reblur_enable_anti_firefly = AutoCVar_Int{
+        "r.NRD.ReBLUR.EnableAntiFirefly",
+        "Adds bias in case of badly defined signals, but tries to fight with fireflies",
+        false
+    };
+
+    static auto cvar_reblur_enable_performance_mode = AutoCVar_Int{
+        "r.NRD.ReBLUR.EnablePerformanceMode",
+        "Boosts performance by sacrificing IQ",
+        false
+    };
+
+    static auto cvar_reblur_min_diff_material = AutoCVar_Float{
+        "r.NRD.ReBLUR.MinMaterialForDiffuse",
+        "(Optional) material ID comparison: max(m0, minMaterial) == max(m1, minMaterial) (requires \"NormalEncoding::R10_G10_B10_A2_UNORM\")",
+        4.f
+    };
+
+    static auto cvar_reblur_min_spec_material = AutoCVar_Float{
+        "r.NRD.ReBLUR.MinMaterialForSpecular",
+        "(Optional) material ID comparison: max(m0, minMaterial) == max(m1, minMaterial) (requires \"NormalEncoding::R10_G10_B10_A2_UNORM\")",
+        4.f
+    };
+
+    static auto cvar_reblur_prepass_for_spec_motion_estimation = AutoCVar_Int{
+        "r.NRD.ReBLUR.UsePrepassOnlyForSpecularMotionEstimation",
+        "In rare cases, when bright samples are so sparse that any other bright neighbor can't be reached, pre-pass transforms a standalone bright pixel into a standalone bright blob, worsening the situation. Despite that it's a problem of sampling, the denoiser needs to handle it somehow on its side too. Diffuse pre-pass can be just disabled, but for specular it's still needed to find optimal hit distance for tracking. This boolean allow to use specular pre-pass for tracking purposes only (use with care)",
+        false
+    };
+
     static std::shared_ptr<spdlog::logger> logger;
 
     static nrd::Resource get_nrd_resource(TextureHandle texture, bool is_output = false);
@@ -84,7 +240,35 @@ namespace render {
         instance->SetCommonSettings(common_settings);
 
         if(cached_denoiser_type == DenoiserType::ReBLUR) {
-            auto reblur_settings = nrd::ReblurSettings{};
+            auto reblur_settings = nrd::ReblurSettings{
+                .antilagSettings = {
+                    .luminanceSigmaScale = cvar_reblur_antilag_sigma.get(),
+                    .luminanceSensitivity = cvar_reblur_antilag_sensitivity.get()
+                },
+                .maxAccumulatedFrameNum = cvar_reblur_max_accumulated_frames.get_uint(),
+                .maxFastAccumulatedFrameNum = cvar_reblur_max_fast_frames.get_uint(),
+                .maxStabilizedFrameNum = cvar_reblur_max_stabilized_frames.get_uint(),
+                .historyFixFrameNum = cvar_reblur_history_fix_frame_num.get_uint(),
+                .historyFixBasePixelStride = cvar_reblur_history_fix_pixel_stride.get_uint(),
+                .diffusePrepassBlurRadius = cvar_reblur_diffuse_prepass_blur_radius.get(),
+                .specularPrepassBlurRadius = cvar_reblur_specular_prepass_blur_radius.get(),
+                .minHitDistanceWeight = cvar_reblur_min_hit_dist_weight.get(),
+                .minBlurRadius = cvar_reblur_min_blur_radius.get(),
+                .maxBlurRadius = cvar_reblur_max_blur_radius.get(),
+                .lobeAngleFraction = cvar_reblur_lobe_angle_fraction.get(),
+                .roughnessFraction = cvar_reblur_roughness_fraction.get(),
+                .responsiveAccumulationRoughnessThreshold = cvar_reblur_accumulation_roughness_threshold.get(),
+                .planeDistanceSensitivity = cvar_reblur_plane_dist_sensitivity.get(),
+                .specularProbabilityThresholdsForMvModification = {cvar_reblur_specular_threshold_mv_x.get(), cvar_reblur_specular_threshold_mv_y.get()},
+                .fireflySuppressorMinRelativeScale = cvar_reblur_firefly_suppressor_min_scale.get(),
+                .checkerboardMode = cvar_reblur_checkerboard_mode.get(),
+                .hitDistanceReconstructionMode = cvar_reblur_hit_dist_reconstruction.get(),
+                .enableAntiFirefly = cvar_reblur_enable_anti_firefly.get() != 0,
+                .enablePerformanceMode = cvar_reblur_enable_performance_mode.get() != 0,
+                .minMaterialForDiffuse = cvar_reblur_min_diff_material.get(),
+                .minMaterialForSpecular = cvar_reblur_min_spec_material.get(),
+                .usePrepassOnlyForSpecularMotionEstimation = cvar_reblur_prepass_for_spec_motion_estimation.get() != 0
+            };
 
             instance->SetDenoiserSettings(static_cast<nrd::Identifier>(nrd::Denoiser::REBLUR_DIFFUSE),
                                           &reblur_settings);

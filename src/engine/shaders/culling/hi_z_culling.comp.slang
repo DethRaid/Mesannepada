@@ -30,6 +30,7 @@ cbuffer Constants {
 
 // 2D Polyhedral Bounds of a Clipped, Perspective-Projected 3D Sphere. Michael Mara, Morgan McGuire. 2013
 bool projectSphere(float3 center, float radius, float znear, float P00, float P11, out float4 aabb) {
+    aabb = (float4)0;
     if(center.z < radius + znear) {
         return false;
     }
@@ -109,7 +110,7 @@ void main(uint primitive_id : SV_DispatchThreadID) {
     }    
 
     PrimitiveDataGPU instance_to_cull = primitive_datas[primitive_id];
-    if((instance_to_cull.flags & PRIMITIVE_FLAG_ENABLED) == 0) {
+    if((instance_to_cull.runtime_flags & PRIMITIVE_RUNTIME_FLAG_ENABLED) == 0) {
         mark_invisible(primitive_id);
         return;
     }

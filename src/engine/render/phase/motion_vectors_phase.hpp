@@ -6,6 +6,7 @@
 #include "render/backend/handles.hpp"
 
 namespace render {
+    class SceneView;
     struct IndirectDrawingBuffers;
     class RenderGraph;
     class RenderWorld;
@@ -18,18 +19,18 @@ namespace render {
 
         void set_render_resolution(const glm::uvec2& resolution, const glm::uvec2& output_resolution);
 
-        void render(
-            RenderGraph& graph, const RenderWorld& world, BufferHandle view_data_buffer, TextureHandle depth_buffer,
-            const IndirectDrawingBuffers& buffers, const IndirectDrawingBuffers& masked_buffers
-        );
+        void render(RenderGraph& graph, const RenderWorld& world, const SceneView& view, TextureHandle depth_buffer) const;
 
         TextureHandle get_motion_vectors() const;
 
     private:
+        ComputePipelineHandle build_skinned_drawcalls_pso = {};
+
         GraphicsPipelineHandle motion_vectors_opaque_pso = {};
         GraphicsPipelineHandle motion_vectors_masked_pso = {};
+        GraphicsPipelineHandle motion_vectors_skinned_pso = {};
 
         TextureHandle motion_vectors = nullptr;
-        ComputePipelineHandle motion_vectors_pso;
+        ComputePipelineHandle camera_motion_vectors_pso;
     };
-}
+} // namespace render

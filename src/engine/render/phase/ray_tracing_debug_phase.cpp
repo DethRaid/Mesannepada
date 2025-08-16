@@ -41,7 +41,7 @@ namespace render {
 
         auto set = backend.get_transient_descriptor_allocator().build_set(pipeline, 0)
             .bind(world.get_primitive_buffer())
-            .bind(view.get_buffer())
+            .bind(view.get_constant_buffer())
             .bind(gbuffer.depth)
             .bind(output_texture)
             .build();

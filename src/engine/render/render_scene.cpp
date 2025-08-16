@@ -16,8 +16,8 @@
 #include "render/backend/resource_allocator.hpp"
 #include "render/components/static_mesh_component.hpp"
 #include "scene/camera_component.hpp"
-#include "scene/world.hpp"
 #include "scene/transform_component.hpp"
+#include "scene/world.hpp"
 
 namespace render {
     constexpr uint32_t MAX_NUM_PRIMITIVES = 65536;
@@ -94,6 +94,8 @@ namespace render {
         // Pull bone matrices from skeletal animators
         registry.view<SkeletalMeshComponent>().each([&](const SkeletalMeshComponent& skinny) {
             upload_queue.upload_to_buffer(skinny.bone_matrices_buffer, eastl::span{skinny.worldspace_bone_matrices});
+            upload_queue.upload_to_buffer(skinny.previous_bone_matrices_buffer,
+                                          eastl::span{skinny.previous_worldspace_bone_matrices});
         });
     }
 
@@ -113,7 +115,6 @@ namespace render {
     }
 
     void RenderWorld::update_mesh_proxy(const SkeletalMeshPrimitiveProxyHandle handle) {
-        const auto& mesh_data = *handle->mesh_proxy;
         update_mesh_proxy(handle->mesh_proxy);
 
         if(skeletal_data_upload_buffer.is_full()) {
@@ -150,7 +151,8 @@ namespace render {
         primitive.data.material = material_buffer_address + primitive.material.index * sizeof(BasicPbrMaterialGpu);
         primitive.data.mesh_id = primitive.mesh.index;
         const auto transparency_mode_bit = static_cast<uint32_t>(primitive.material->first.transparency_mode);
-        primitive.data.flags = PRIMITIVE_FLAG_ENABLED | (1 << transparency_mode_bit);
+        primitive.data.type_flags = 1 << transparency_mode_bit;
+        primitive.data.runtime_flags = PRIMITIVE_RUNTIME_FLAG_ENABLED;
 
         const auto index_buffer_address = meshes.get_index_buffer()->address;
         primitive.data.indices = index_buffer_address + primitive.mesh->first_index * sizeof(uint32_t);
@@ -162,7 +164,7 @@ namespace render {
         const auto data_buffer_address = meshes.get_vertex_data_buffer()->address;
         primitive.data.vertex_data = data_buffer_address + primitive.mesh->first_vertex * sizeof(StandardVertexData);
 
-        auto handle = static_mesh_primitives.emplace(std::move(primitive));
+        const auto handle = static_mesh_primitives.emplace(std::move(primitive));
 
         switch(handle->material->first.transparency_mode) {
         case TransparencyMode::Solid:
@@ -192,15 +194,19 @@ namespace render {
     }
 
     SkeletalMeshPrimitiveProxyHandle RenderWorld::create_skeletal_mesh_proxy(
-        const float4x4& transform, const SkeletalMeshPrimitive& primitive, const BufferHandle bone_matrices_buffer
+        const float4x4& transform, const SkeletalMeshPrimitive& primitive, const BufferHandle bone_matrices_buffer,
+        const BufferHandle previous_bone_matrices_buffer
         ) {
         auto proxy = SkeletalMeshPrimitiveProxy{
             .mesh_proxy = create_mesh_proxy(transform,
                                             primitive.mesh,
                                             primitive.material,
                                             primitive.visible_to_ray_tracing),
-            .bone_transforms = bone_matrices_buffer
+            .bone_transforms = bone_matrices_buffer,
+            .previous_bone_transforms = previous_bone_matrices_buffer,
         };
+
+        proxy.mesh_proxy->data.type_flags |= PRIMITIVE_TYPE_SKINNED;
 
         // Allocate per-instance buffers for transformed vertex data. Set those as the data's vertex buffers to maintain
         // a consistent interface, and set the original buffers in the skeletal data
@@ -216,17 +222,25 @@ namespace render {
         const auto& backend = RenderBackend::get();
         auto& allocator = backend.get_global_allocator();
 
-        proxy.transformed_vertices = allocator.create_buffer(
-            "transformed_vertex_positions",
+        proxy.skinned_vertices = allocator.create_buffer(
+            "transformed_vertex_positions_a",
             primitive.mesh->num_vertices * sizeof(StandardVertexPosition),
             BufferUsage::VertexBuffer);
-        proxy.mesh_proxy->data.vertex_positions = proxy.transformed_vertices->address;
+        proxy.mesh_proxy->data.vertex_positions = proxy.skinned_vertices->address;
 
-        proxy.transformed_data = allocator.create_buffer(
+        proxy.skinned_data = allocator.create_buffer(
             "transformed_vertex_data",
             primitive.mesh->num_vertices * sizeof(StandardVertexData),
             BufferUsage::VertexBuffer);
-        proxy.mesh_proxy->data.vertex_data = proxy.transformed_data->address;
+        proxy.mesh_proxy->data.vertex_data = proxy.skinned_data->address;
+
+        proxy.skeletal_data.primitive_id = proxy.mesh_proxy.index;
+        proxy.previous_skinned_vertices = allocator.create_buffer(
+            "transformed_vertex_positions_b",
+            primitive.mesh->num_vertices * sizeof(StandardVertexPosition),
+            BufferUsage::VertexBuffer
+            );
+        proxy.skeletal_data.last_frame_skinned_positions = proxy.previous_skinned_vertices->address;
 
         const auto handle = skeletal_mesh_primitives.emplace(eastl::move(proxy));
 
@@ -236,7 +250,7 @@ namespace render {
     }
 
     void RenderWorld::mark_proxy_inactive(const MeshPrimitiveProxyHandle primitive) {
-        primitive->data.flags &= ~PRIMITIVE_FLAG_ENABLED;
+        primitive->data.runtime_flags &= ~PRIMITIVE_RUNTIME_FLAG_ENABLED;
         update_mesh_proxy(primitive);
     }
 
@@ -268,8 +282,8 @@ namespace render {
         destroy_primitive(proxy->mesh_proxy);
 
         auto& allocator = RenderBackend::get().get_global_allocator();
-        allocator.destroy_buffer(proxy->transformed_vertices);
-        allocator.destroy_buffer(proxy->transformed_data);
+        allocator.destroy_buffer(proxy->skinned_vertices);
+        allocator.destroy_buffer(proxy->skinned_data);
 
         active_skeletal_meshes.erase_first_unsorted(proxy);
 
@@ -346,13 +360,17 @@ namespace render {
         auto barriers = BufferUsageList{};
         barriers.reserve(active_skeletal_meshes.size() * 3);
         for(const auto& mesh : active_skeletal_meshes) {
+            eastl::swap(mesh->mesh_proxy->data.vertex_positions, mesh->skeletal_data.last_frame_skinned_positions);
+            eastl::swap(mesh->skinned_vertices, mesh->previous_skinned_vertices);
+            update_mesh_proxy(mesh);
+
             barriers.emplace_back(mesh->bone_transforms,
                                   VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
                                   VK_ACCESS_2_SHADER_READ_BIT);
-            barriers.emplace_back(mesh->transformed_vertices,
+            barriers.emplace_back(mesh->skinned_vertices,
                                   VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
                                   VK_ACCESS_2_SHADER_WRITE_BIT);
-            barriers.emplace_back(mesh->transformed_data,
+            barriers.emplace_back(mesh->skinned_data,
                                   VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT,
                                   VK_ACCESS_2_SHADER_WRITE_BIT);
         }
@@ -387,7 +405,7 @@ namespace render {
         });
     }
 
-    const eastl::vector<PooledObject<MeshPrimitiveProxy> >& RenderWorld::get_solid_primitives() const {
+    const eastl::vector<PooledObject<MeshPrimitiveProxy>>& RenderWorld::get_solid_primitives() const {
         return solid_primitives;
     }
 
@@ -403,8 +421,16 @@ namespace render {
         return primitive_data_buffer;
     }
 
+    BufferHandle RenderWorld::get_skeletal_primitive_buffer() const {
+        return skeletal_data_buffer;
+    }
+
     uint32_t RenderWorld::get_total_num_primitives() const {
         return static_mesh_primitives.size();
+    }
+
+    uint32_t RenderWorld::get_num_skinned_primitives() const {
+        return skeletal_mesh_primitives.size();
     }
 
     DirectionalLight& RenderWorld::get_sun_light() {
@@ -435,10 +461,10 @@ namespace render {
         return player_view;
     }
 
-    eastl::vector<PooledObject<MeshPrimitiveProxy> > RenderWorld::get_primitives_in_bounds(
+    eastl::vector<PooledObject<MeshPrimitiveProxy>> RenderWorld::get_primitives_in_bounds(
         const glm::vec3& min_bounds, const glm::vec3& max_bounds
         ) const {
-        auto output = eastl::vector<PooledObject<MeshPrimitiveProxy> >{};
+        auto output = eastl::vector<PooledObject<MeshPrimitiveProxy>>{};
         output.reserve(solid_primitives.size());
 
         const auto test_box = Box{.min = min_bounds, .max = max_bounds};
@@ -470,10 +496,9 @@ namespace render {
     }
 
     void RenderWorld::draw_opaque(
-        CommandBuffer& commands, const IndirectDrawingBuffers& drawbuffers, const GraphicsPipelineHandle solid_pso
+        CommandBuffer& commands, const BufferHandle& drawcalls, const GraphicsPipelineHandle solid_pso
         ) const {
         commands.bind_index_buffer(meshes.get_index_buffer());
-        commands.bind_vertex_buffer(0, drawbuffers.primitive_ids);
 
         if(solid_pso->descriptor_sets.size() > 1) {
             commands.bind_descriptor_set(1, commands.get_backend().get_texture_descriptor_pool().get_descriptor_set());
@@ -484,10 +509,9 @@ namespace render {
         commands.set_cull_mode(VK_CULL_MODE_BACK_BIT);
         commands.set_front_face(VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
-        commands.draw_indexed_indirect(
-            drawbuffers.commands,
-            drawbuffers.count,
-            static_cast<uint32_t>(solid_primitives.size()));
+        const auto max_num_draws = (drawcalls->create_info.size - 16) / sizeof(VkDrawIndexedIndirectCommand);
+
+        commands.draw_indexed_indirect(drawcalls, max_num_draws);
 
         if(solid_pso->descriptor_sets.size() > 1) {
             commands.clear_descriptor_set(1);
@@ -495,10 +519,9 @@ namespace render {
     }
 
     void RenderWorld::draw_masked(
-        CommandBuffer& commands, const IndirectDrawingBuffers& draw_buffers, const GraphicsPipelineHandle masked_pso
+        CommandBuffer& commands, const BufferHandle& draw_buffers, const GraphicsPipelineHandle masked_pso
         ) const {
         commands.bind_index_buffer(meshes.get_index_buffer());
-        commands.bind_vertex_buffer(0, draw_buffers.primitive_ids);
 
         if(masked_pso->descriptor_sets.size() > 1) {
             commands.bind_descriptor_set(1, commands.get_backend().get_texture_descriptor_pool().get_descriptor_set());
@@ -510,8 +533,7 @@ namespace render {
         commands.set_front_face(VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
         commands.draw_indexed_indirect(
-            draw_buffers.commands,
-            draw_buffers.count,
+            draw_buffers,
             static_cast<uint32_t>(masked_primitives.size()));
 
         if(masked_pso->descriptor_sets.size() > 1) {
@@ -519,7 +541,7 @@ namespace render {
         }
     }
 
-    void RenderWorld::draw_transparent(CommandBuffer& commands, GraphicsPipelineHandle pso) const {
+    void RenderWorld::draw_transparent(CommandBuffer& commands, const GraphicsPipelineHandle pso) const {
         draw_primitives(commands, pso, translucent_primitives);
     }
 
@@ -573,13 +595,12 @@ namespace render {
                 commands.set_front_face(VK_FRONT_FACE_CLOCKWISE);
             }
 
-            commands.set_push_constant(0, primitive.index);
             commands.draw_indexed(
                 mesh->num_indices,
                 1,
                 static_cast<uint32_t>(mesh->first_index),
                 0,
-                0);
+                primitive.index);
         }
 
         if(pso->descriptor_sets.size() > 1) {
@@ -612,13 +633,19 @@ namespace render {
             mesh.bones.size() * sizeof(float4x4),
             BufferUsage::StorageBuffer);
 
+        mesh.previous_bone_matrices_buffer = RenderBackend::get().get_global_allocator().create_buffer(
+            "Previous bone matrices",
+            mesh.bones.size() * sizeof(float4x4),
+            BufferUsage::StorageBuffer);
+
         // TODO: We need to make per-primitive BLASes for skeletal meshes, since they can all be deformed individually
         const auto& transform = registry.get<TransformComponent>(entity);
         for(auto& primitive : mesh.primitives) {
             primitive.proxy = create_skeletal_mesh_proxy(
                 transform.get_local_to_world(),
                 primitive,
-                mesh.bone_matrices_buffer
+                mesh.bone_matrices_buffer,
+                mesh.previous_bone_matrices_buffer
                 );
             active_skeletal_meshes.emplace_back(primitive.proxy);
         }
@@ -628,6 +655,7 @@ namespace render {
         const auto& mesh = registry.get<SkeletalMeshComponent>(entity);
 
         RenderBackend::get().get_global_allocator().destroy_buffer(mesh.bone_matrices_buffer);
+        RenderBackend::get().get_global_allocator().destroy_buffer(mesh.previous_bone_matrices_buffer);
 
         for(auto& primitive : mesh.primitives) {
             destroy_primitive(primitive.proxy);
@@ -674,7 +702,8 @@ namespace render {
     }
 
     void RenderWorld::on_transform_update(entt::registry& registry, const entt::entity entity) {
-        if(!registry.any_of<SkeletalMeshComponent, StaticMeshComponent, PointLightComponent, SpotLightComponent, DirectionalLightComponent>(entity)) {
+        if(!registry.any_of<SkeletalMeshComponent, StaticMeshComponent, PointLightComponent, SpotLightComponent,
+                            DirectionalLightComponent>(entity)) {
             return;
         }
 

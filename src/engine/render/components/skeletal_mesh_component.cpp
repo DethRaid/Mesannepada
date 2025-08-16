@@ -2,6 +2,8 @@
 
 namespace render {
     void SkeletalMeshComponent::propagate_bone_transforms() {
+        previous_worldspace_bone_matrices = worldspace_bone_matrices;
+
         // Combine the bone's transforms with the parent's transforms
         for(const auto bone_idx : skeleton->root_bones) {
             propagate_bone_transform(bone_idx, float4x4{1.f});

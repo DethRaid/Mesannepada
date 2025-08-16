@@ -62,20 +62,8 @@ ConstantBuffer<ViewDataGPU> view_data;
 ConstantBuffer<float4x4[4]> world_to_ndc_matrices;
 #endif
 
-#if SAH_CSM
-[vk::push_constant]
-cbuffer Constants {
-    uint primitive_id_in;
-}
-#endif
-
 #if SAH_RSM
 ConstantBuffer<SunLightConstants> sun_light;
-
-[vk::push_constant]
-cbuffer Constants {
-    uint primitive_id_in;
-}
 #endif
 
 [vk::binding(0, 1)]
@@ -110,17 +98,14 @@ struct RsmOutput {
 #if !SAH_RT
 [shader("vertex")]
 VertexOutput main_vs(
-    const uint vertex_id : SV_VertexID
-#if SAH_MAIN_VIEW
-    , const uint primitive_id_in
-#endif
+    const uint vertex_id : SV_VertexID,
+    const uint primitive_id : SV_StartInstanceLocation
 #if SAH_MULTIVIEW
     , const uint view_id : SV_ViewId
 #endif
 ) {
     VertexOutput output;
 
-    const uint primitive_id = primitive_id_in;
     output.primitive_id = primitive_id;
 
     PrimitiveDataGPU data = primitive_datas[primitive_id];
@@ -260,8 +245,7 @@ main_fs(const VertexOutput vertex) {
 
 #else // SAH_RT
 
-StandardVertexData interpolate_vertex(const StandardVertexData v0, const StandardVertexData v1, const StandardVertexData v2, const float2 bary)
-{
+StandardVertexData interpolate_vertex(const StandardVertexData v0, const StandardVertexData v1, const StandardVertexData v2, const float2 bary) {
     float3 barycentrics = float3(1.f - bary.x - bary.y, bary.x, bary.y);
     StandardVertexData v = (StandardVertexData)0;
     v.normal = barycentrics.x * v0.normal + barycentrics.y * v1.normal + barycentrics.z * v2.normal;

@@ -181,6 +181,7 @@ namespace render {
 
         auto& player_view = world->get_player_view();
         player_view.increment_frame_count();
+        player_view.init_visible_objects_buffer(world->get_total_num_primitives());
 
         logger->trace("Beginning frame");
 
@@ -348,33 +349,14 @@ namespace render {
         depth_culling_phase.render(
             render_graph,
             *world,
-            material_storage,
-            player_view.get_buffer());
-
-        const auto visible_objects_list = depth_culling_phase.get_visible_objects_buffer();
-        const auto visible_solids_buffers = translate_visibility_list_to_draw_commands(
-            render_graph,
-            visible_objects_list,
-            world->get_primitive_buffer(),
-            world->get_total_num_primitives(),
-            world->get_meshes().get_draw_args_buffer(),
-            PRIMITIVE_FLAG_SOLID);
-        const auto visible_masked_buffers = translate_visibility_list_to_draw_commands(
-            render_graph,
-            visible_objects_list,
-            world->get_primitive_buffer(),
-            world->get_total_num_primitives(),
-            world->get_meshes().get_draw_args_buffer(),
-            PRIMITIVE_FLAG_CUTOUT);
+            player_view);
 
         if(needs_motion_vectors) {
             motion_vectors_phase.render(
                 render_graph,
                 *world,
-                player_view.get_buffer(),
-                depth_culling_phase.get_depth_buffer(),
-                visible_solids_buffers,
-                visible_masked_buffers);
+                player_view,
+                depth_culling_phase.get_depth_buffer());
         }
 
         if(gi) {
@@ -420,8 +402,6 @@ namespace render {
         gbuffer_phase.render(
             render_graph,
             *world,
-            visible_solids_buffers,
-            visible_masked_buffers,
             gbuffer,
             vrsaa_shading_rate_image,
             player_view);
@@ -546,14 +526,6 @@ namespace render {
             );
 
         render_graph.finish();
-
-        auto& allocator = backend.get_global_allocator();
-        allocator.destroy_buffer(visible_solids_buffers.commands);
-        allocator.destroy_buffer(visible_solids_buffers.count);
-        allocator.destroy_buffer(visible_solids_buffers.primitive_ids);
-        allocator.destroy_buffer(visible_masked_buffers.commands);
-        allocator.destroy_buffer(visible_masked_buffers.count);
-        allocator.destroy_buffer(visible_masked_buffers.primitive_ids);
 
         backend.execute_graph(render_graph);
 

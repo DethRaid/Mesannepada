@@ -8,13 +8,12 @@
 #include "resources/resource_path.hpp"
 
 namespace render {
-    static ComputePipelineHandle init_count_buffer_pipeline = nullptr;
-
     static ComputePipelineHandle visibility_list_to_draw_commands = nullptr;
 
-    IndirectDrawingBuffers translate_visibility_list_to_draw_commands(
+    BufferHandle translate_visibility_list_to_draw_commands(
         RenderGraph& graph, const BufferHandle visibility_list, const BufferHandle primitive_buffer,
-        const uint32_t num_primitives, const BufferHandle mesh_draw_args_buffer, const uint32_t primitive_type
+        const uint32_t num_primitives, const BufferHandle mesh_draw_args_buffer, const uint16_t primitive_type,
+        const eastl::string& debug_string
     ) {
         ZoneScoped;
 
@@ -22,53 +21,26 @@ namespace render {
 
         auto& pipeline_cache = backend.get_pipeline_cache();
 
-        if (!init_count_buffer_pipeline) {
-            init_count_buffer_pipeline = pipeline_cache.create_pipeline(
-                "shader://util/init_count_buffer.comp.spv"_res);
-        }
         if (!visibility_list_to_draw_commands) {
             visibility_list_to_draw_commands = pipeline_cache.create_pipeline(
                 "shader://util/visibility_list_to_draw_commands.comp.spv"_res);
         }
 
         auto& allocator = backend.get_global_allocator();
-        const auto buffers = IndirectDrawingBuffers{
-            .commands = allocator.create_buffer(
-                "Draw commands",
-                sizeof(VkDrawIndexedIndirectCommand) * num_primitives,
+        const auto drawcall_buffer = allocator.create_buffer(
+                "Draw commands " + debug_string,
+                sizeof(VkDrawIndexedIndirectCommand) * num_primitives + 16,
                 BufferUsage::IndirectBuffer
-            ),
-            .count = allocator.create_buffer(
-                "draw_count",
-                sizeof(uint32_t),
-                BufferUsage::IndirectBuffer),
-            .primitive_ids = allocator.create_buffer(
-                "Primitive ID",
-                sizeof(uint32_t) * num_primitives,
-                BufferUsage::VertexBuffer
-            )
-        };
+        );
 
-        auto& descriptor_allocator = backend.get_transient_descriptor_allocator();
+        graph.add_clear_pass(drawcall_buffer);
 
-        const auto init_set = descriptor_allocator.build_set(init_count_buffer_pipeline, 0)
-            .bind(buffers.count)
-            .build();
-        graph.add_compute_dispatch<uint>(
-            {
-                .name = "Init dual bump point",
-                .descriptor_sets = {init_set},
-                .num_workgroups = {1, 1, 1},
-                .compute_shader = init_count_buffer_pipeline
-            });
-
-        const auto tvl_set = descriptor_allocator.build_set(visibility_list_to_draw_commands, 0)
+        const auto tvl_set = visibility_list_to_draw_commands->begin_building_set(0)
             .bind(primitive_buffer)
             .bind(visibility_list)
             .bind(mesh_draw_args_buffer)
-            .bind(buffers.commands)
-            .bind(buffers.count)
-            .bind(buffers.primitive_ids)
+            .bind(drawcall_buffer, 16)
+            .bind(drawcall_buffer)
             .build();
         graph.add_compute_dispatch<glm::uvec2>(
             {
@@ -80,6 +52,6 @@ namespace render {
             }
         );
 
-        return buffers;
+        return drawcall_buffer;
     }
 }

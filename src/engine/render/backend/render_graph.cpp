@@ -85,6 +85,22 @@ namespace render {
         }
     }
 
+    void RenderGraph::add_clear_pass(const BufferHandle buffer, const uint32_t clear_value, const uint32_t offset,
+                                     const uint32_t num_bytes) {
+        add_pass({
+            .name = "clear_count_buffer",
+            .buffers = {
+                {
+                    .buffer = buffer,
+                    .stage = VK_PIPELINE_STAGE_2_TRANSFER_BIT,
+                    .access = VK_ACCESS_2_TRANSFER_WRITE_BIT
+                }
+            },
+            .execute = [&](const CommandBuffer& commands) {
+                commands.fill_buffer(buffer, clear_value, offset, num_bytes);
+            }});
+    }
+
     void RenderGraph::add_pass(ComputePass pass) {
         num_passes++;
         if (!pass.name.empty()) {

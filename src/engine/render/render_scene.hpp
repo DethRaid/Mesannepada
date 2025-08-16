@@ -22,7 +22,6 @@ namespace render {
 class World;
 
 namespace render {
-    struct IndirectDrawingBuffers;
     class MaterialStorage;
     class MeshStorage;
     class GltfModel;
@@ -66,7 +65,8 @@ namespace render {
         SkeletalMeshPrimitiveProxyHandle create_skeletal_mesh_proxy(
             const float4x4& transform,
             const SkeletalMeshPrimitive& primitive,
-            BufferHandle bone_matrices_buffer
+            BufferHandle bone_matrices_buffer,
+            BufferHandle previous_bone_matrices_buffer
             );
 
         void mark_proxy_inactive(MeshPrimitiveProxyHandle primitive);
@@ -103,7 +103,11 @@ namespace render {
 
         BufferHandle get_primitive_buffer() const;
 
+        BufferHandle get_skeletal_primitive_buffer() const;
+
         uint32_t get_total_num_primitives() const;
+
+        uint32_t get_num_skinned_primitives() const;
 
         DirectionalLight& get_sun_light();
 
@@ -131,14 +135,14 @@ namespace render {
         void draw_masked(CommandBuffer& commands, GraphicsPipelineHandle pso) const;
 
         /**
-         * Draws the commands in the IndirectDrawingBuffers with the provided opaque PSO
+         * Draws the commands in the BufferHandle with the provided opaque PSO
          */
         void draw_opaque(
-            CommandBuffer& commands, const IndirectDrawingBuffers& drawbuffers, GraphicsPipelineHandle solid_pso
+            CommandBuffer& commands, const BufferHandle& drawcalls, GraphicsPipelineHandle solid_pso
             ) const;
 
         void draw_masked(
-            CommandBuffer& commands, const IndirectDrawingBuffers& draw_buffers, GraphicsPipelineHandle masked_pso
+            CommandBuffer& commands, const BufferHandle& draw_buffers, GraphicsPipelineHandle masked_pso
             ) const;
 
         void draw_transparent(CommandBuffer& commands, GraphicsPipelineHandle pso) const;

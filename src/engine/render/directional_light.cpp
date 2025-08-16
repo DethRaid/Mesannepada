@@ -426,7 +426,7 @@ namespace render {
                                            .bind(gbuffer.depth)
                                            .bind(shadowmap_handle, shadowmap_sampler)
                                            .bind(sun_buffer)
-                                           .bind(world.get_player_view().get_buffer())
+                                           .bind(world.get_player_view().get_constant_buffer())
                                            .build();
 
         graph.add_render_pass({
@@ -475,7 +475,7 @@ namespace render {
                           .build_set(rt_shadow_pipeline, 0)
                           .bind(world.get_primitive_buffer())
                           .bind(sun_buffer)
-                          .bind(world.get_player_view().get_buffer())
+                          .bind(world.get_player_view().get_constant_buffer())
                           .bind(world.get_raytracing_world().get_acceleration_structure())
                           .bind(shadow_mask_texture)
                           .bind(gbuffer.data)
@@ -521,7 +521,7 @@ namespace render {
                                                .build_set(pipeline, 1)
                                                .bind(shadow_mask_texture)
                                                .bind(sun_buffer)
-                                               .bind(view.get_buffer())
+                                               .bind(view.get_constant_buffer())
                                                .build();
 
         commands.bind_descriptor_set(1, sun_descriptor_set);

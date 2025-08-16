@@ -161,6 +161,16 @@ namespace render {
         void draw_indexed_indirect(BufferHandle indirect_buffer);
 
         /**
+         * Draws many meshes, pulling draw args and count from the provided buffer
+         *
+         * Draw count must be the first uint, draw commands start at byte 16 and must be tightly packed
+         *
+         * @param indirect_buffer Buffer with the count and commands to use when drawing
+         * @param max_count Maximum number of things to draw
+         */
+        void draw_indexed_indirect(BufferHandle indirect_buffer, uint32_t max_count);
+
+        /**
          * \brief Draws many meshes, pulling draw commands from the indirect buffer
          * \param indirect_buffer Buffer of indirect draw commands
          * \param count_buffer Buffer with the count of objects to draw

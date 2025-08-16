@@ -596,6 +596,9 @@ namespace render {
     }
 
     void ResourceAllocator::destroy_acceleration_structure(AccelerationStructureHandle handle) {
+        if(handle == nullptr) {
+            return;
+        }
         as_zombie_lists[backend.get_current_gpu_frame()].emplace_back(handle);
         destroy_buffer(handle->buffer);
     }
@@ -609,6 +612,10 @@ namespace render {
     }
 
     void ResourceAllocator::destroy_buffer(BufferHandle handle) {
+        if(handle == nullptr) {
+            return;
+        }
+
         auto& cur_frame_zombies = buffer_zombie_lists[backend.get_current_gpu_frame()];
         cur_frame_zombies.emplace_back(handle);
     }

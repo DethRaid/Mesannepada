@@ -195,7 +195,7 @@ namespace render {
                                 .build_set(rtgi_pipeline, 0)
                                 .bind(world.get_primitive_buffer())
                                 .bind(sun_buffer)
-                                .bind(view.get_buffer())
+                                .bind(view.get_constant_buffer())
                                 .bind(world.get_raytracing_world().get_acceleration_structure())
                                 .bind(gbuffer.normals)
                                 .bind(gbuffer.data)
@@ -231,7 +231,7 @@ namespace render {
 
         if(denoiser) {
             denoiser->do_denoising(graph,
-                                   view.get_buffer(),
+                                   view.get_constant_buffer(),
                                    gbuffer.depth,
                                    motion_vectors,
                                    ray_irradiance,
@@ -313,7 +313,7 @@ namespace render {
             commands.bind_descriptor_set(1, set);
 
             commands.set_push_constant(0, static_cast<uint32_t>(cvar_num_reconstruction_rays.get()));
-            commands.set_push_constant(1, cvar_reconstruction_size.GetFloat());
+            commands.set_push_constant(1, cvar_reconstruction_size.get());
 
             commands.draw_triangle();
 

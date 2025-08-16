@@ -33,7 +33,17 @@ namespace render {
     SceneView::SceneView() {
         const auto& backend = RenderBackend::get();
         auto& allocator = backend.get_global_allocator();
-        buffer = allocator.create_buffer("Scene View Buffer", sizeof(ViewDataGPU), BufferUsage::UniformBuffer);
+        constant_buffer = allocator.create_buffer("Scene View Buffer", sizeof(ViewDataGPU), BufferUsage::UniformBuffer);
+    }
+
+    SceneView::~SceneView() {
+        auto& allocator = RenderBackend::get().get_global_allocator();
+
+        allocator.destroy_buffer(constant_buffer);
+        allocator.destroy_buffer(visible_objects);
+
+        constant_buffer = nullptr;
+        visible_objects = nullptr;
     }
 
     void SceneView::set_render_resolution(const glm::uvec2 render_resolution) {
@@ -56,8 +66,8 @@ namespace render {
         is_dirty = true;
     }
 
-    BufferHandle SceneView::get_buffer() const {
-        return buffer;
+    BufferHandle SceneView::get_constant_buffer() const {
+        return constant_buffer;
     }
 
     void SceneView::update_buffer(ResourceUploadQueue& upload_queue) {
@@ -65,8 +75,8 @@ namespace render {
 
         refresh_exposure_settings();
 
-        if (buffer && is_dirty) {
-            upload_queue.upload_to_buffer(buffer, gpu_data);
+        if (constant_buffer && is_dirty) {
+            upload_queue.upload_to_buffer(constant_buffer, gpu_data);
 
             is_dirty = false;
         }
@@ -128,6 +138,16 @@ namespace render {
 
     void SceneView::increment_frame_count() {
         frame_count++;
+    }
+    void SceneView::init_visible_objects_buffer(const uint32_t num_primitives) {
+        auto& allocator = RenderBackend::get().get_global_allocator();
+        if(!visible_objects) {
+            allocator.destroy_buffer(visible_objects);
+            visible_objects = allocator.create_buffer(
+                "Visible objects list",
+                 sizeof(uint32_t) * num_primitives,
+                BufferUsage::StorageBuffer);
+        }
     }
 
     uint32_t SceneView::get_frame_count() const {

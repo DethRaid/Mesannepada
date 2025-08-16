@@ -1,11 +1,11 @@
 #include "shared/primitive_data.hpp"
 
 struct DrawCommand {
-    uint indexCount;
-    uint instanceCount;
-    uint firstIndex;
-    int  vertexOffset;
-    uint firstInstance;
+    uint index_count;
+    uint instance_count;
+    uint first_index;
+    int  vertex_offset;
+    uint first_instance;
 };
 
 struct DrawCountBuffer {
@@ -17,7 +17,6 @@ StructuredBuffer<uint> visibility_array;
 StructuredBuffer<DrawCommand> meshes;
 RWStructuredBuffer<DrawCommand> draw_commands;
 RWStructuredBuffer<DrawCountBuffer> draw_count_buffer;
-RWStructuredBuffer<uint> primitive_ids;
 
 [[vk::push_constant]]
 cbuffer Constants {
@@ -25,7 +24,6 @@ cbuffer Constants {
     uint primitive_type;
 };
 
-[require(SPV_KHR_non_semantic_info)]
 [shader("compute")]
 [numthreads(96, 1, 1)]
 void main(uint thread_id: SV_DispatchThreadID) {
@@ -41,13 +39,11 @@ void main(uint thread_id: SV_DispatchThreadID) {
         PrimitiveDataGPU primitive_data = primitive_datas[primitive_id];
 
         uint draw_id;
-        if ((primitive_data.flags & primitive_type) == primitive_type) {
+        if (primitive_data.type_flags == primitive_type) {
             InterlockedAdd(draw_count_buffer[0].draw_count, 1, draw_id);
             
-            primitive_ids[draw_id] = primitive_id;
-
             draw_commands[draw_id] = meshes[primitive_data.mesh_id];
-            draw_commands[draw_id].firstInstance = draw_id;
+            draw_commands[draw_id].first_instance = primitive_id;
         }
     }
 }
