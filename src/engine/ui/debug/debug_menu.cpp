@@ -7,7 +7,6 @@
 #include <imgui_impl_glfw.h>
 #include <magic_enum.hpp>
 #include <EASTL/sort.h>
-#include <GLFW/glfw3.h>
 #include <Jolt/Jolt.h>
 #include <Jolt/Physics/Collision/CastResult.h>
 #include <Jolt/Physics/Collision/RayCast.h>
@@ -28,15 +27,12 @@
 #include "core/glm_jph_conversions.hpp"
 #include "core/string_utils.hpp"
 #include "core/system_interface.hpp"
-#include "physics/collider_component.hpp"
 #include "reflection/reflection_types.hpp"
 #include "render/sarah_renderer.hpp"
 #include "render/backend/render_backend.hpp"
 #include "render/backend/resource_allocator.hpp"
 #include "render/components/skeletal_mesh_component.hpp"
-#include "render/components/static_mesh_component.hpp"
 #include "render/visualizers/visualizer_type.hpp"
-#include "scene/camera_component.hpp"
 #include "scene/entity_info_component.hpp"
 #include "scene/transform_component.hpp"
 
@@ -130,9 +126,6 @@ void DebugUI::apply_theme() {
     case 0:
         ImGui::StyleColorsClassic();
         break;
-    case 1:
-        ImGui::StyleColorsDark();
-        break;
     case 2:
         ImGui::StyleColorsLight();
         break;
@@ -147,6 +140,12 @@ void DebugUI::apply_theme() {
         break;
     case 6:
         activate_style_corporategray();
+        break;
+
+    case 1:
+        [[fallthrough]];
+    default:
+        ImGui::StyleColorsDark();
         break;
     }
 }
@@ -326,14 +325,17 @@ void DebugUI::draw_taa_menu() {
         case 0:
             *dlss_quality = static_cast<int32_t>(sl::DLSSMode::eDLAA);
             break;
-        case 1:
-            *dlss_quality = static_cast<int32_t>(sl::DLSSMode::eMaxQuality);
-            break;
         case 2:
             *dlss_quality = static_cast<int32_t>(sl::DLSSMode::eBalanced);
             break;
         case 3:
             *dlss_quality = static_cast<int32_t>(sl::DLSSMode::eMaxPerformance);
+            break;
+
+        case 1:
+            [[fallthrough]];
+        default:
+            *dlss_quality = static_cast<int32_t>(sl::DLSSMode::eMaxQuality);
             break;
         }
 
@@ -358,9 +360,6 @@ void DebugUI::draw_taa_menu() {
             case 1:
                 *xess_quality = XESS_QUALITY_SETTING_ULTRA_QUALITY_PLUS;
                 break;
-            case 2:
-                *xess_quality = XESS_QUALITY_SETTING_ULTRA_QUALITY;
-                break;
             case 3:
                 *xess_quality = XESS_QUALITY_SETTING_QUALITY;
                 break;
@@ -372,6 +371,12 @@ void DebugUI::draw_taa_menu() {
                 break;
             case 6:
                 *xess_quality = XESS_QUALITY_SETTING_ULTRA_PERFORMANCE;
+                break;
+
+            case 2:
+                [[fallthrough]];
+            default:
+                *xess_quality = XESS_QUALITY_SETTING_ULTRA_QUALITY;
                 break;
             }
 
@@ -501,8 +506,8 @@ void DebugUI::draw_world_info_window() {
                     for(const auto& obj : objects) {
                         ImGui::PushID(idx);
                         ImGui::Separator();
-                        const auto pathstring = obj.filepath.to_string();
-                        ImGui::Text("%s", pathstring.c_str());
+                        const auto path_string = obj.filepath.to_string();
+                        ImGui::Text("%s", path_string.c_str());
                         if(ImGui::Button("Select")) {
                             if(obj.entity.valid()) {
                                 selected_entity = obj.entity;
@@ -638,9 +643,19 @@ void DebugUI::draw_files(const std::filesystem::path& pwd, const std::filesystem
         }
     }
 
+    const auto addable_extensions = eastl::array{
+        ".glb",
+        ".gltf",
+        ".tscn",
+        ".sprefab"
+    };
+
     for(const auto& file : files) {
         ImGui::Text("%s\t%s", prefix.c_str(), file.filename().string().c_str());
-        if(file.extension() == ".glb" || file.extension() == ".gltf" || file.extension() == ".tscn") {
+        const auto extension = file.extension();
+        if(eastl::find_if(addable_extensions.begin(), addable_extensions.end(), [&](const char* test) {
+               return extension == test;
+           }) != addable_extensions.end()) {
             ImGui::SameLine();
 
             const auto& style = ImGui::GetStyle();
@@ -662,18 +677,18 @@ void DebugUI::draw_model_selector() {
         return;
     }
 
-    if(ImGui::Begin("Object Selector"), &show_model_selector) {
+    if(ImGui::Begin("Object Selector", &show_model_selector)) {
         const auto base_folder = SystemInterface::get().get_data_folder() / "game";
         draw_files(".", base_folder, "");
     }
     ImGui::End();
 }
 
-void DebugUI::draw_entity_editor_window() {
+void DebugUI::draw_entity_editor_window() const {
     if(ImGui::Begin("Entity Editor")) {
         ImGui::PushID(static_cast<int>(selected_entity.entity()));
 
-        ImGui::Text("Entity %d", static_cast<uint32_t>(selected_entity.entity()));
+        ImGui::Text("Entity %d", static_cast<int32_t>(selected_entity.entity()));
 
         auto& registry = Engine::get().get_world().get_registry();
 
@@ -685,8 +700,8 @@ void DebugUI::draw_entity_editor_window() {
 
             const auto& name = storage.type().name();
             auto storage_name = std::string{name};
-            if(const auto spacepos = name.find(' '); spacepos != std::string_view::npos) {
-                storage_name = name.substr(spacepos + 1);
+            if(const auto space_pos = name.find(' '); space_pos != std::string_view::npos) {
+                storage_name = name.substr(space_pos + 1);
             }
             const auto id = entt::hashed_string{storage_name.c_str()}.value();
             if(ImGui::CollapsingHeader(storage_name.c_str())) {
@@ -893,7 +908,7 @@ void DebugUI::draw_entity(entt::entity entity, entt::registry& registry, const e
 
 void DebugUI::draw_combo_box(const std::string& name, const eastl::span<const std::string> items, int& selected_item) {
     if(ImGui::BeginCombo(name.c_str(), items[selected_item].c_str(), ImGuiComboFlags_None)) {
-        for(auto i = 0; i < items.size(); i++) {
+        for(auto i = 0u; i < items.size(); i++) {
             const auto selected = selected_item == i;
             if(ImGui::Selectable(items[i].c_str(), selected)) {
                 selected_item = i;
@@ -1131,7 +1146,7 @@ void DebugUI::activate_style_corporategray() {
 
     /// 0 = FLAT APPEARENCE
     /// 1 = MORE "3D" LOOK
-    int is3D = 0;
+    constexpr auto is_3d = false;
 
     colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
     colors[ImGuiCol_TextDisabled] = ImVec4(0.40f, 0.40f, 0.40f, 1.00f);
@@ -1188,7 +1203,7 @@ void DebugUI::activate_style_corporategray() {
     style.WindowBorderSize = 1;
     style.ChildBorderSize = 1;
     style.PopupBorderSize = 1;
-    style.FrameBorderSize = is3D;
+    style.FrameBorderSize = is_3d;
 
     style.WindowRounding = 3;
     style.ChildRounding = 3;

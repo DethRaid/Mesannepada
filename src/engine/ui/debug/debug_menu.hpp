@@ -24,6 +24,10 @@ namespace render {
 
 class DebugUI {
 public:
+    /**
+     * 
+     * @param renderer_in 
+     */
     explicit DebugUI(render::SarahRenderer& renderer_in);
 
     ~DebugUI();
@@ -102,9 +106,9 @@ private:
     entt::handle selected_entity = {};
     bool show_entity_editor = false;
 
-    void draw_entity_editor_window();
+    void draw_entity_editor_window() const;
 
-    void draw_guizmos(entt::handle entity);
+    static void draw_guizmos(entt::handle entity);
 
     static bool draw_component_helper(
         entt::entity entity, entt::meta_any instance, const entt::meta_custom& custom, bool readonly, int& gui_id
