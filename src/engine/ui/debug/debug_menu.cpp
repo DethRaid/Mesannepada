@@ -610,7 +610,7 @@ void DebugUI::draw_world_info_window() {
 }
 
 void DebugUI::draw_files(const std::filesystem::path& pwd, const std::filesystem::path& base_folder,
-                         const eastl::string& prefix
+                         const eastl::string& prefix, const eastl::string& filter
     ) {
     auto folders = eastl::vector<std::filesystem::path>{};
     auto files = eastl::vector<std::filesystem::path>{};
@@ -618,7 +618,11 @@ void DebugUI::draw_files(const std::filesystem::path& pwd, const std::filesystem
     for(const auto& entry : std::filesystem::directory_iterator{pwd_full_path}) {
         const auto relative_path = std::filesystem::relative(entry.path(), base_folder);
         if(entry.is_regular_file()) {
+            if(!filter.empty() && !relative_path.string().contains(filter.c_str())) {
+                continue;
+            }
             files.emplace_back(relative_path);
+
         } else if(entry.is_directory()) {
             folders.emplace_back(relative_path);
         }
@@ -639,7 +643,7 @@ void DebugUI::draw_files(const std::filesystem::path& pwd, const std::filesystem
         const auto folder_name = folder.stem();
         ImGui::Text("%s", folder_name.string().c_str());
         if(is_dir_open) {
-            draw_files(folder, base_folder, prefix + "  ");
+            draw_files(folder, base_folder, prefix + "  ", filter);
         }
     }
 
@@ -678,8 +682,10 @@ void DebugUI::draw_model_selector() {
     }
 
     if(ImGui::Begin("Object Selector", &show_model_selector)) {
+        static char filter_text[256];
+        ImGui::InputText("Object Filter", filter_text, 256);
         const auto base_folder = SystemInterface::get().get_data_folder() / "game";
-        draw_files(".", base_folder, "");
+        draw_files(".", base_folder, "", eastl::string{filter_text});
     }
     ImGui::End();
 }
