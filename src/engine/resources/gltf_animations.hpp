@@ -9,21 +9,22 @@
 
 #include "animation/bone.hpp"
 #include "shared/prelude.h"
+#include "spdlog/spdlog.h"
 
 /*
  * Basic animation support, based on https://lisyarus.github.io/blog/posts/gltf-animation.html
  */
 
-template <typename T>
+template<typename T>
 struct AnimationTimeline {
     eastl::vector<float> timestamps;
     eastl::vector<T> values;
 };
 
 struct TransformAnimation {
-    eastl::optional<AnimationTimeline<float3>> position = eastl::nullopt;
-    eastl::optional<AnimationTimeline<glm::quat>> rotation = eastl::nullopt;
-    eastl::optional<AnimationTimeline<float3>> scale = eastl::nullopt;
+    eastl::optional<AnimationTimeline<float3> > position = eastl::nullopt;
+    eastl::optional<AnimationTimeline<glm::quat> > rotation = eastl::nullopt;
+    eastl::optional<AnimationTimeline<float3> > scale = eastl::nullopt;
 };
 
 struct Animation {
@@ -35,7 +36,7 @@ struct Animation {
     /**
      * Events for the animation. These fire when the animation evaluator reaches the keyframes they're attached to
      */
-    AnimationTimeline<eastl::function<void()>> events;
+    AnimationTimeline<eastl::function<void()> > events;
 
     /**
      * Adds an event to this animation's events timeline, inserting it so that the keyframes stay sorted
@@ -49,7 +50,7 @@ struct Animation {
     void add_event(float time, FuncType func);
 };
 
-template <typename T, typename InterpolationFunc>
+template<typename T, typename InterpolationFunc>
 struct AnimationSampler {
     /**
      * Samples the value of a spline at the given time. The time is relative to the start of the spline
@@ -70,22 +71,22 @@ struct AnimationEventSampler {
 
     float start_time = 0;
 
-    const AnimationTimeline<eastl::function<void()>>* timeline;
+    const AnimationTimeline<eastl::function<void()> >* timeline;
 };
 
-template <typename T>
+template<typename T>
 struct LerpFunctor {
     T operator()(const T& a, const T& b, float t);
 };
 
-template <typename T>
+template<typename T>
 struct SlerpFunctor {
     T operator()(const T& a, const T& b, float t);
 };
 
-using PositionAnimationSampler = AnimationSampler<float3, LerpFunctor<float3>>;
-using RotationAnimationSampler = AnimationSampler<glm::quat, SlerpFunctor<glm::quat>>;
-using ScaleAnimationSampler = AnimationSampler<float3, LerpFunctor<float3>>;
+using PositionAnimationSampler = AnimationSampler<float3, LerpFunctor<float3> >;
+using RotationAnimationSampler = AnimationSampler<glm::quat, SlerpFunctor<glm::quat> >;
+using ScaleAnimationSampler = AnimationSampler<float3, LerpFunctor<float3> >;
 
 struct NodeAnimator {
     size_t target_node = eastl::numeric_limits<size_t>::max();
@@ -117,7 +118,7 @@ struct SkeletonAnimator {
     void update_bones(eastl::span<Bone> bones, float time);
 };
 
-template <typename FuncType>
+template<typename FuncType>
 void Animation::add_event(float time, FuncType func) {
     const auto event_add_itr = eastl::upper_bound(events.timestamps.begin(), events.timestamps.end(), time);
 
@@ -125,10 +126,10 @@ void Animation::add_event(float time, FuncType func) {
 
     events.timestamps.emplace(event_add_itr, time);
 
-    events.values.emplace(events.values.begin() + add_index, eastl::function{ func });
+    events.values.emplace(events.values.begin() + add_index, eastl::function{func});
 }
 
-template <typename T, typename InterpolationFunc>
+template<typename T, typename InterpolationFunc>
 T AnimationSampler<T, InterpolationFunc>::sample(float time) {
     while(current_index + 1 < timeline->timestamps.size() && time > timeline->timestamps[current_index + 1]) {
         current_index++;
@@ -138,18 +139,19 @@ T AnimationSampler<T, InterpolationFunc>::sample(float time) {
         current_index = 0;
     }
 
-    const auto t = (time - timeline->timestamps[current_index]) / (timeline->timestamps[current_index + 1] - timeline->
-        timestamps
-        [current_index]);
+    spdlog::debug("Sampling keyframes {} and {}", current_index, current_index + 1);
+
+    const auto t = (time - timeline->timestamps[current_index]) /
+                   (timeline->timestamps[current_index + 1] - timeline->timestamps[current_index]);
     return InterpolationFunc{}(timeline->values[current_index], timeline->values[current_index + 1], t);
 }
 
-template <typename T>
+template<typename T>
 T LerpFunctor<T>::operator()(const T& a, const T& b, float t) {
     return glm::lerp(a, b, t);
 }
 
-template <typename T>
+template<typename T>
 T SlerpFunctor<T>::operator()(const T& a, const T& b, float t) {
     return glm::slerp(a, b, t);
 }
