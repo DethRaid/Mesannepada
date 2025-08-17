@@ -17,6 +17,8 @@ namespace render {
 
         bool visible_to_ray_tracing = true;
 
+        AccelerationStructureHandle blas = {};
+
         size_t placed_blas_index = eastl::numeric_limits<size_t>::max();
 
         void calculate_worldspace_bounds();

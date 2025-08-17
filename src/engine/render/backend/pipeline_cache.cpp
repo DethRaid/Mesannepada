@@ -1,6 +1,8 @@
 #include <vulkan/vk_enum_string_helper.h>
 
 #include "render/backend/pipeline_cache.hpp"
+
+#include "core/math_utils.hpp"
 #include "render/backend/pipeline_builder.hpp"
 #include "render/backend/ray_tracing_pipeline.hpp"
 #include "render/backend/render_backend.hpp"
@@ -394,19 +396,6 @@ namespace render {
                 .gi_anyhit_shader = shader_group.gi_anyhit_shader,
                 .gi_closesthit_shader = shader_group.gi_closesthit_shader
             }));
-    }
-
-    static uint32_t round_up(const uint32_t num, const uint32_t multiple) {
-        if(multiple == 0) {
-            return num;
-        }
-
-        auto remainder = num % multiple;
-        if(remainder == 0) {
-            return num;
-        }
-
-        return num + multiple - remainder;
     }
 
     RayTracingPipelineHandle PipelineCache::create_ray_tracing_pipeline(const ResourcePath& raygen_shader_path,

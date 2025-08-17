@@ -144,7 +144,8 @@ namespace render {
             },
             .mesh = mesh,
             .material = material,
-            .visible_to_ray_tracing = visible_to_ray_tracing
+            .visible_to_ray_tracing = visible_to_ray_tracing,
+            .blas = mesh->blas
         };
 
         const auto material_buffer_address = materials.get_material_instance_buffer()->address;
@@ -241,6 +242,16 @@ namespace render {
             BufferUsage::VertexBuffer
             );
         proxy.skeletal_data.last_frame_skinned_positions = proxy.previous_skinned_vertices->address;
+
+        if(backend.supports_ray_tracing()) {
+            proxy.mesh_proxy->blas = RaytracingScene::create_blas(
+                proxy.mesh_proxy->data.vertex_positions,
+                proxy.mesh_proxy->mesh->num_vertices,
+                proxy.mesh_proxy->data.indices,
+                proxy.mesh_proxy->mesh->num_indices / 3,
+                true
+                );
+        }
 
         const auto handle = skeletal_mesh_primitives.emplace(eastl::move(proxy));
 
@@ -403,9 +414,21 @@ namespace render {
                 }
             }
         });
+
+        graph.begin_label("update_blases");
+        for(const auto& mesh : active_skeletal_meshes) {
+            mesh->mesh_proxy->blas = RaytracingScene::update_blas(
+                mesh->mesh_proxy->data.vertex_positions,
+                mesh->mesh_proxy->mesh->num_vertices,
+                mesh->mesh_proxy->data.indices,
+                mesh->mesh_proxy->mesh->num_indices / 3,
+                mesh->mesh_proxy->blas
+                );
+        }
+        graph.end_label();
     }
 
-    const eastl::vector<PooledObject<MeshPrimitiveProxy>>& RenderWorld::get_solid_primitives() const {
+    const eastl::vector<PooledObject<MeshPrimitiveProxy> >& RenderWorld::get_solid_primitives() const {
         return solid_primitives;
     }
 
@@ -461,10 +484,10 @@ namespace render {
         return player_view;
     }
 
-    eastl::vector<PooledObject<MeshPrimitiveProxy>> RenderWorld::get_primitives_in_bounds(
+    eastl::vector<PooledObject<MeshPrimitiveProxy> > RenderWorld::get_primitives_in_bounds(
         const glm::vec3& min_bounds, const glm::vec3& max_bounds
         ) const {
-        auto output = eastl::vector<PooledObject<MeshPrimitiveProxy>>{};
+        auto output = eastl::vector<PooledObject<MeshPrimitiveProxy> >{};
         output.reserve(solid_primitives.size());
 
         const auto test_box = Box{.min = min_bounds, .max = max_bounds};

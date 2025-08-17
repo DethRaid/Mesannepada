@@ -402,6 +402,7 @@ namespace render {
 
         if(supports_raytracing) {
             physical_device_properties.add_extension(&ray_tracing_pipeline_properties);
+            physical_device_properties.add_extension(&acceleration_structure_properties);
         }
 
         vkGetPhysicalDeviceProperties2(physical_device, *physical_device_properties);
@@ -499,6 +500,10 @@ namespace render {
 
     bool RenderBackend::supports_ray_tracing() const {
         return supports_rt; 
+    }
+
+    uint32_t RenderBackend::get_rt_scratch_buffer_alignment() const {
+        return acceleration_structure_properties.minAccelerationStructureScratchOffsetAlignment;
     }
 
     bool RenderBackend::supports_device_generated_commands() const {
