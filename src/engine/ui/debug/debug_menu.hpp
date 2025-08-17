@@ -93,7 +93,7 @@ private:
     eastl::unordered_map<std::filesystem::path, bool> is_directory_open;
 
     void draw_files(const std::filesystem::path& pwd, const std::filesystem::path& base_folder,
-        const eastl::string& prefix);
+                    const eastl::string& prefix, const eastl::string& filter);
 
     bool show_model_selector = true;
     /**
