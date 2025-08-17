@@ -242,9 +242,9 @@ namespace render {
 
         // cleanup
         allocator.destroy_buffer(newly_visible_objects);
-        allocator.destroy_buffer(new_solid_drawcalls.commands);
-        allocator.destroy_buffer(new_cutout_drawcalls.commands);
-        allocator.destroy_buffer(new_skinned_drawcalls.commands);
+        allocator.destroy_buffer(new_solid_drawcalls);
+        allocator.destroy_buffer(new_cutout_drawcalls);
+        allocator.destroy_buffer(new_skinned_drawcalls);
 
         graph.end_label();
     }
@@ -260,9 +260,9 @@ namespace render {
         graph.begin_label("DepthCullingPhase::generate_drawcall_buffers");
 
         auto& allocator = RenderBackend::get().get_global_allocator();
-        allocator.destroy_buffer(view.solid_drawcalls.commands);
-        allocator.destroy_buffer(view.cutout_drawcalls.commands);
-        allocator.destroy_buffer(view.skinned_drawcalls.commands);
+        allocator.destroy_buffer(view.solid_drawcalls);
+        allocator.destroy_buffer(view.cutout_drawcalls);
+        allocator.destroy_buffer(view.skinned_drawcalls);
 
         view.solid_drawcalls = translate_visibility_list_to_draw_commands(
             graph,
@@ -297,9 +297,9 @@ namespace render {
     void DepthCullingPhase::draw_visible_objects(RenderGraph& graph, const RenderWorld& world,
                                                  const DescriptorSet& view_descriptor,
                                                  const DescriptorSet& masked_view_descriptor,
-                                                 const IndirectDrawingBuffers& solid_drawcalls,
-                                                 const IndirectDrawingBuffers& cutout_drawcalls,
-                                                 const IndirectDrawingBuffers& skinned_drawcalls
+                                                 const BufferHandle& solid_drawcalls,
+                                                 const BufferHandle& cutout_drawcalls,
+                                                 const BufferHandle& skinned_drawcalls
         ) const {
         const auto& pipelines = world.get_material_storage().get_pipelines();
         const auto depth_pso = pipelines.get_depth_pso();
@@ -308,18 +308,18 @@ namespace render {
         // Draw the visible objects
 
         auto buffers = BufferUsageList{};
-        if(solid_drawcalls.commands != nullptr) {
-            buffers.emplace_back(solid_drawcalls.commands,
+        if(solid_drawcalls != nullptr) {
+            buffers.emplace_back(solid_drawcalls,
                                  VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
                                  VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT);
         }
-        if(skinned_drawcalls.commands != nullptr) {
-            buffers.emplace_back(skinned_drawcalls.commands,
+        if(skinned_drawcalls != nullptr) {
+            buffers.emplace_back(skinned_drawcalls,
                                  VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
                                  VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT);
         }
-        if(cutout_drawcalls.commands != nullptr) {
-            buffers.emplace_back(cutout_drawcalls.commands,
+        if(cutout_drawcalls != nullptr) {
+            buffers.emplace_back(cutout_drawcalls,
                                  VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
                                  VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT);
         }
@@ -334,17 +334,17 @@ namespace render {
                 .load_op = VK_ATTACHMENT_LOAD_OP_CLEAR,
                 .clear_value = {.depthStencil = {.depth = 0.0}}},
             .execute = [&](CommandBuffer& commands) {
-                if(solid_drawcalls.commands != nullptr) {
+                if(solid_drawcalls != nullptr) {
                     commands.bind_descriptor_set(0, view_descriptor);
                     world.draw_opaque(commands, solid_drawcalls, depth_pso);
                 }
 
-                if(skinned_drawcalls.commands != nullptr) {
+                if(skinned_drawcalls != nullptr) {
                     commands.bind_descriptor_set(0, view_descriptor);
                     world.draw_opaque(commands, skinned_drawcalls, depth_pso);
                 }
 
-                if(cutout_drawcalls.commands != nullptr) {
+                if(cutout_drawcalls != nullptr) {
                     commands.bind_descriptor_set(0, masked_view_descriptor);
                     world.draw_masked(commands, cutout_drawcalls, masked_pso);
                 }

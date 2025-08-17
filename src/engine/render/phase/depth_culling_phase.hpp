@@ -5,13 +5,8 @@
 
 #include "render/backend/compute_shader.hpp"
 #include "render/backend/descriptor_set_builder.hpp"
-#include "render/backend/graphics_pipeline.hpp"
 #include "render/backend/handles.hpp"
 #include "render/mip_chain_generator.hpp"
-
-namespace render {
-    struct IndirectDrawingBuffers;
-}
 
 namespace render {
     class SceneView;
@@ -59,10 +54,10 @@ namespace render {
          */
         static void generate_drawcall_buffers(RenderGraph& graph, const RenderWorld& world, SceneView& view);
 
-        void draw_visible_objects(RenderGraph& graph, const RenderWorld& world, const DescriptorSet& view_descriptor,
-                                  const DescriptorSet& masked_view_descriptor,
-                                  const IndirectDrawingBuffers& solid_drawcalls,
-                                  const IndirectDrawingBuffers& cutout_drawcalls,
-                                  const IndirectDrawingBuffers& skinned_drawcalls) const;
+        void draw_visible_objects(
+            RenderGraph& graph, const RenderWorld& world, const DescriptorSet& view_descriptor,
+            const DescriptorSet& masked_view_descriptor, const BufferHandle& solid_drawcalls,
+            const BufferHandle& cutout_drawcalls, const BufferHandle& skinned_drawcalls
+            ) const;
     };
 } // namespace render

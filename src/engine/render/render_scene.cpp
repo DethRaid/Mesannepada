@@ -405,7 +405,7 @@ namespace render {
         });
     }
 
-    const eastl::vector<PooledObject<MeshPrimitiveProxy> >& RenderWorld::get_solid_primitives() const {
+    const eastl::vector<PooledObject<MeshPrimitiveProxy>>& RenderWorld::get_solid_primitives() const {
         return solid_primitives;
     }
 
@@ -421,8 +421,16 @@ namespace render {
         return primitive_data_buffer;
     }
 
+    BufferHandle RenderWorld::get_skeletal_primitive_buffer() const {
+        return skeletal_data_buffer;
+    }
+
     uint32_t RenderWorld::get_total_num_primitives() const {
         return static_mesh_primitives.size();
+    }
+
+    uint32_t RenderWorld::get_num_skinned_primitives() const {
+        return skeletal_mesh_primitives.size();
     }
 
     DirectionalLight& RenderWorld::get_sun_light() {
@@ -453,10 +461,10 @@ namespace render {
         return player_view;
     }
 
-    eastl::vector<PooledObject<MeshPrimitiveProxy> > RenderWorld::get_primitives_in_bounds(
+    eastl::vector<PooledObject<MeshPrimitiveProxy>> RenderWorld::get_primitives_in_bounds(
         const glm::vec3& min_bounds, const glm::vec3& max_bounds
         ) const {
-        auto output = eastl::vector<PooledObject<MeshPrimitiveProxy> >{};
+        auto output = eastl::vector<PooledObject<MeshPrimitiveProxy>>{};
         output.reserve(solid_primitives.size());
 
         const auto test_box = Box{.min = min_bounds, .max = max_bounds};
@@ -488,7 +496,7 @@ namespace render {
     }
 
     void RenderWorld::draw_opaque(
-        CommandBuffer& commands, const IndirectDrawingBuffers& drawcalls, const GraphicsPipelineHandle solid_pso
+        CommandBuffer& commands, const BufferHandle& drawcalls, const GraphicsPipelineHandle solid_pso
         ) const {
         commands.bind_index_buffer(meshes.get_index_buffer());
 
@@ -501,9 +509,9 @@ namespace render {
         commands.set_cull_mode(VK_CULL_MODE_BACK_BIT);
         commands.set_front_face(VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
-        commands.draw_indexed_indirect(
-            drawcalls.commands,
-            static_cast<uint32_t>(solid_primitives.size()));
+        const auto max_num_draws = (drawcalls->create_info.size - 16) / sizeof(VkDrawIndexedIndirectCommand);
+
+        commands.draw_indexed_indirect(drawcalls, max_num_draws);
 
         if(solid_pso->descriptor_sets.size() > 1) {
             commands.clear_descriptor_set(1);
@@ -511,7 +519,7 @@ namespace render {
     }
 
     void RenderWorld::draw_masked(
-        CommandBuffer& commands, const IndirectDrawingBuffers& draw_buffers, const GraphicsPipelineHandle masked_pso
+        CommandBuffer& commands, const BufferHandle& draw_buffers, const GraphicsPipelineHandle masked_pso
         ) const {
         commands.bind_index_buffer(meshes.get_index_buffer());
 
@@ -525,7 +533,7 @@ namespace render {
         commands.set_front_face(VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
         commands.draw_indexed_indirect(
-            draw_buffers.commands,
+            draw_buffers,
             static_cast<uint32_t>(masked_primitives.size()));
 
         if(masked_pso->descriptor_sets.size() > 1) {

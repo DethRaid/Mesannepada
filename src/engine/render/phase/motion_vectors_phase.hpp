@@ -24,10 +24,13 @@ namespace render {
         TextureHandle get_motion_vectors() const;
 
     private:
+        ComputePipelineHandle build_skinned_drawcalls_pso = {};
+
         GraphicsPipelineHandle motion_vectors_opaque_pso = {};
         GraphicsPipelineHandle motion_vectors_masked_pso = {};
+        GraphicsPipelineHandle motion_vectors_skinned_pso = {};
 
         TextureHandle motion_vectors = nullptr;
-        ComputePipelineHandle motion_vectors_pso;
+        ComputePipelineHandle camera_motion_vectors_pso;
     };
 } // namespace render

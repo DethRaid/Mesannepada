@@ -9,10 +9,6 @@ namespace render {
     class ResourceAllocator;
     class RenderGraph;
 
-    struct IndirectDrawingBuffers {
-        BufferHandle commands;
-    };
-
     /**
      * \brief Translates a visibility list to a list of indirect draw commands
      *
@@ -28,7 +24,7 @@ namespace render {
      * \param primitive_type The type of primitive to generate buffers for
      * \return A tuple of the draw commands, draw count, and draw ID -> primitive ID mapping buffers
      */
-    IndirectDrawingBuffers translate_visibility_list_to_draw_commands(
+    BufferHandle translate_visibility_list_to_draw_commands(
         RenderGraph& graph, BufferHandle visibility_list, BufferHandle primitive_buffer, uint32_t num_primitives,
         BufferHandle mesh_draw_args_buffer, uint16_t primitive_type, const eastl::string& debug_string
     );

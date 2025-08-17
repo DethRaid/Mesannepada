@@ -8,7 +8,6 @@ namespace render {
     struct GBuffer;
     class RenderWorld;
     class SceneView;
-    struct IndirectDrawingBuffers;
     class RenderGraph;
 
     class GbufferPhase {

@@ -31,17 +31,17 @@ namespace render {
                 .name = "gbuffer",
                 .buffers = {
                     {
-                        view.solid_drawcalls.commands,
+                        view.solid_drawcalls,
                         VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
                         VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
                     },
                     {
-                        view.cutout_drawcalls.commands,
+                        view.cutout_drawcalls,
                         VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
                         VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
                     },
                     {
-                        view.skinned_drawcalls.commands,
+                        view.skinned_drawcalls,
                         VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT,
                         VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT
                     },

@@ -12,7 +12,7 @@ namespace render {
 
     static ComputePipelineHandle visibility_list_to_draw_commands = nullptr;
 
-    IndirectDrawingBuffers translate_visibility_list_to_draw_commands(
+    BufferHandle translate_visibility_list_to_draw_commands(
         RenderGraph& graph, const BufferHandle visibility_list, const BufferHandle primitive_buffer,
         const uint32_t num_primitives, const BufferHandle mesh_draw_args_buffer, const uint16_t primitive_type,
         const eastl::string& debug_string
@@ -33,18 +33,16 @@ namespace render {
         }
 
         auto& allocator = backend.get_global_allocator();
-        const auto buffers = IndirectDrawingBuffers{
-            .commands = allocator.create_buffer(
+        const auto drawcall_buffer = allocator.create_buffer(
                 "Draw commands " + debug_string,
                 sizeof(VkDrawIndexedIndirectCommand) * num_primitives + 16,
                 BufferUsage::IndirectBuffer
-            ),
-        };
+        );
 
         auto& descriptor_allocator = backend.get_transient_descriptor_allocator();
 
         const auto init_set = descriptor_allocator.build_set(init_count_buffer_pipeline, 0)
-            .bind(buffers.commands)
+            .bind(drawcall_buffer)
             .build();
         graph.add_compute_dispatch<uint>(
             {
@@ -58,8 +56,8 @@ namespace render {
             .bind(primitive_buffer)
             .bind(visibility_list)
             .bind(mesh_draw_args_buffer)
-            .bind(buffers.commands, 16)
-            .bind(buffers.commands)
+            .bind(drawcall_buffer, 16)
+            .bind(drawcall_buffer)
             .build();
         graph.add_compute_dispatch<glm::uvec2>(
             {
@@ -71,6 +69,6 @@ namespace render {
             }
         );
 
-        return buffers;
+        return drawcall_buffer;
     }
 }

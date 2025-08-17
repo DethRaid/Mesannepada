@@ -24,11 +24,11 @@ namespace render {
          */
         BufferHandle visible_objects = nullptr;
 
-        IndirectDrawingBuffers solid_drawcalls = {};
+        BufferHandle solid_drawcalls = {};
 
-        IndirectDrawingBuffers cutout_drawcalls = {};
+        BufferHandle cutout_drawcalls = {};
 
-        IndirectDrawingBuffers skinned_drawcalls = {};
+        BufferHandle skinned_drawcalls = {};
 
         explicit SceneView();
 
