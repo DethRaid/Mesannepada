@@ -6,6 +6,7 @@
 #include "backend/blas_build_queue.hpp"
 #include "console/cvars.hpp"
 #include "core/system_interface.hpp"
+#include "render/raytracing_scene.hpp"
 #include "render/backend/render_graph.hpp"
 #include "render/backend/resource_allocator.hpp"
 #include "render/backend/resource_upload_queue.hpp"
@@ -274,7 +275,7 @@ namespace render {
                 .instanceCount = 1,
                 .firstIndex = static_cast<uint32_t>(handle->first_index),
                 .vertexOffset = 0,
-                // We use BDA for vetices, the pointers point to the start of the vertex allocation
+                // We use BDA for vertices, the pointers point to the start of the vertex allocation
                 .firstInstance = 0
             });
     }
@@ -283,59 +284,12 @@ namespace render {
         const uint32_t first_vertex, const uint32_t num_vertices, const uint32_t first_index, const uint num_triangles,
         const bool is_dynamic
         ) const {
-        ZoneScoped;
-
-        const auto& backend = RenderBackend::get();
-
-        const auto geometry = VkAccelerationStructureGeometryKHR{
-            .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR,
-            .geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR,
-            .geometry = {
-                .triangles = {
-                    .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR,
-                    .vertexFormat = VK_FORMAT_R32G32B32_SFLOAT,
-                    .vertexData = {.deviceAddress = vertex_position_buffer->address + first_vertex * sizeof(glm::vec3)},
-                    .vertexStride = sizeof(glm::vec3),
-                    .maxVertex = num_vertices - 1,
-                    .indexType = VK_INDEX_TYPE_UINT32,
-                    .indexData = {.deviceAddress = index_buffer->address + first_index * sizeof(uint32_t)}
-                }
-            },
-        };
-
-        VkBuildAccelerationStructureFlagsKHR flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
-        if(is_dynamic) {
-            flags |= VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR;
-        }
-
-        const auto build_info = VkAccelerationStructureBuildGeometryInfoKHR{
-            .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
-            .type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
-            .flags = flags,
-            .mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR,
-            .geometryCount = 1,
-            .pGeometries = &geometry,
-        };
-        auto size_info = VkAccelerationStructureBuildSizesInfoKHR{
-            .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR
-        };
-        vkGetAccelerationStructureBuildSizesKHR(
-            backend.get_device(),
-            VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
-            &build_info,
-            &num_triangles,
-            &size_info);
-
-        const auto as = backend.get_global_allocator()
-                               .create_acceleration_structure(
-                                   static_cast<uint32_t>(size_info.accelerationStructureSize),
-                                   VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR);
-
-        as->scratch_buffer_size = size_info.buildScratchSize;
-        as->num_triangles = num_triangles;
-
-        backend.get_blas_build_queue().enqueue(as, geometry, build_info);
-
-        return as;
+        return RaytracingScene::create_blas(
+            vertex_position_buffer->address + first_vertex * sizeof(glm::vec3),
+            num_vertices,
+            index_buffer->address + first_index * sizeof(uint32_t),
+            num_triangles,
+            is_dynamic
+            );
     }
 }

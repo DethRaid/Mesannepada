@@ -76,6 +76,8 @@ namespace render {
 
         bool supports_ray_tracing() const;
 
+        uint32_t get_rt_scratch_buffer_alignment() const;
+
         bool supports_device_generated_commands() const;
 
         const eastl::vector<glm::uvec2>& get_shading_rates() const;
@@ -320,6 +322,9 @@ namespace render {
 
         VkPhysicalDeviceRayTracingPipelinePropertiesKHR  ray_tracing_pipeline_properties = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR
+        };
+        VkPhysicalDeviceAccelerationStructurePropertiesKHR acceleration_structure_properties = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_PROPERTIES_KHR
         };
         VkPhysicalDeviceFragmentShadingRatePropertiesKHR shading_rate_properties = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_PROPERTIES_KHR

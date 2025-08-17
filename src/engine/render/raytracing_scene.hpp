@@ -29,6 +29,16 @@ namespace render {
 
         void set_dirty();
 
+        static AccelerationStructureHandle create_blas(
+            VkDeviceAddress vertices, uint32_t num_vertices, VkDeviceAddress indices, uint num_triangles,
+            bool is_dynamic
+            );
+
+        static AccelerationStructureHandle update_blas(
+            VkDeviceAddress vertices, uint32_t num_vertices, VkDeviceAddress indices, uint num_triangles,
+            AccelerationStructureHandle as
+            );
+
     private:
         RenderWorld& world;
 

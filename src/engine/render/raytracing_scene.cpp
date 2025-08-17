@@ -1,9 +1,9 @@
 #include "raytracing_scene.hpp"
 
-#include "render/render_scene.hpp"
-#include "render/backend/render_backend.hpp"
 #include "console/cvars.hpp"
 #include "render/mesh_storage.hpp"
+#include "render/render_scene.hpp"
+#include "render/backend/render_backend.hpp"
 
 namespace render {
     [[maybe_unused]] static auto cvar_enable_raytracing = AutoCVar_Int{
@@ -32,7 +32,7 @@ namespace render {
         ZoneScoped;
 
         const auto& model_matrix = primitive->data.model;
-        auto blas_flags = primitive->material->first.transparency_mode == TransparencyMode::Solid
+        const auto blas_flags = primitive->material->first.transparency_mode == TransparencyMode::Solid
             ? VK_GEOMETRY_INSTANCE_FORCE_OPAQUE_BIT_KHR
             : VK_GEOMETRY_INSTANCE_FORCE_NO_OPAQUE_BIT_KHR;
 
@@ -50,7 +50,7 @@ namespace render {
             .mask = 0xFF,
             .instanceShaderBindingTableRecordOffset = sbt_offset,
             .flags = static_cast<VkGeometryInstanceFlagsKHR>(blas_flags),
-            .accelerationStructureReference = primitive->mesh->blas->as_address
+            .accelerationStructureReference = primitive->blas->as_address
         };
 
         placed_blases[primitive->placed_blas_index] = instance;
@@ -79,6 +79,120 @@ namespace render {
         is_dirty = true;
     }
 
+    AccelerationStructureHandle RaytracingScene::create_blas(
+        const VkDeviceAddress vertices, const uint32_t num_vertices, const VkDeviceAddress indices, const uint num_triangles,
+        const bool is_dynamic
+        ) {
+        ZoneScoped;
+
+        const auto& backend = RenderBackend::get();
+
+        const auto geometry = VkAccelerationStructureGeometryKHR{
+            .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR,
+            .geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR,
+            .geometry = {
+                .triangles = {
+                    .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR,
+                    .vertexFormat = VK_FORMAT_R32G32B32_SFLOAT,
+                    .vertexData = {.deviceAddress = vertices},
+                    .vertexStride = sizeof(glm::vec3),
+                    .maxVertex = num_vertices - 1,
+                    .indexType = VK_INDEX_TYPE_UINT32,
+                    .indexData = {.deviceAddress = indices}
+                }
+            },
+        };
+
+        VkBuildAccelerationStructureFlagsKHR flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
+        if(is_dynamic) {
+            flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR;
+        }
+
+        const auto build_info = VkAccelerationStructureBuildGeometryInfoKHR{
+            .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
+            .type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
+            .flags = flags,
+            .mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR,
+            .geometryCount = 1,
+            .pGeometries = &geometry
+        };
+        auto size_info = VkAccelerationStructureBuildSizesInfoKHR{
+            .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR
+        };
+        vkGetAccelerationStructureBuildSizesKHR(
+            backend.get_device(),
+            VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
+            &build_info,
+            &num_triangles,
+            &size_info);
+
+        const auto as = backend.get_global_allocator()
+                               .create_acceleration_structure(
+                                   static_cast<uint32_t>(size_info.accelerationStructureSize),
+                                   VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR);
+
+        as->scratch_buffer_size = eastl::max(size_info.buildScratchSize, size_info.updateScratchSize);
+        as->num_triangles = num_triangles;
+
+        backend.get_blas_build_queue().enqueue(as, geometry, build_info);
+
+        return as;
+    }
+
+    AccelerationStructureHandle RaytracingScene::update_blas(const VkDeviceAddress vertices, const uint32_t num_vertices,
+        const VkDeviceAddress indices, const uint num_triangles, const AccelerationStructureHandle as
+        ) {
+          ZoneScoped;
+
+        const auto& backend = RenderBackend::get();
+
+        const auto geometry = VkAccelerationStructureGeometryKHR{
+            .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR,
+            .geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR,
+            .geometry = {
+                .triangles = {
+                    .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR,
+                    .vertexFormat = VK_FORMAT_R32G32B32_SFLOAT,
+                    .vertexData = {.deviceAddress = vertices},
+                    .vertexStride = sizeof(glm::vec3),
+                    .maxVertex = num_vertices - 1,
+                    .indexType = VK_INDEX_TYPE_UINT32,
+                    .indexData = {.deviceAddress = indices}
+                }
+            },
+        };
+
+          constexpr VkBuildAccelerationStructureFlagsKHR flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR |
+                                                                 VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR;
+
+        const auto build_info = VkAccelerationStructureBuildGeometryInfoKHR{
+            .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
+            .type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
+            .flags = flags,
+            .mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_UPDATE_KHR,
+            .srcAccelerationStructure = as->acceleration_structure,
+            .dstAccelerationStructure = as->acceleration_structure,
+            .geometryCount = 1,
+            .pGeometries = &geometry,
+        };
+        auto size_info = VkAccelerationStructureBuildSizesInfoKHR{
+            .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR
+        };
+        vkGetAccelerationStructureBuildSizesKHR(
+            backend.get_device(),
+            VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
+            &build_info,
+            &num_triangles,
+            &size_info);
+
+        as->scratch_buffer_size = eastl::max(size_info.buildScratchSize, size_info.updateScratchSize);
+        as->num_triangles = num_triangles;
+
+        backend.get_blas_build_queue().enqueue(as, geometry, build_info);
+
+        return as;
+    }
+
     void RaytracingScene::commit_tlas_builds(RenderGraph& graph) {
         if (!is_dirty) {
             return;
@@ -86,7 +200,7 @@ namespace render {
 
         ZoneScoped;
 
-        auto& backend = RenderBackend::get();
+        const auto& backend = RenderBackend::get();
         auto& allocator = backend.get_global_allocator();
 
         const auto instances_buffer = allocator.create_buffer(
@@ -189,7 +303,7 @@ namespace render {
                 },
                 .execute = [=](const CommandBuffer& commands) {
                 // Build Offsets info: n instances
-                VkAccelerationStructureBuildRangeInfoKHR build_offset_info{count_instance, 0, 0, 0};
+                const VkAccelerationStructureBuildRangeInfoKHR build_offset_info{count_instance, 0, 0, 0};
                 const VkAccelerationStructureBuildRangeInfoKHR* p_build_offset_info = &build_offset_info;
 
                 // Build the TLAS
