@@ -21,8 +21,9 @@ namespace render {
         "r.GI.Reconstruction.Size", "Size in pixels of the screenspace reconstruction filter", 16
     };
 
-    static auto cvar_denoiser = AutoCVar_Enum{"r.GI.Denoiser", "Which denoiser to use. 0 = none, 1 = ReBLUR, 2 = ReLAX",
-                                              DenoiserType::None};
+    static auto cvar_denoiser = AutoCVar_Enum{"r.GI.Denoiser",
+                                              "Which denoiser to use. 0 = none, 1 = ReBLUR, 2 = ReLAX, 3 = DLSS-RR\nReBLUR seems to handle our low-poly art a little better than ReLAX, but DLSS-RR is best",
+                                              DenoiserType::ReBLUR};
 
 #if SAH_USE_IRRADIANCE_CACHE
     static AutoCVar_Int cvar_gi_cache{ "r.GI.Cache.Enabled", "Whether to enable the GI irradiance cache", false };
@@ -30,11 +31,16 @@ namespace render {
     static AutoCVar_Int cvar_gi_cache_debug{ "r.GI.Cache.Debug", "Enable a debug draw of the irradiance cache", true };
 #endif
 
+    static std::shared_ptr<spdlog::logger> logger;
+
     bool RayTracedGlobalIllumination::should_render() {
         return cvar_num_bounces.get() > 0;
     }
 
     RayTracedGlobalIllumination::RayTracedGlobalIllumination() {
+        if(logger == nullptr) {
+            logger = SystemInterface::get().get_logger("RayTracedGlobalIllumination");
+        }
         const auto& backend = RenderBackend::get();
         if(overlay_pso == nullptr) {
             overlay_pso = backend.begin_building_pipeline("rtgi_application")
@@ -76,9 +82,14 @@ namespace render {
         ) {
         ZoneScoped;
 
-        if(cvar_denoiser.get() != DenoiserType::None && denoiser == nullptr) {
+        const bool should_use_nrd = cvar_denoiser.get() != DenoiserType::None &&
+                                    cvar_denoiser.get() != DenoiserType::DLSS_RR;
+
+        if(should_use_nrd && denoiser == nullptr) {
+            logger->debug("Creating NRD instance");
             denoiser = eastl::make_unique<NvidiaRealtimeDenoiser>();
-        } else if(cvar_denoiser.get() == DenoiserType::None && denoiser) {
+        } else if(!should_use_nrd && denoiser) {
+            logger->debug("Destroying NRD instance");
             RenderBackend::get().wait_for_idle();
             denoiser = nullptr;
         }
@@ -151,11 +162,23 @@ namespace render {
             denoiser_data = allocator.create_texture(
                 "denoiser_data",
                 {
-                    .format = VK_FORMAT_R16G16B16A16_SNORM,
+                    .format = VK_FORMAT_R16G16B16A16_SFLOAT,
                     .resolution = render_resolution,
                     .usage = TextureUsage::StorageImage
                 });
         }
+
+        if(linear_depth_texture == nullptr || linear_depth_texture->get_resolution() != render_resolution) {
+            allocator.destroy_texture(linear_depth_texture);
+            linear_depth_texture = allocator.create_texture(
+                "nrd_linear_depth",
+                {
+                    .format = VK_FORMAT_R16_SFLOAT,
+                    .resolution = render_resolution,
+                    .usage = TextureUsage::StorageImage,
+                });
+        }
+
         if(rtgi_pipeline == nullptr) {
             rtgi_pipeline = backend.get_pipeline_cache()
                                    .create_ray_tracing_pipeline("shader://gi/rtgi/rtgi.rt.spv"_res);
@@ -172,7 +195,7 @@ namespace render {
                                 .build_set(rtgi_pipeline, 0)
                                 .bind(world.get_primitive_buffer())
                                 .bind(sun_buffer)
-                                .bind(view.get_buffer())
+                                .bind(view.get_constant_buffer())
                                 .bind(world.get_raytracing_world().get_acceleration_structure())
                                 .bind(gbuffer.normals)
                                 .bind(gbuffer.data)
@@ -181,6 +204,7 @@ namespace render {
                                 .bind(ray_texture)
                                 .bind(ray_irradiance)
                                 .bind(denoiser_data)
+                                .bind(linear_depth_texture)
                                 .bind(sky.get_sky_view_lut(), sky.get_sampler())
                                 .bind(sky.get_transmittance_lut(), sky.get_sampler())
                                 .build();
@@ -196,7 +220,7 @@ namespace render {
                 commands.bind_descriptor_set(1, backend.get_texture_descriptor_pool().get_descriptor_set());
 
                 commands.set_push_constant(0, static_cast<uint32_t>(cvar_num_bounces.get()));
-                commands.set_push_constant(1, denoiser == nullptr ? 0u : 1u);
+                commands.set_push_constant(1, static_cast<uint32_t>(cvar_denoiser.get()));
 
                 commands.dispatch_rays(render_resolution);
 
@@ -207,11 +231,12 @@ namespace render {
 
         if(denoiser) {
             denoiser->do_denoising(graph,
-                                   view.get_buffer(),
+                                   view.get_constant_buffer(),
                                    gbuffer.depth,
                                    motion_vectors,
                                    ray_irradiance,
                                    denoiser_data,
+                                   linear_depth_texture,
                                    denoised_irradiance);
         } else {
             graph.add_copy_pass(ImageCopyPass{
@@ -219,6 +244,10 @@ namespace render {
                 .dst = denoised_irradiance,
                 .src = ray_irradiance});
         }
+    }
+
+    TextureHandle RayTracedGlobalIllumination::get_denoiser_data_texture() {
+        return denoiser_data;
     }
 
     void RayTracedGlobalIllumination::get_lighting_resource_usages(
@@ -284,7 +313,7 @@ namespace render {
             commands.bind_descriptor_set(1, set);
 
             commands.set_push_constant(0, static_cast<uint32_t>(cvar_num_reconstruction_rays.get()));
-            commands.set_push_constant(1, cvar_reconstruction_size.GetFloat());
+            commands.set_push_constant(1, cvar_reconstruction_size.get());
 
             commands.draw_triangle();
 
@@ -292,19 +321,23 @@ namespace render {
         } else {
             // Simple copy thing?
             const auto set = RenderBackend::get().get_transient_descriptor_allocator()
-                                                 .build_set(overlay_pso, 0)
+                                                 .build_set(overlay_pso, 1)
                                                  .bind(denoised_irradiance)
+                                                 .bind(ray_texture)
+                                                 .bind(view_buffer)
                                                  .build();
 
             commands.set_cull_mode(VK_CULL_MODE_NONE);
 
+            commands.set_push_constant(0, static_cast<uint32_t>(cvar_denoiser.get()));
+
             commands.bind_pipeline(overlay_pso);
 
-            commands.bind_descriptor_set(0, set);
+            commands.bind_descriptor_set(1, set);
 
             commands.draw_triangle();
 
-            commands.clear_descriptor_set(0);
+            commands.clear_descriptor_set(1);
         }
     }
 

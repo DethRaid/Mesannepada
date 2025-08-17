@@ -6,6 +6,7 @@
 #include "render_backend.hpp"
 #include "render/backend/render_graph.hpp"
 #include "console/cvars.hpp"
+#include "core/math_utils.hpp"
 
 namespace render {
     static auto cvar_max_concurrent_builds = AutoCVar_Int{
@@ -42,10 +43,12 @@ namespace render {
         auto& allocator = backend.get_global_allocator();
         const auto scratch_buffer = allocator.create_buffer(
             "Scratch buffer",
-            max_scratch_buffer_size * batch_size,
+            max_scratch_buffer_size * (batch_size + 1),
             BufferUsage::StorageBuffer);
 
         allocator.destroy_buffer(scratch_buffer);
+
+        const auto alignment = backend.get_rt_scratch_buffer_alignment();
 
         for (auto i = 0u; i < pending_jobs.size(); i += batch_size) {
             auto barriers = BufferUsageList{
@@ -65,7 +68,7 @@ namespace render {
             build_range_infos.reserve(batch_size);
             build_range_info_ptrs.reserve(batch_size);
 
-            auto scratch_buffer_address = scratch_buffer->address;
+            auto scratch_buffer_address = round_up<uint64_t>(scratch_buffer->address, alignment);
 
             for (auto job_idx = i; job_idx < i + batch_size; job_idx++) {
                 if (job_idx >= pending_jobs.size()) {
@@ -83,6 +86,7 @@ namespace render {
 
                 auto& info = job.build_info;
                 info.dstAccelerationStructure = job.handle->acceleration_structure;
+                info.geometryCount = 1;
                 info.pGeometries = &job.create_info;
                 info.scratchData = {.deviceAddress = scratch_buffer_address};
                 build_geometry_infos.emplace_back(info);

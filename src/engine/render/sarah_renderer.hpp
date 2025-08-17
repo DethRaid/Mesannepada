@@ -23,7 +23,7 @@
 #include "render/phase/sampling_rate_calculator.hpp"
 #include "render/phase/ui_phase.hpp"
 #include "render/upscaling/upscaler.hpp"
-#include "ui/debug_menu.hpp"
+#include "../ui/debug/debug_menu.hpp"
 #include "visualizers/jolt_debug_renderer.hpp"
 #include "visualizers/visualizer_type.hpp"
 

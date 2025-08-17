@@ -77,7 +77,7 @@ struct ResourcePath {
     }
 
 private:
-    void parse_from_string(eastl::string_view str);
+    void parse_from_string(eastl::string_view raw_string);
 };
 
 ResourcePath operator""_res(const char* path, size_t size);

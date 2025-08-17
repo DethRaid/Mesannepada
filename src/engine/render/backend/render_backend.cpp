@@ -402,6 +402,7 @@ namespace render {
 
         if(supports_raytracing) {
             physical_device_properties.add_extension(&ray_tracing_pipeline_properties);
+            physical_device_properties.add_extension(&acceleration_structure_properties);
         }
 
         vkGetPhysicalDeviceProperties2(physical_device, *physical_device_properties);
@@ -501,6 +502,10 @@ namespace render {
         return supports_rt; 
     }
 
+    uint32_t RenderBackend::get_rt_scratch_buffer_alignment() const {
+        return acceleration_structure_properties.minAccelerationStructureScratchOffsetAlignment;
+    }
+
     bool RenderBackend::supports_device_generated_commands() const {
         return supports_dgc;
     }
@@ -581,10 +586,6 @@ namespace render {
         }
 
         logger->trace("Beginning frame {} (frame idx {})", total_num_frames, cur_frame_idx);
-
-        if(total_num_frames % 100 == 0) {
-            // allocator->report_memory_usage();
-        }
 
         {
             ZoneScopedN("Wait for previous frame");

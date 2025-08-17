@@ -89,6 +89,18 @@ const eastl::vector<SceneObject>& Scene::get_objects() const {
     return scene_objects;
 }
 
+void Scene::delete_object_by_entity(const entt::handle entity) {
+    const auto itr = eastl::remove_if(
+        scene_objects.begin(),
+        scene_objects.end(),
+        [&](const SceneObject& obj) {
+            return obj.entity == entity;
+        });
+    if(itr != scene_objects.end()) {
+        scene_objects.erase(itr);
+    }
+}
+
 SceneObject* Scene::find_object(const ResourcePath& name) {
     ZoneScoped;
 

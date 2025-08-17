@@ -37,15 +37,16 @@ RWTexture2D<float4> ray_irradiance;
 [vk::binding(10, 0)]
 RWTexture2D<float4> denoiser_data;
 
-float3 get_worldspace_location(const uint2 pixel) {
-    const float depth = gbuffer_depth[pixel];
+[vk::binding(11, 0)]
+RWTexture2D<float> viewspace_depth;
+
+float4 get_viewspace_location(const uint2 pixel, const float depth) {
     const float2 texcoord = ((float2)pixel + 0.5) / view_data.render_resolution.xy;
     const float4 ndc_position = float4(texcoord * 2.f - 1.f, depth, 1.f);
     float4 viewspace_position = mul(view_data.inverse_projection, ndc_position);
     viewspace_position /= viewspace_position.w;
-    const float4 worldspace_position = mul(view_data.inverse_view, viewspace_position);
 
-    return worldspace_position.xyz;
+    return viewspace_position;
 }
 
 float2 r0(uint n) {
@@ -71,14 +72,19 @@ void main_raygen() {
     }
 
     const float depth = gbuffer_depth[thread_id];
+    
+    const float4 viewspace_location = get_viewspace_location(thread_id, depth);
+    const float4 worldspace_location = mul(view_data.inverse_view, viewspace_location);
+
+    // Always write denoiser depth
+    viewspace_depth[thread_id] = viewspace_location.z;
+
     if (depth == 0.f) {
         return;
     }
 
     const half3 normal = gbuffer_normals[thread_id].xyz;
     const half4 data = gbuffer_data[thread_id];
-
-    const float3 location = get_worldspace_location(thread_id);
     
     const uint2 noisetex_pixel = uint2(thread_id) % 128;
 
@@ -88,10 +94,10 @@ void main_raygen() {
     }
 
     RayDesc ray;
-    ray.Origin = location;
+    ray.Origin = worldspace_location.xyz;
     ray.Direction = ray_direction;
     ray.TMin = 0.01f;
-    ray.TMax = 100000.f;
+    ray.TMax = 65535.f;
 
     // irradiance that comes in along the ray
     IrradiancePayload payload = (IrradiancePayload)0;
@@ -115,17 +121,16 @@ void main_raygen() {
 
     const float3 exposed_irradiance = payload.irradiance * view_data.exposure;
 
-    float4 irradiance_info = float4(exposed_irradiance, 0);
-    float4 denoiser_info = 0;
+    float4 irradiance_info = float4(exposed_irradiance, 1);
+    float4 denoiser_info = float4(normal, data.g);
 
     if(denoiser_type == 1) {    // ReBLUR
-        irradiance_info = REBLUR_FrontEnd_PackRadianceAndNormHitDist(exposed_irradiance, payload.ray_distance, false);
+        irradiance_info = REBLUR_FrontEnd_PackRadianceAndNormHitDist(exposed_irradiance, payload.ray_distance, true);
         denoiser_info = NRD_FrontEnd_PackNormalAndRoughness(normal, sqrt(data.g), 0);
 
     } else if(denoiser_type == 2) { // ReLAX
-        irradiance_info = RELAX_FrontEnd_PackRadianceAndHitDist(exposed_irradiance, payload.ray_distance, false);
+        irradiance_info = RELAX_FrontEnd_PackRadianceAndHitDist(exposed_irradiance, payload.ray_distance, true);
         denoiser_info = NRD_FrontEnd_PackNormalAndRoughness(normal, sqrt(data.g), 0);
-    
     }
     
     ray_irradiance[thread_id] = irradiance_info;

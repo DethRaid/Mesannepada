@@ -126,7 +126,7 @@ namespace render {
         bindings.resize(set_info.bindings.size());
     }
 
-    DescriptorSetBuilder& DescriptorSetBuilder::bind(const BufferHandle buffer) {
+    DescriptorSetBuilder& DescriptorSetBuilder::bind(const BufferHandle buffer, const uint32_t offset) {
 #ifndef _NDEBUG
         if (binding_index >= set_info.bindings.size()) {
             throw std::runtime_error{
@@ -142,7 +142,7 @@ namespace render {
         }
 #endif
 
-        bindings[binding_index] = detail::BoundResource{ .buffer = buffer };
+        bindings[binding_index] = detail::BoundResource{ .buffer = buffer, .offset = offset };
 
         binding_index++;
 
@@ -234,7 +234,7 @@ namespace render {
             if (is_buffer_type(binding_info.descriptorType)) {
                 builder.bind_buffer(
                     binding_idx,
-                    { .buffer = resource.buffer },
+                    { .buffer = resource.buffer, .offset = resource.offset, .range = resource.buffer->create_info.size - resource.offset },
                     binding_info.descriptorType,
                     binding_info.stageFlags
                 );

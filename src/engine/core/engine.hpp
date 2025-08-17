@@ -13,7 +13,7 @@
 #include "render/sarah_renderer.hpp"
 #include "render/render_scene.hpp"
 #include "scalability/settings_controller.hpp"
-#include "ui/debug_menu.hpp"
+#include "../ui/debug/debug_menu.hpp"
 #include "ui/ui_controller.hpp"
 #include "physics/physics_scene.hpp"
 #include "resources/prefab_loader.hpp"
@@ -160,6 +160,11 @@ private:
     void update_time();
 
     PerformanceTracker perf_tracker;
+
+    /**
+     * Gets the current PGU memory usage
+     */
+    static uint64_t get_gpu_memory();
 
     void update_perf_tracker();
 

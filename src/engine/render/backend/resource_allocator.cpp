@@ -596,6 +596,9 @@ namespace render {
     }
 
     void ResourceAllocator::destroy_acceleration_structure(AccelerationStructureHandle handle) {
+        if(handle == nullptr) {
+            return;
+        }
         as_zombie_lists[backend.get_current_gpu_frame()].emplace_back(handle);
         destroy_buffer(handle->buffer);
     }
@@ -609,6 +612,10 @@ namespace render {
     }
 
     void ResourceAllocator::destroy_buffer(BufferHandle handle) {
+        if(handle == nullptr) {
+            return;
+        }
+
         auto& cur_frame_zombies = buffer_zombie_lists[backend.get_current_gpu_frame()];
         cur_frame_zombies.emplace_back(handle);
     }
@@ -687,6 +694,18 @@ namespace render {
         }
 
         vmaSetCurrentFrameIndex(vma, frame_idx);
+    }
+
+    uint64_t ResourceAllocator::get_memory_usage() const {
+        auto memory = uint64_t{0};
+        auto budgets = eastl::array<VmaBudget, 32>{};
+        vmaGetHeapBudgets(vma, budgets.data());
+
+        for(const auto& budget : budgets) {
+            memory += budget.usage;
+        }
+
+        return memory;
     }
 
     void ResourceAllocator::report_memory_usage() const {

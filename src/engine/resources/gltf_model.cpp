@@ -92,6 +92,15 @@ glm::mat4 get_node_to_parent_matrix(const fastgltf::Node& node) {
     return matrix;
 }
 
+GltfModel::~GltfModel() {
+    auto& animations = Engine::get().get_animation_system();
+    for(const auto& gltf_animation : asset.animations) {
+        animations.remove_animation(skeleton_handle, gltf_animation.name.c_str());
+    }
+
+    animations.destroy_skeleton(skeleton_handle);
+}
+
 GltfModel::GltfModel(
     ResourcePath filepath_in,
     fastgltf::Asset&& model,
@@ -99,7 +108,7 @@ GltfModel::GltfModel(
     ExtrasData extras_in
     ) :
     filepath{std::move(filepath_in)},
-    cached_data_path{std::filesystem::path{"cache"} / filepath.get_path().c_str()},
+    cached_data_path{SystemInterface::get().get_cache_folder() / filepath.get_path()},
     asset{std::move(model)},
     extras{eastl::move(extras_in)} {
     if(logger == nullptr) {
@@ -122,15 +131,6 @@ GltfModel::GltfModel(
     calculate_bounding_sphere_and_footprint();
 
     logger->info("Loaded model {}", filepath);
-}
-
-GltfModel::~GltfModel() {
-    auto& animations = Engine::get().get_animation_system();
-    for(const auto& gltf_animation : asset.animations) {
-        animations.remove_animation(skeleton_handle, gltf_animation.name.c_str());
-    }
-
-    animations.destroy_skeleton(skeleton_handle);
 }
 
 glm::vec4 GltfModel::get_bounding_sphere() const {
@@ -371,13 +371,13 @@ void GltfModel::add_collider_component(
 
 static float calculate_light_range(const fastgltf::num intensity) {
     // Calculate the light range based on where the light's intensity is this value
-    constexpr auto min_intensity = 10.0f;
+    constexpr auto min_intensity = 1.0f;
 
     // Attenuation factor needed to reach that intensity
     const auto attenuation = min_intensity / intensity;
 
     // Use the simple point light attenuation. Won't be exactly correct, should be plausible
-    return sqrt(1.f / (attenuation));
+    return sqrt(1.f / attenuation);
 }
 
 void GltfModel::add_light_component(const entt::handle& entity, const fastgltf::Light& light) {
@@ -761,7 +761,7 @@ void GltfModel::import_skins(AnimationSystem& animation_system) {
      */
 
     // I don't want to deal with multiple skins per file. Do not
-    assert(asset.skins.size() < 2);
+    assert(asset.skins.size() < 2); 
 
     for(const auto& original_skin : asset.skins) {
         auto skeleton = Skeleton{};

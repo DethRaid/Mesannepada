@@ -3,9 +3,28 @@
 
 #include "shared/prelude.h"
 
-#define PRIMITIVE_TYPE_SOLID 0
-#define PRIMITIVE_TYPE_CUTOUT 1
-#define PRIMITIVE_TYPE_TRANSPARENT 2
+/*
+ * Primitive info flags - not expected to change after the primitive is created
+ */
+
+// This is a completely opaque primitive
+#define PRIMITIVE_TYPE_SOLID            1 << 0
+
+// This primitive has an alpha mask, either from a texture or calculated in a shader
+#define PRIMITIVE_TYPE_CUTOUT           1 << 1
+
+// This primitive has an alpha texture and should be partially translucent
+#define PRIMITIVE_TYPE_TRANSPARENT      1 << 2
+
+// This primitive is a skinned mesh
+#define PRIMITIVE_TYPE_SKINNED          1 << 4
+
+/**
+ * Runtime primitive flags - these may change when various things happen
+ */
+
+// This primitive is currently active and should be drawn
+#define PRIMITIVE_RUNTIME_FLAG_ENABLED          1 << 0
 
 #if defined(__cplusplus)
 using MaterialPointer = uint64_t;
@@ -44,21 +63,22 @@ using BoneTransformsPointer = uint64_t;
 
 // Size 200
 struct PrimitiveDataGPU {
-    float4x4 model;                                         // Offset 0, size 64
-    float4x4 inverse_model;                                 // Offset 64, size 64
+    float4x4 model;
+    float4x4 inverse_model;
 
     // Bounds min (xyz) and radius (w) of the mesh
-    float4 bounds_min_and_radius;                           // Offset 128, size 16
-    float4 bounds_max;                                      // Offset 144, size 16
+    float4 bounds_min_and_radius;
+    float4 bounds_max;
 
-    MaterialPointer material;                               // Offset 160, size 8
+    MaterialPointer material;
 
-    uint mesh_id;                                           // Offset 168, size 4
-    uint type;  // See the PRIMITIVE_TYPE_ defines above    // Offset 172, size 4
+    uint mesh_id;
+    uint16_t type_flags;  // See the PRIMITIVE_TYPE_ defines above
+    uint16_t runtime_flags; // See the PRIMITIVE_RUNTIME_FLAG defines, above
 
-    IndexPointer indices;                                   // Offset 176, size 8
-    VertexPositionPointer vertex_positions;                 // Offset 184, size 8
-    VertexDataPointer vertex_data;                          // Offset 192, size 8
+    IndexPointer indices;
+    VertexPositionPointer vertex_positions;
+    VertexDataPointer vertex_data;
 };
 
 struct SkeletalPrimitiveDataGPU {
@@ -69,6 +89,10 @@ struct SkeletalPrimitiveDataGPU {
     WeightsPointer weights;
 
     BoneTransformsPointer bone_transforms;
+
+    VertexPositionPointer last_frame_skinned_positions;
+
+    uint primitive_id;
 };
 
 #if defined(__cplusplus)

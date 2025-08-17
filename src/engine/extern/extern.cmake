@@ -3,6 +3,14 @@
 include(FetchContent)
 
 set(VULKAN_DIR "$ENV{VULKAN_SDK}")
+list(APPEND CMAKE_MODULE_PATH "${SAH_TOOLS_DIR}/cmake")
+
+# We can't use the Vulkan-Headers from the Vulkan SDK because NRI unconditionally downloads the Vulkan headers and 
+# causes a name collision
+#
+# We can't upgrade NRI because NRD needs a specific version
+#
+# We're already using the latest release version of NRD...
 
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
@@ -69,8 +77,7 @@ FetchContent_Declare(
 FetchContent_Declare(
         glm
         GIT_REPOSITORY  https://github.com/g-truc/glm.git
-        GIT_SHALLOW     ON
-        GIT_TAG         1.0.0
+        GIT_TAG         2d4c4b4dd31fde06cfffad7915c2b3006402322f
 )
 
 FetchContent_Declare(
@@ -79,6 +86,27 @@ FetchContent_Declare(
         GIT_SHALLOW     ON
         GIT_TAG         v0.9.5
 )
+
+# Manually include NRD's dependencies because...?
+FetchContent_Declare(
+        mathlib
+        GIT_REPOSITORY https://github.com/NVIDIA-RTX/MathLib.git
+        GIT_TAG v1.4
+    )
+option(SHADERMAKE_TOOL "" ON)
+
+FetchContent_Declare(
+    shadermake
+    GIT_REPOSITORY https://github.com/NVIDIA-RTX/ShaderMake.git
+    GIT_TAG main
+)
+
+set(NRI_ENABLE_D3D12_SUPPORT OFF CACHE BOOL "" FORCE)
+set(NRI_ENABLE_D3D11_SUPPORT OFF CACHE BOOL "" FORCE)
+set(NRI_ENABLE_VK_SUPPORT ON CACHE BOOL "" FORCE)
+set(NRI_ENABLE_NGX_SDK OFF CACHE BOOL "" FORCE)
+set(NRI_ENABLE_FFX_SDK OFF CACHE BOOL "" FORCE)
+set(NRI_ENABLE_XESS_SDK OFF CACHE BOOL "" FORCE)
 
 set(NRD_EMBEDS_DXIL_SHADERS OFF CACHE BOOL "" FORCE)
 set(NRD_EMBEDS_DXBC_SHADERS OFF CACHE BOOL "" FORCE)
@@ -89,11 +117,6 @@ FetchContent_Declare(
         GIT_TAG         v4.15.0 
 )
 
-set(NRI_ENABLE_D3D12_SUPPORT OFF CACHE BOOL "" FORCE)
-set(NRI_ENABLE_D3D11_SUPPORT OFF CACHE BOOL "" FORCE)
-set(NRI_ENABLE_NGX_SDK ON CACHE BOOL "" FORCE)
-set(NRI_ENABLE_FFX_SDK ON CACHE BOOL "" FORCE)
-set(NRI_ENABLE_XESS_SDK ON CACHE BOOL "" FORCE)
 FetchContent_Declare(
         NRI
         GIT_REPOSITORY  https://github.com/NVIDIA-RTX/NRI.git
@@ -138,7 +161,7 @@ FetchContent_Declare(
 FetchContent_Declare(
         toml11
         GIT_REPOSITORY https://github.com/ToruNiina/toml11.git
-        GIT_SHALLOW     ON
+        GIT_SHALLOW    ON
         GIT_TAG        v4.4.0
 )
 
@@ -146,7 +169,7 @@ FetchContent_Declare(
         fetch_tracy
         GIT_REPOSITORY  https://github.com/wolfpld/tracy.git
         GIT_SHALLOW     ON
-        GIT_TAG         v0.11.1
+        GIT_TAG         v0.12.2 
 )
 
 FetchContent_Declare(
@@ -173,9 +196,8 @@ FetchContent_Declare(
 set(VMA_STATIC_VULKAN_FUNCTIONS OFF CACHE BOOL "" FORCE)
 set(VMA_DYNAMIC_VULKAN_FUNCTIONS ON CACHE BOOL "" FORCE)
 FetchContent_Declare(
-        fetch_vma
+        vma
         GIT_REPOSITORY  https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
-        GIT_SHALLOW     ON
         GIT_TAG         v3.3.0
 )
 
@@ -213,7 +235,7 @@ FetchContent_MakeAvailable(
         fetch_spirv_reflect
         toml11
         fetch_tracy
-        fetch_vma
+        vma
         vk-bootstrap
         utf8cpp
         fetch_volk)
@@ -280,7 +302,7 @@ if(SAH_USE_XESS)
         FetchContent_Declare(
                 xess
                 GIT_REPOSITORY  https://github.com/intel/xess.git     
-                GIT_TAG         v2.0.1
+                GIT_TAG         v2.1.0
         )
         FetchContent_GetProperties(xess)
         if(xess_POPULATED)

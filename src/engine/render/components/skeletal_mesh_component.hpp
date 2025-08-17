@@ -34,10 +34,21 @@ namespace render {
         eastl::vector<float4x4> worldspace_bone_matrices;
 
         /**
+         * Bone matrices with parent transforms and inverse bind poses applied - from the last frame
+         */
+        eastl::vector<float4x4> previous_worldspace_bone_matrices;
+
+        /**
          * GPU buffer for all the bone matrices. Updated at start of render frame. May eventually be replaced with a full
          * proxy
          */
         BufferHandle bone_matrices_buffer = nullptr;
+
+        /**
+         * GPU buffer for all the bone matrices. Updated at start of render frame. May eventually be replaced with a full
+         * proxy
+         */
+        BufferHandle previous_bone_matrices_buffer = nullptr;
 
         void propagate_bone_transforms();
 

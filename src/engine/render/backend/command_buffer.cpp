@@ -334,6 +334,20 @@ namespace render {
         vkCmdDrawIndexedIndirect(commands, indirect_buffer->buffer, 0, 1, 0);
     }
 
+    void CommandBuffer::draw_indexed_indirect(BufferHandle indirect_buffer, uint32_t max_count) {
+        commit_bindings();
+
+        vkCmdDrawIndexedIndirectCount(
+            commands,
+            indirect_buffer->buffer,
+            16,
+            indirect_buffer->buffer,
+            0,
+            max_count,
+            sizeof(VkDrawIndexedIndirectCommand)
+            );
+    }
+
     void CommandBuffer::draw_indexed_indirect(
         const BufferHandle indirect_buffer, const BufferHandle count_buffer, const uint32_t max_count
         ) {

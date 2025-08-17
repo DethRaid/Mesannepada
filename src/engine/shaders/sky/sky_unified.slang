@@ -202,7 +202,7 @@ float4 main_fs(float4 fragcoord: SV_Position) {
 #if SAH_RT_OCCLUSION
 [shader("miss")]
 void main_miss(inout uint payload) {
-    payload = 80000;
+    payload = 1;
 }
 #endif
 
@@ -213,17 +213,18 @@ void main_miss(inout uint payload) {
 [vk::binding(1, 0)]
 ConstantBuffer<SunLightConstants> sun_light;
 
-[vk::binding(11, 0)]
+[vk::binding(12, 0)]
 Sampler2D transmittance_lut;
 
-[vk::binding(12, 0)]
+[vk::binding(13, 0)]
 Sampler2D sky_view_lut;
 
 [shader("miss")]
 void main_miss(inout IrradiancePayload payload) {
     const float3 sun_dir = -normalize(sun_light.direction_and_tan_size.xyz);
-    payload.irradiance = get_sky_color(WorldRayDirection(), sun_dir, sky_view_lut, transmittance_lut) * sun_light.color.rgb * 0.1f;
+    payload.irradiance = get_sky_color(WorldRayDirection(), sun_dir, sky_view_lut, transmittance_lut) * sun_light.color.rgb;
     payload.ray_distance = RayTCurrent();
+    payload.remaining_bounces = 0;
 }
 #endif
 

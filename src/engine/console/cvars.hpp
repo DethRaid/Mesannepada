@@ -29,13 +29,13 @@ public:
     //pimpl
     virtual CVarParameter* GetCVar(StringUtils::StringHash hash) = 0;
 
-    virtual double* GetFloatCVar(StringUtils::StringHash hash) = 0;
+    virtual float* GetFloatCVar(StringUtils::StringHash hash) = 0;
 
     virtual int32_t* GetIntCVar(StringUtils::StringHash hash) = 0;
 
     virtual const char* GetStringCVar(StringUtils::StringHash hash) = 0;
 
-    virtual void SetFloatCVar(StringUtils::StringHash hash, double value) = 0;
+    virtual void SetFloatCVar(StringUtils::StringHash hash, float value) = 0;
 
     virtual void SetIntCVar(StringUtils::StringHash hash, int32_t value) = 0;
 
@@ -47,7 +47,7 @@ public:
     void SetEnumCVar(StringUtils::StringHash hash, EnumType value);
 
     virtual CVarParameter* CreateFloatCVar(
-        const char* name, const char* description, double defaultValue, double currentValue
+        const char* name, const char* description, float defaultValue, float currentValue
     ) = 0;
 
     virtual CVarParameter* CreateIntCVar(
@@ -70,19 +70,18 @@ protected:
     using CVarType = T;
 };
 
-struct AutoCVar_Float : AutoCVar<double> {
-    AutoCVar_Float(const char* name, const char* description, double defaultValue, CVarFlags flags = CVarFlags::None);
+struct AutoCVar_Float : AutoCVar<float> {
+    AutoCVar_Float(const char* name, const char* description, float defaultValue, CVarFlags flags = CVarFlags::None);
 
-    double get();
-    double* GetPtr();
-    float GetFloat();
-    float* GetFloatPtr();
-    void Set(double val);
+    float get();
+    float* GetPtr();
+    void Set(float val);
 };
 
 struct AutoCVar_Int : AutoCVar<int32_t> {
     AutoCVar_Int(const char* name, const char* description, int32_t defaultValue, CVarFlags flags = CVarFlags::None);
     int32_t get();
+    uint32_t get_uint();
     int32_t* GetPtr();
     void set(int32_t val);
 

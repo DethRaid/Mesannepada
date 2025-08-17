@@ -24,6 +24,10 @@ namespace render {
 
 class DebugUI {
 public:
+    /**
+     * 
+     * @param renderer_in 
+     */
     explicit DebugUI(render::SarahRenderer& renderer_in);
 
     ~DebugUI();
@@ -63,6 +67,8 @@ private:
 
     void create_font_texture();
 
+    void handle_debug_input();
+
     void draw_editor_menu();
 
     eastl::ring_buffer<float> frame_time_samples;
@@ -82,7 +88,7 @@ private:
     void draw_scene_unload_confirmation();
 
     eastl::vector<char> new_scene_name;
-    void draw_world_and_scene_window();
+    void draw_world_info_window();
 
     eastl::unordered_map<std::filesystem::path, bool> is_directory_open;
 
@@ -100,9 +106,9 @@ private:
     entt::handle selected_entity = {};
     bool show_entity_editor = false;
 
-    void draw_entity_editor_window();
+    void draw_entity_editor_window() const;
 
-    void draw_guizmos(entt::handle entity);
+    static void draw_guizmos(entt::handle entity);
 
     static bool draw_component_helper(
         entt::entity entity, entt::meta_any instance, const entt::meta_custom& custom, bool readonly, int& gui_id

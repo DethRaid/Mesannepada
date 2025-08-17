@@ -2,8 +2,11 @@
 
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
+#include <spdlog/spdlog.h>
+#include <tracy/Tracy.hpp>
 
 void AnimationEventSampler::tick(const float time) {
+    ZoneScopedN("AnimationEventSampler::tick");
     const auto local_time = time - start_time;
     auto index = current_index;
 
@@ -23,46 +26,55 @@ bool AnimationEventSampler::is_ended(const float time) const {
     return local_time > timeline->timestamps.back();
 }
 
-bool NodeAnimator::has_animation_ended(const float time) const {
-    const auto local_time = time - start_time;
+float NodeAnimator::get_duration() const {
+    float duration = 0;
 
-    auto position_ended = true;
     if(position_sampler) {
-        if(local_time < position_sampler->timeline->timestamps.back()) {
-            position_ended = false;
-        }
+        duration = eastl::max(duration, position_sampler->timeline->timestamps.back());
     }
-    auto rotation_ended = true;
     if (rotation_sampler) {
-        if (local_time < rotation_sampler->timeline->timestamps.back()) {
-            rotation_ended = false;
-        }
+        duration = eastl::max(duration,  rotation_sampler->timeline->timestamps.back());
     }
-    auto scale_ended = true;
     if (scale_sampler) {
-        if (local_time < scale_sampler->timeline->timestamps.back()) {
-            scale_ended = false;
+        duration = eastl::max(duration,  scale_sampler->timeline->timestamps.back());
+    }
+
+    return duration;
+}
+
+bool NodeAnimator::has_animation_ended(const float time) const {
+    if(position_sampler) {
+        if(time < position_sampler->timeline->timestamps.back()) {
+            return false;
         }
     }
-    return position_ended && rotation_ended && scale_ended;
+    if (rotation_sampler) {
+        if (time < rotation_sampler->timeline->timestamps.back()) {
+            return false;
+        }
+    }
+    if (scale_sampler) {
+        if (time < scale_sampler->timeline->timestamps.back()) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 float4x4 NodeAnimator::sample(const float time) {
-    const auto local_time = time - start_time;
-
     float4x4 transform{1.f};
     if(position_sampler) {
-        const auto position = position_sampler->sample(local_time);
+        const auto position = position_sampler->sample(time);
         transform = glm::translate(transform, position);
-        // spdlog::debug("Position: {}, {}, {}", position.x, position.y, position.z);
     }
     if(rotation_sampler) {
-        const auto rotation = rotation_sampler->sample(local_time);
-        const auto euler_rotation = glm::eulerAngles(rotation);
+        const auto rotation = rotation_sampler->sample(time);
         transform = transform * glm::mat4_cast(rotation);
+        // spdlog::debug("rotation: {} + {}i + {}j + {}k", rotation.w, rotation.x, rotation.y, rotation.z);
     }
     if(scale_sampler) {
-        const auto scale = scale_sampler->sample(local_time);
+        const auto scale = scale_sampler->sample(time);
         transform = glm::scale(transform, scale);
     }
 
@@ -78,6 +90,7 @@ bool SkeletonAnimator::has_animation_ended(const float time) const {
 }
 
 void SkeletonAnimator::update_bones(const eastl::span<Bone> bones, const float time) {
+    // spdlog::debug("Updating bones at t={}", time);
     for(auto& animator : joint_animators) {
         auto& target_bone = bones[animator.target_node];
         target_bone.local_transform = animator.sample(time);

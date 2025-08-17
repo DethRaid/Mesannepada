@@ -44,6 +44,8 @@ namespace render {
          */
         void add_copy_pass(const ImageCopyPass& pass);
 
+        void add_clear_pass(BufferHandle buffer, uint32_t clear_value = 0, uint32_t offset = 0, uint32_t num_bytes = 4);
+
         /**
          * Adds a compute pass to the render graph. This lets you do arbitrary work in the execute function of your pass,
          * as opposed to add_compute_dispatch which only dispatches a compute shader

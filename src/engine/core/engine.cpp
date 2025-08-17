@@ -131,7 +131,7 @@ void Engine::update_resolution() const {
 }
 
 void Engine::tick() {
-    ZoneScoped;
+    ZoneScopedN("Engine::tick");
 
     update_time();
 
@@ -161,7 +161,7 @@ void Engine::tick() {
 
     animation_system.tick(delta_time);
 
-    world.propagate_transforms(delta_time);
+    world.tick(delta_time);
 
     // UI
 
@@ -260,7 +260,7 @@ void Engine::create_scene(const eastl::string& name) {
 
 bool Engine::load_scene(const eastl::string& name) {
     try {
-        const auto scene_file_path = ResourcePath{eastl::string{"game://scenes/"} +  name};
+        const auto scene_file_path = ResourcePath::game(std::filesystem::path{"scenes"} /  name.c_str());
         auto scene = Scene::load_from_file(scene_file_path);
         scene.add_new_objects_to_world();
 
@@ -282,12 +282,10 @@ Scene& Engine::get_environment_scene() {
 }
 
 Scene& Engine::get_scene(const eastl::string& name) {
-    logger->debug("Searching for scene {}", name);
     return loaded_scenes.at(name);
 }
 
 const Scene& Engine::get_scene(const eastl::string& name) const {
-    logger->debug("Searching for scene {}", name);
     return loaded_scenes.at(name);
 }
 
@@ -327,8 +325,15 @@ void Engine::update_time() {
                        / 1000000.f;
 }
 
+uint64_t Engine::get_gpu_memory() {
+    const auto& backend = render::RenderBackend::get();
+
+    return backend.get_global_allocator().get_memory_usage();
+}
+
 void Engine::update_perf_tracker() {
     perf_tracker.add_frame_time_sample(get_frame_time());
+    perf_tracker.add_memory_sample(get_gpu_memory());
 }
 
 void Engine::spawn_new_game_objects() {

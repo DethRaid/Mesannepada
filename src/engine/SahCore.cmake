@@ -13,7 +13,7 @@ endif()
 
 # Shaders
 
-set(SHADER_DIR ${CMAKE_CURRENT_LIST_DIR}/shaders)
+set(SAH_SHADER_DIR ${CMAKE_CURRENT_LIST_DIR}/shaders)
 
 # SAH Core
 
@@ -39,6 +39,7 @@ target_compile_definitions(SahCore PUBLIC
         SAH_USE_XESS=$<BOOL:${SAH_USE_XESS}>
         UTF_CPP_CPLUSPLUS=202002
         SAH_USE_IRRADIANCE_CACHE=0
+        SAH_DATA_DIR="${SAH_DATA_DIR}"
         )
 
 if(WIN32)

@@ -298,8 +298,13 @@ namespace render {
     void DirectionalLight::render_shadows(
         RenderGraph& graph, const GBuffer& gbuffer, const RenderWorld& world, const TextureHandle noise
         ) {
+        auto& allocator = RenderBackend::get().get_global_allocator();
+        if(shadow_mask_texture != nullptr && shadow_mask_texture->get_resolution() != gbuffer.depth->get_resolution()) {
+            allocator.destroy_texture(shadow_mask_texture);
+            shadow_mask_texture = nullptr;
+        }
         if(shadow_mask_texture == nullptr) {
-            shadow_mask_texture = RenderBackend::get().get_global_allocator().create_texture(
+            shadow_mask_texture = allocator.create_texture(
                 "sun_shadow_mask",
                 {
                     .format = VK_FORMAT_R8_UNORM,
@@ -323,6 +328,8 @@ namespace render {
             ray_trace_shadows(graph, gbuffer, world, noise);
             break;
 
+        case SunShadowMode::Off:
+            [[fallthrough]];
         default:
             // This page intentionally left blank
             break;
@@ -419,7 +426,7 @@ namespace render {
                                            .bind(gbuffer.depth)
                                            .bind(shadowmap_handle, shadowmap_sampler)
                                            .bind(sun_buffer)
-                                           .bind(world.get_player_view().get_buffer())
+                                           .bind(world.get_player_view().get_constant_buffer())
                                            .build();
 
         graph.add_render_pass({
@@ -468,7 +475,7 @@ namespace render {
                           .build_set(rt_shadow_pipeline, 0)
                           .bind(world.get_primitive_buffer())
                           .bind(sun_buffer)
-                          .bind(world.get_player_view().get_buffer())
+                          .bind(world.get_player_view().get_constant_buffer())
                           .bind(world.get_raytracing_world().get_acceleration_structure())
                           .bind(shadow_mask_texture)
                           .bind(gbuffer.data)
@@ -514,7 +521,7 @@ namespace render {
                                                .build_set(pipeline, 1)
                                                .bind(shadow_mask_texture)
                                                .bind(sun_buffer)
-                                               .bind(view.get_buffer())
+                                               .bind(view.get_constant_buffer())
                                                .build();
 
         commands.bind_descriptor_set(1, sun_descriptor_set);

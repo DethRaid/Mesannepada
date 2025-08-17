@@ -1,6 +1,8 @@
 #include <vulkan/vk_enum_string_helper.h>
 
 #include "render/backend/pipeline_cache.hpp"
+
+#include "core/math_utils.hpp"
 #include "render/backend/pipeline_builder.hpp"
 #include "render/backend/ray_tracing_pipeline.hpp"
 #include "render/backend/render_backend.hpp"
@@ -396,19 +398,6 @@ namespace render {
             }));
     }
 
-    static uint32_t round_up(const uint32_t num, const uint32_t multiple) {
-        if(multiple == 0) {
-            return num;
-        }
-
-        auto remainder = num % multiple;
-        if(remainder == 0) {
-            return num;
-        }
-
-        return num + multiple - remainder;
-    }
-
     RayTracingPipelineHandle PipelineCache::create_ray_tracing_pipeline(const ResourcePath& raygen_shader_path,
                                                                         bool skip_gi_miss_shader
         ) {
@@ -730,7 +719,7 @@ namespace render {
 
         constexpr auto lib_interface = VkRayTracingPipelineInterfaceCreateInfoKHR{
             .sType = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_INTERFACE_CREATE_INFO_KHR,
-            .maxPipelineRayPayloadSize = 32,
+            .maxPipelineRayPayloadSize = 20,
             .maxPipelineRayHitAttributeSize = sizeof(glm::vec2)
         };
 
@@ -766,7 +755,7 @@ namespace render {
 
         auto shader_group_handles = eastl::vector<uint8_t>{};
 
-        const auto hit_table_size = round_up(groups.size() * shader_group_handle_size, shader_group_alignment);
+        const auto hit_table_size = round_up<uint32_t>(groups.size() * shader_group_handle_size, shader_group_alignment);
         const auto miss_table_size = round_up(shader_group_handle_size * num_miss_shaders, shader_group_alignment);
         const auto raygen_table_size = round_up(shader_group_handle_size, shader_group_alignment);
 

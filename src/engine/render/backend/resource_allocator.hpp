@@ -204,6 +204,8 @@ namespace render {
          */
         void free_resources_for_frame(uint32_t frame_idx);
 
+        uint64_t get_memory_usage() const;
+
         void report_memory_usage() const;
 
         VmaAllocator get_vma() const;

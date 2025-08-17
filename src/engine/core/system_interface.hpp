@@ -47,22 +47,30 @@ public:
 
     void flush_all_loggers();
 
-    std::filesystem::path get_working_directory() const;
-
     /**
      * Gets the folder where compiled shaders live. Usually exe_dir / shaders
      */
     std::filesystem::path get_shaders_folder() const;
 
     /**
-     * Gets the fodler where game data lives. Usually exe_dir / data
+     * Gets the folder where game data lives. Usually exe_dir / data
      */
     std::filesystem::path get_data_folder() const;
 
     /**
-     * Retrieves a writable folder where we can store game data
+     * Retrieves a writable folder where we can store save games
      */
-    std::filesystem::path get_write_folder();
+    std::filesystem::path get_write_folder() const;
+
+    /**
+     * Retrieves a writable folder where we can store config files
+     */
+    std::filesystem::path get_config_folder() const;
+
+    /**
+     * Retrieves a writable folder where we can store cached data
+     */
+    std::filesystem::path get_cache_folder() const;
 
     /**
      * Reads a file in its entirety

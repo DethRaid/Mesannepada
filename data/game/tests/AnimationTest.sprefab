@@ -1,0 +1,9 @@
+{
+    "root_entity": "game://tests/SK_AnimationTest.glb",
+    "components": [
+        {
+            "type": "PlayAnimationComponent",
+            "animation_to_play": "ANIM_bowcycle"
+        }
+    ]
+}

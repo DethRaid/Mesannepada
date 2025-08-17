@@ -6,6 +6,8 @@
 #include <EASTL/unordered_map.h>
 #include <entt/entt.hpp>
 
+#include "render/components/static_mesh_component.hpp"
+
 namespace reflection {
     /**
      * Various traits we can apply in reflection
@@ -35,6 +37,12 @@ namespace entt {
     template<>
     struct meta_sequence_container_traits<eastl::fixed_vector<entt::entity, 16> >
         : basic_meta_sequence_container_traits<eastl::fixed_vector<entt::entity, 16> > {
+    };
+
+
+    template<>
+    struct meta_sequence_container_traits<eastl::fixed_vector<render::StaticMeshPrimitive, 8> >
+        : basic_meta_sequence_container_traits<eastl::fixed_vector<render::StaticMeshPrimitive, 8> > {
     };
 
     template<typename... Args>

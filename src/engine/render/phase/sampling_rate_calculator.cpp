@@ -135,7 +135,7 @@ namespace render {
     };
 
     void VRSAA::create_params_buffer() {
-        auto& backend = RenderBackend::get();
+        const auto& backend = RenderBackend::get();
         auto& allocator = backend.get_global_allocator();
         params_buffer = RenderBackend::get().get_global_allocator().create_buffer(
             "Shading Rate Params",

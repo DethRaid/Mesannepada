@@ -12,6 +12,7 @@
 #include <vulkan/vulkan_core.h>
 #include <glm/vec2.hpp>
 
+#include "shared/prelude.h"
 #include "render/upscaling/upscaler.hpp"
 
 namespace render {
@@ -46,7 +47,8 @@ namespace render {
 
         void evaluate(
             RenderGraph& graph, const SceneView& view, const GBuffer& gbuffer, TextureHandle color_in,
-            TextureHandle color_out, TextureHandle motion_vectors_in, TextureHandle average_exposure_in
+            TextureHandle color_out, TextureHandle motion_vectors_in, TextureHandle average_exposure_in,
+            TextureHandle packed_normals_roughness
         ) override;
 
     private:

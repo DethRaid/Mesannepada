@@ -4,6 +4,9 @@
 #include <sl.h>
 #include <sl_dlss.h>
 #endif
+#if SAH_USE_XESS
+#include <xess/xess.h>
+#endif
 #if SAH_USE_FFX
 #include <ffx_api/ffx_upscale.h>
 #endif
@@ -26,6 +29,10 @@ public:
 
     void set_use_ray_reconstruction(bool use_ray_reconstruction_in);
 
+#if SAH_USE_XESS
+    void set_xess_mode(xess_quality_settings_t xess_quality_setting);
+#endif
+
 #if SAH_USE_FFX
     void set_fsr3_mode(FfxApiUpscaleQualityMode fsr3_mode_in);
 #endif
@@ -45,6 +52,10 @@ public:
 #endif
 
     bool get_ray_reconstruction() const;
+
+#if SAH_USE_XESS
+    xess_quality_settings_t get_xess_mode() const;
+#endif
 
 #if SAH_USE_FFX
     FfxApiUpscaleQualityMode get_fsr3_mode() const;
@@ -83,6 +94,10 @@ private:
 #endif
 
     bool use_ray_reconstruction = false;
+
+#if SAH_USE_XESS
+    xess_quality_settings_t xess_quality_setting = XESS_QUALITY_SETTING_BALANCED;
+#endif
 
 #if SAH_USE_FFX
     FfxApiUpscaleQualityMode fsr3_mode = FFX_UPSCALE_QUALITY_MODE_QUALITY;

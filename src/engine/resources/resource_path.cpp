@@ -58,7 +58,12 @@ eastl::string ResourcePath::to_string() const {
     return eastl::string{::to_string(scope)} + path.string().c_str();
 }
 
-void ResourcePath::parse_from_string(const eastl::string_view str) {
+
+void ResourcePath::parse_from_string(const eastl::string_view raw_string) {
+    auto good_path = eastl::string{raw_string};
+    // Get rid of stinky Windows paths
+    eastl::replace(good_path.begin(), good_path.end(), '\\', '/');
+    auto str = eastl::string_view{good_path};
     if(str.starts_with("file://")) {
         scope = Scope::File;
         path = std::string{str.begin() + 7, str.end()};

@@ -153,6 +153,8 @@ void FirstPersonPlayerComponent::handle_input(
 }
 
 void FirstPersonPlayerComponent::tick(const float delta_time) {
+    ZoneScopedN("FirstPersonPlayerComponent::tick");
+
     // Update character simulation
 
     const auto& physics = Engine::get().get_physics_world();

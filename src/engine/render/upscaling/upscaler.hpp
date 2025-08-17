@@ -24,11 +24,12 @@ namespace render {
 
         virtual void evaluate(
             RenderGraph& graph, const SceneView& view, const GBuffer& gbuffer, TextureHandle color_in,
-            TextureHandle color_out, TextureHandle motion_vectors_in, TextureHandle average_exposure_in
-        ) = 0;
+            TextureHandle color_out, TextureHandle motion_vectors_in, TextureHandle average_exposure_in,
+            TextureHandle denoiser_data
+            ) = 0;
 
     private:
-        HaltonSequence jitter_sequence_x = HaltonSequence{ 2 };
-        HaltonSequence jitter_sequence_y = HaltonSequence{ 3 };
+        HaltonSequence jitter_sequence_x = HaltonSequence{2};
+        HaltonSequence jitter_sequence_y = HaltonSequence{3};
     };
 }
