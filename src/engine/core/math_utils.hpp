@@ -2,7 +2,8 @@
 
 #include <cstdint>
 
-inline uint32_t round_up(const uint32_t num, const uint32_t multiple) {
+template<typename NumType>
+NumType round_up(const NumType num, const NumType multiple) {
     if(multiple == 0) {
         return num;
     }

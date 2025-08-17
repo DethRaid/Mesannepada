@@ -71,7 +71,7 @@ float4x4 NodeAnimator::sample(const float time) {
     if(rotation_sampler) {
         const auto rotation = rotation_sampler->sample(time);
         transform = transform * glm::mat4_cast(rotation);
-        spdlog::debug("rotation: {} + {}i + {}j + {}k", rotation.w, rotation.x, rotation.y, rotation.z);
+        // spdlog::debug("rotation: {} + {}i + {}j + {}k", rotation.w, rotation.x, rotation.y, rotation.z);
     }
     if(scale_sampler) {
         const auto scale = scale_sampler->sample(time);
@@ -90,7 +90,7 @@ bool SkeletonAnimator::has_animation_ended(const float time) const {
 }
 
 void SkeletonAnimator::update_bones(const eastl::span<Bone> bones, const float time) {
-    spdlog::debug("Updating bones at t={}", time);
+    // spdlog::debug("Updating bones at t={}", time);
     for(auto& animator : joint_animators) {
         auto& target_bone = bones[animator.target_node];
         target_bone.local_transform = animator.sample(time);

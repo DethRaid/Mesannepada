@@ -68,7 +68,7 @@ namespace render {
             build_range_infos.reserve(batch_size);
             build_range_info_ptrs.reserve(batch_size);
 
-            auto scratch_buffer_address = round_up(scratch_buffer->address, alignment);
+            auto scratch_buffer_address = round_up<uint64_t>(scratch_buffer->address, alignment);
 
             for (auto job_idx = i; job_idx < i + batch_size; job_idx++) {
                 if (job_idx >= pending_jobs.size()) {

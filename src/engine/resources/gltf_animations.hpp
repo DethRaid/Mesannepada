@@ -131,6 +131,11 @@ void Animation::add_event(float time, FuncType func) {
 
 template<typename T, typename InterpolationFunc>
 T AnimationSampler<T, InterpolationFunc>::sample(float time) {
+    if(time < timeline->timestamps[current_index]) {
+        // If the time has looped around, reset the internal index
+        current_index = 0;
+    }
+
     while(current_index + 1 < timeline->timestamps.size() && time > timeline->timestamps[current_index + 1]) {
         current_index++;
     }
@@ -138,8 +143,6 @@ T AnimationSampler<T, InterpolationFunc>::sample(float time) {
     if(current_index + 1 >= timeline->timestamps.size()) {
         current_index = 0;
     }
-
-    spdlog::debug("Sampling keyframes {} and {}", current_index, current_index + 1);
 
     const auto t = (time - timeline->timestamps[current_index]) /
                    (timeline->timestamps[current_index + 1] - timeline->timestamps[current_index]);

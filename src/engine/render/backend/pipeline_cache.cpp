@@ -755,7 +755,7 @@ namespace render {
 
         auto shader_group_handles = eastl::vector<uint8_t>{};
 
-        const auto hit_table_size = round_up(groups.size() * shader_group_handle_size, shader_group_alignment);
+        const auto hit_table_size = round_up<uint32_t>(groups.size() * shader_group_handle_size, shader_group_alignment);
         const auto miss_table_size = round_up(shader_group_handle_size * num_miss_shaders, shader_group_alignment);
         const auto raygen_table_size = round_up(shader_group_handle_size, shader_group_alignment);
 

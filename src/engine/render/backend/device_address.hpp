@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <vulkan/vulkan_core.h>
 
 namespace render {
     struct DeviceAddress {
