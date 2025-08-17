@@ -43,25 +43,23 @@ float NodeAnimator::get_duration() const {
 }
 
 bool NodeAnimator::has_animation_ended(const float time) const {
-    auto position_ended = true;
     if(position_sampler) {
         if(time < position_sampler->timeline->timestamps.back()) {
-            position_ended = false;
+            return false;
         }
     }
-    auto rotation_ended = true;
     if (rotation_sampler) {
         if (time < rotation_sampler->timeline->timestamps.back()) {
-            rotation_ended = false;
+            return false;
         }
     }
-    auto scale_ended = true;
     if (scale_sampler) {
         if (time < scale_sampler->timeline->timestamps.back()) {
-            scale_ended = false;
+            return false;
         }
     }
-    return position_ended && rotation_ended && scale_ended;
+
+    return true;
 }
 
 float4x4 NodeAnimator::sample(const float time) {
