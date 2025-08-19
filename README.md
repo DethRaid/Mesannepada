@@ -1,3 +1,9 @@
+# Project moved
+
+As the project has developed, its storage needs have grown. I've moved it to a private git server so I need not worry about storage space. I'd have done this eventually, but doing it now after Microsoft moved GitHub into the CoreAI department for some reason made a lot of sense
+
+Apologies if you've come here from GP Direct hoping to follow the project. Follow me on BlueSky instead!
+
 # 𒈩𒀭𒉌𒅆𒊒𒁕
 
 Working title: 𒈩𒀭𒉌𒅆𒊒𒁕 (Mesannepada) (r. 2550 - 2525)
